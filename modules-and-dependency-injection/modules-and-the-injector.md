@@ -18,7 +18,7 @@
 
 test/loader\_spec.js
 
-```
+```js
 'use strict';
 
 var setupModuleLoader = require('../src/loader');
@@ -31,6 +31,8 @@ describe('setupModuleLoader', function() {
   });
 });
 ```
+
+
 
 
 
