@@ -8,5 +8,9 @@
 
 > 下载[本章代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter10-expressions-and-watches)
 
+### The angular Global
 
+用过Angular的人都应该接触过全局对象 angular，现在我们应该引入这个对象了。
+
+我们
 
