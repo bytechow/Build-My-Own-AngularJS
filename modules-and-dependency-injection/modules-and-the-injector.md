@@ -127,5 +127,9 @@ function setupModuleLoader(window) {
 }
 ```
 
+### 注册一个模块（Regisering A Module）
+
+做好了基础工作，现在我们终于可以进入正题——注册模块
+
 
 
