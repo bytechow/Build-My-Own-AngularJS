@@ -8,7 +8,7 @@
 
 > 下载[本章代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter10-expressions-and-watches)
 
-### The angular Global
+### 全局对象 angular（The angular Global）
 
 用过Angular的人都应该接触过全局对象 angular，现在是时候引入这个对象了。
 
@@ -32,7 +32,100 @@ describe('setupModuleLoader', function() {
 });
 ```
 
+这个测试假定 loader.js 中存在一个函数 setupModuleLoader，如果调用该函数并传入window对象作为参数，则会生成一个全局对象 angular
 
+接下来就是创建 loader.js ，并让测试通过。
+
+src/loader.js
+
+```js
+'use strict';
+
+function setupModuleLoader(window) {
+  var angular = window.angular = {};
+}
+module.exports = setupModuleLoader;
+```
+
+### 只实例化一次全局对象（Initializing The Global Just Once）
+
+angular 全局对象存储已注册的模块，其本质上也是全局状态的储存器。这意味着我们需要找到管理状态的方法。首先，我们希望单元测试之间互不干扰，这需要在每个单元测试开始之前删除已存在的 angular 全局对象：
+
+```js
+beforeEach(function(){
+  delete window.angular;
+})
+```
+
+另外，在 setupModuleLoader 函数中，我们需要保证 angular 全局对象不会被覆盖，即使我们调用了多次 setupModuleLoader 函数。在测试中，当我们调用 setupModuleLoader 两次时，第一次调用后和第二次调用后访问 angular 全局对象，其结果应该指向同一个对象：
+
+```js
+it('creates angular just once', function() {
+  setupModuleLoader(window);
+  var ng = window.angular;
+  setupModuleLoader(window);
+  expect(window.angular).toBe(ng);
+});
+```
+
+我们可以通过简单的检测来解决这个问题：
+
+```js
+function setupModuleLoader(window) {
+  var angular = (window.angular = window.angular || {});
+}
+```
+
+之后很快我们就再一次使用这种“单例模式”，所以我们先抽象出一个通用的函数 ensure，这个函数将会接收三个参数：一个对象 obj，对象的属性名 name 和一个“”工厂函数“ factory。当对象 obj.name 不存在，才会调用工厂函数产生一个值，并赋值到obj.name：
+
+```js
+function setupModuleLoader(window) {
+  var ensure = function(obj, name, factory) {
+    return obj[name] || (obj[name] = factory());
+  };
+  var angular = ensure(window, 'angular', Object);
+}
+```
+
+这里我们先用 Object 构造函数生成一个空对象，赋值给 angular 全局对象。注意Object\( \) 与 new Object\( \) 在效果上一样的。
+
+### module 方法（The module Method）
+
+我们要介绍的第一个在 angular 全局对象的方法是 module，这个方法将会在本章以及之后的章节被大量使用。首先，我们断然这个方法存在与新创建的 angular 全局对象
+
+test/loader\_spec.js
+
+```js
+it('exposes the angular module function', function() {
+  setupModuleLoader(window);
+  expect(window.angular.module).toBeDefined();
+});
+```
+
+就像全局对象 angular 一样，module 方法也应该是单例的：
+
+```js
+it('exposes the angular module function just once', function() {
+  setupModuleLoader(window);
+  var module = window.angular.module;
+  setupModuleLoader(window);
+  expect(window.angular.module).toBe(module);
+})
+```
+
+现在我们可以重用 ensure 函数：
+
+```js
+function setupModuleLoader(window) {
+  var ensure = function(obj, name, factory) {
+    return obj[name] || (obj[name] = factory());
+  };
+  var angular = ensure(window, 'angular', Object);
+  ensure(angular, 'module', function() {
+    return function() {};
+  });
+}
+```
 
 
 
