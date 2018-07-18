@@ -11,4 +11,5 @@
     * [获取已注册的模块（Getting A Registered Module）](modules-and-dependency-injection/modules-and-the-injector/huo-qu-yi-zhu-ce-de-mo-kuai-ff08-getting-a-registered-module.md)
     * [注射器（The Injector）](modules-and-dependency-injection/modules-and-the-injector/zhu-she-qi-ff08-the-injector.md)
     * [注册常量（Registering A Constant）](modules-and-dependency-injection/modules-and-the-injector/zhu-ce-chang-liang.md)
+    * [注入其他模块（Requiring Other Modules）](modules-and-dependency-injection/modules-and-the-injector/zhu-ru-qi-ta-mo-kuai.md)
 
