@@ -48,5 +48,38 @@ var createModule = function(name, requires, modules) {
 };
 ```
 
-我们需要知道一条通用的规则——模块实际上不持有任何应用组件。他们只是保存创建应用组件的"食谱"（recipes），应用组件实际上被保存在注射器中。
+Angular有一条通用的规则——模块实际上不持有任何应用组件。他们只是保存创建应用组件的"食谱"（recipes），应用组件实际上被保存在注射器中。
+
+换句话说，模块实例中包含一系列任务，如“注册一个常量”，这些任务最终会在注射器加载模块时被执行。这一系统任务在 Angular 中被称作“任务调用队列”（invoke queue）。所有模块都会有一个任务调用队列。
+
+目前，我们会将任务调用队列定义为一个二维数组。即在队列中的每个元素也是一个数组，这个数组包含两个元素：应用组件的类型和注册组件所需的参数。就拿上面的单元测试作为例子，我们要注册一个值为42的常量，其任务队列如下：
+
+```js
+[
+  ['constant', ['aConstant', 42]]
+]
+```
+
+任务队列将会保存在模块实例的 \_invokeQueue（有下划线前缀代表该方法被认为是私有的）方法。我们现在会在 createModule 中新增一个私有数组变量 invokeQueue ，当我们调用 constant 方法时，我们会向 invokeQueue 新增一个任务：
+
+```js
+var createModule = function(name, requires, modules) {
+  if (name === 'hasOwnProperty') {
+    throw 'hasOwnProperty is not a valid module name';
+  }
+  var invokeQueue = [];
+  var moduleInstance = {
+    name: name,
+    requires: requires,
+    constant: function(key, value) {
+      invokeQueue.push(['constant', [key, value]]);
+    },
+    _invokeQueue: invokeQueue
+  };
+  modules[name] = moduleInstance;
+  return moduleInstance;
+};
+```
+
+
 
