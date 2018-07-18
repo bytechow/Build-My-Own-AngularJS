@@ -62,6 +62,8 @@ Angular有一条通用的规则——模块实际上不持有任何应用组件�
 
 任务队列将会保存在模块实例的 \_invokeQueue（有下划线前缀代表该方法被认为是私有的）方法。我们现在会在 createModule 中新增一个私有数组变量 invokeQueue ，当我们调用 constant 方法时，我们会向 invokeQueue 新增一个任务：
 
+src/loader.js
+
 ```js
 var createModule = function(name, requires, modules) {
   if (name === 'hasOwnProperty') {
@@ -79,6 +81,75 @@ var createModule = function(name, requires, modules) {
   modules[name] = moduleInstance;
   return moduleInstance;
 };
+```
+
+当我们创建注射器后，我们应该遍历（数组参数中国中）所有的模块名称，找到对应的模块实例后，再遍历模块实例中的任务队列 \_invokeQueue：
+
+src/injector.js
+
+```js
+'use strict';
+var _ = require('lodash');
+
+function createInjector(modulesToLoad) {
+  _.forEach(modulesToLoad, function(moduleName) {
+    var module = window.angular.module(moduleName);
+    _.forEach(module._invokeQueue, function(invokeArgs) {});
+  });
+  return {};
+}
+module.exports = createInjector;
+```
+
+在注射器中，我们提供了一些方法处理任务队列中的任务。我们将会新建一个 $provide 对象（我们之后会解释为什么叫这个名字）。当我们遍历任务队列，我们先找到第一个任务参数，这个参数就是我们要在 $provide 对象中查找的方法名称（例如“constant“）。查找到了对应的方法后，我们会把第二个任务参数（一个数组）作为参数，对该方法进行调用：
+
+src/injector.js
+
+```js
+function createInjector(modulesToLoad) {
+  var $provide = {
+    constant: function(key, value) {}
+  };
+  _.forEach(modulesToLoad, function(moduleName) {
+    var module = window.angular.module(moduleName);
+    _.forEach(module._invokeQueue, function(invokeArgs) {
+      var method = invokeArgs[0];
+      var args = invokeArgs[1];
+      $provide[method].apply($provide, args);
+    });
+  });
+  return {};
+}
+```
+
+所以，当你对某个模块调用组件注册方法（例如constant），实际上会在创建注射器的过程中以相同的参数调用一个 $provide 中同名方法。当然注册和调用不是同步执行，只有当模块被注射器加载才会发生调用。同时，这也解释了为什么我们会把调用信息放到任务队列中去。
+
+接下来要做的就是注册一个常量的逻辑。不同的应用组件需要不同的初始化逻辑，但它们都有一个共同点—— 一旦被创建，就会被缓存起来。缓存常量非常简单，所以我们从这里入手。接着，我们就可以实现注射器实例的 has 方法，这个方法可以通过 key 值从缓存中查找对应依赖：
+
+src/injector.js
+
+```js
+function createInjector(modulesToLoad) {
+  var cache = {};
+  var $provide = {
+    constant: function(key, value) {
+      cache[key] = value;
+    }
+  };
+  _.forEach(modulesToLoad, function(moduleName) {
+    var module = window.angular.module(moduleName);
+    _.forEach(module._invokeQueue, function(invokeArgs) {
+      var method = invokeArgs[0];
+      var args = invokeArgs[1];
+      $provide[method].apply($provide, args);
+    });
+  });
+  return {
+    has: function(key) {
+      return cache.hasOwnProperty(key);
+    }
+  };
+}
 ```
 
 
