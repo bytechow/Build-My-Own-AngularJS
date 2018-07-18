@@ -152,5 +152,64 @@ function createInjector(modulesToLoad) {
 }
 ```
 
+由于我们在 has 方法里面也用到了 hasOwnProperty 方法检验是否存在对应的缓存，我们需要防止用户使用 hasOwnProperty 作为常量组件的名称：
+
+src/injector\_spec.js
+
+```js
+it('does not allow a constant called hasOwnProperty', function() {
+  var module = window.angular.module('myModule', []);
+  module.constant('hasOwnProperty', false);
+  expect(function() {
+    createInjector(['myModule']);
+  }).toThrow();
+});
+```
+
+我们可以在 $provide 对象的 constant 方法对这种行为进行限制：
+
+src/injector.js
+
+```js
+constant: function(key, value) {
+  if (key === 'hasOwnProperty') {
+    throw 'hasOwnProperty is not a valid constant name!';
+  }
+  cache[key] = value;
+}
+```
+
+注射器除了检查应用组件是否存在，还提供了一个方法 get 用于获取应用组件：
+
+test/injector\_spec.js
+
+```js
+it('can return a registered constant', function() {
+  var module = window.angular.module('myModule', []);
+  module.constant('aConstant', 42);
+  var injector = createInjector(['myModule']);
+  expect(injector.get('aConstant')).toBe(42);
+});
+```
+
+这个方法暂时只是简单地从缓存中获取对应的值：
+
+src/injector.js
+
+```js
+return {
+  has: function(key) {
+    return cache.hasOwnProperty(key);
+  },
+  get: function(key) {
+    return cache[key];
+  }
+};
+```
+
+> 大部分 Angular 依赖注入特性都需要模块加载器和注射器共同协作，模块加载器存在于 loader.js，注射器存在于 injector.js。我们会把大部分依赖注入相关的测试放到 injector\_spec.js，而 loader\_spec.js 只处理模块加载器相关的功能检验。
+
+
+
 
 
