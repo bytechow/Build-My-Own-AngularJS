@@ -12,4 +12,5 @@
     * [注射器（The Injector）](modules-and-dependency-injection/modules-and-the-injector/zhu-she-qi-ff08-the-injector.md)
     * [注册常量（Registering A Constant）](modules-and-dependency-injection/modules-and-the-injector/zhu-ce-chang-liang.md)
     * [注入其他模块（Requiring Other Modules）](modules-and-dependency-injection/modules-and-the-injector/zhu-ru-qi-ta-mo-kuai.md)
+    * 依赖注入（Dependency Injection）
 

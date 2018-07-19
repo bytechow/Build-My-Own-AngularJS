@@ -30,7 +30,7 @@ it('loads the required modules of a module', function() {
   module1.constant('aConstant', 42);
   module2.constant('anotherConstant', 43);
   var injector = createInjector(['myOtherModule']);
-  
+
   expect(injector.has('aConstant')).toBe(true);
   expect(injector.has('anotherConstant')).toBe(true);
 });
@@ -49,7 +49,7 @@ it('loads the transitively required modules of a module', function() {
   module2.constant('anotherConstant', 43);
   module3.constant('aThirdConstant', 44);
   var injector = createInjector(['myThirdModule']);
-  
+
   expect(injector.has('aConstant')).toBe(true);
   expect(injector.has('anotherConstant')).toBe(true);
   expect(injector.has('aThirdConstant')).toBe(true);
@@ -80,7 +80,7 @@ test/injector\_spec.js
 it('loads each module only once', function() {
   window.angular.module('myModule', ['myOtherModule']);
   window.angular.module('myOtherModule', ['myModule']);
-  
+
   createInjector(['myModule']);
 });
 ```
@@ -116,7 +116,7 @@ function createInjector(modulesToLoad) {
       });
     }
   });
-  
+
   return {
     has: function(key) {
       return cache.hasOwnProperty(key);
