@@ -4,7 +4,7 @@
 
 依赖注入的基本思想是：我们会为 injector 增加一个方法，这个方法会对组件函数进行调用，找到函数参数对应的依赖，并注入到该函数中。
 
-那么，注射器是怎么找到组件函数所需的实参是什么呢？最直接的方法就是通过组件函数的 $inject 属性显式地指定依赖项，这个属性是一个包含依赖项 key 值的数组。注射器会通过 key 值找到当前函数依赖的 value 值，value 值就成为组件函数的实参：
+那么，注射器是怎么找到组件函数所需的实参是什么呢？最直接的方法就是通过组件函数的 $inject 属性显式地指定依赖项，这个属性是一个包含依赖项 key 值的数组。注射器会通过 key 值从缓存找到依赖的 value 值，该 value 值就成为组件函数的实参：
 
 test/injector\_spec.js
 
@@ -19,7 +19,7 @@ it('invokes an annotated function with dependency injection', function() {
     return one + two;
   };
   fn.$inject = ['a', 'b'];
-  
+
   expect(injector.invoke(fn)).toBe(3);
 });
 ```
@@ -47,6 +47,7 @@ function createInjector(modulesToLoad) {
     });
     return fn.apply(null, args);
   }
+  
   _.forEach(modulesToLoad, function loadModule(moduleName) {
     if (!loadedModules.hasOwnProperty(moduleName)) {
       loadedModules[moduleName] = true;
@@ -59,7 +60,7 @@ function createInjector(modulesToLoad) {
       });
     }
   });
-  
+
   return {
     has: function(key) {
       return cache.hasOwnProperty(key);
