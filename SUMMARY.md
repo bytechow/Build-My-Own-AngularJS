@@ -15,4 +15,5 @@
     * [拒绝不是字符串的依赖标记（Rejecting Non-String DI Token）](modules-and-dependency-injection/modules-and-the-injector/ju-jue-bu-shi-zi-fu-chuan-de-yilai-biaoji-ff08-rejecting-non-string-di-token.md)
     * [在被注入的函数中绑定 this（Binding this in Injected Functions）](modules-and-dependency-injection/modules-and-the-injector/zai-bei-zhu-ru-de-han-shu-zhong-bang-ding-this-binding-this-in-injected-functions.md)
     * [允许对被注入的函数添加本地变量（Providing Locals to Injected Functions）](modules-and-dependency-injection/modules-and-the-injector/yun-xu-dui-bei-zhu-ru-de-han-shu-tian-jia-ben-di-bianliang-ff08-providing-locals-to-injected-functions.md)
+    * [数组形式的依赖注解（Array-Style Dependency Annotation）](modules-and-dependency-injection/modules-and-the-injector/shu-zu.md)
 
