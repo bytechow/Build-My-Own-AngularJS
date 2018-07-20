@@ -47,7 +47,7 @@ function createInjector(modulesToLoad) {
     });
     return fn.apply(null, args);
   }
-  
+
   _.forEach(modulesToLoad, function loadModule(moduleName) {
     if (!loadedModules.hasOwnProperty(moduleName)) {
       loadedModules[moduleName] = true;
@@ -73,7 +73,5 @@ function createInjector(modulesToLoad) {
 }
 ```
 
-就这样，我们完成了 Angular 中最基本的依赖注入注解方法
-
-
+就这样，我们完成了 Angular 中最基本的依赖注入注解方法。
 

@@ -12,4 +12,5 @@
     * [注册常量（Registering A Constant）](modules-and-dependency-injection/modules-and-the-injector/zhu-ce-chang-liang.md)
     * [注入其他模块（Requiring Other Modules）](modules-and-dependency-injection/modules-and-the-injector/zhu-ru-qi-ta-mo-kuai.md)
     * [依赖注入（Dependency Injection）](modules-and-dependency-injection/modules-and-the-injector/yi-lai-zhu-ru-ff08-dependency-injection.md)
+    * [拒绝不是字符串的依赖标记（Rejecting Non-String DI Token）](modules-and-dependency-injection/modules-and-the-injector/ju-jue-bu-shi-zi-fu-chuan-de-yilai-biaoji-ff08-rejecting-non-string-di-token.md)
 
