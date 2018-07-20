@@ -13,4 +13,5 @@
     * [注入其他模块（Requiring Other Modules）](modules-and-dependency-injection/modules-and-the-injector/zhu-ru-qi-ta-mo-kuai.md)
     * [依赖注入（Dependency Injection）](modules-and-dependency-injection/modules-and-the-injector/yi-lai-zhu-ru-ff08-dependency-injection.md)
     * [拒绝不是字符串的依赖标记（Rejecting Non-String DI Token）](modules-and-dependency-injection/modules-and-the-injector/ju-jue-bu-shi-zi-fu-chuan-de-yilai-biaoji-ff08-rejecting-non-string-di-token.md)
+    * [在被注入的函数中绑定 this（Binding this in Injected Functions）](modules-and-dependency-injection/modules-and-the-injector/zai-bei-zhu-ru-de-han-shu-zhong-bang-ding-this-binding-this-in-injected-functions.md)
 
