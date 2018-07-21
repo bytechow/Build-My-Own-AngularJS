@@ -223,7 +223,7 @@ injector.invoke(function(_aVariable_) {
 
 除了在参数名称两侧加下划线这种情况，下划线在单侧出现，或者在中间出现，都不会触发这个机制：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('strips surrounding underscores from argument names when parsing', function() {
@@ -234,13 +234,13 @@ it('strips surrounding underscores from argument names when parsing', function()
 });
 ```
 
-我们将会把对双侧下划线的这种情况也放到 FN_ARG 正则中处理：
+我们把对双侧下划线的这种情况也放到 FN\_ARG 正则中处理：
 
 ```js
 var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 ```
 
-由于 FN_ARG 的捕获组发生了调整，我们的匹配结果也会发生变化，具体是从匹配结果的第二个数组元素变到了第三个：
+由于 FN\_ARG 的捕获组发生了调整，我们的匹配结果也会发生变化，具体是从匹配结果的第二个数组元素变到了第三个：
 
 src/injector.js
 
@@ -261,3 +261,6 @@ function annotate(fn) {
   }
 }
 ```
+
+
+

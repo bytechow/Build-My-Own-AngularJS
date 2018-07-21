@@ -17,4 +17,5 @@
     * [11-12 在注入时允许附加本地变量](modules-and-dependency-injection/modules-and-the-injector/11-12-providing-locals-to-injected-functions.md)
     * [11-13 行内式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-13-array-style-dependency-annotation.md)
     * [11-14 推断式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-14-dependency-annotation-from-function-arguments.md)
+    * 11-15-strict-mode
 
