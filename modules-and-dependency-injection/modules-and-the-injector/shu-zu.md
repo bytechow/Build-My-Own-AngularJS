@@ -1,4 +1,4 @@
-### 声明式行内式注解（Array-Style Dependency Annotation）
+### 行内式依赖（Array-Style Dependency Annotation）
 
 你可能不太喜欢使用 $inject 这么啰嗦的注解方式，幸亏 Angular 提供了一种更简洁的方式。我们可以用数组代替函数进行注解，在这个数组中，除了最后一个元素是被注入的函数，前面的数组元素都代表了一个依赖名：
 
@@ -94,7 +94,7 @@ test/injector\_spec.js
 it('returns the array-style annotations of a function', function() {
   var injector = createInjector([]);
   var fn = ['a', 'b', function() {}];
-  
+
   expect(injector.annotate(fn)).toEqual(['a', 'b']);
 });
 ```
