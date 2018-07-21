@@ -7,7 +7,7 @@
     * [11.2 单例化](modules-and-dependency-injection/modules-and-the-injector/11.02-initializing-the-global-just-once.md)
     * [11.3 module方法](modules-and-dependency-injection/modules-and-the-injector/11.03-the-module-method.md)
     * [11.4 注册模块](modules-and-dependency-injection/modules-and-the-injector/11.04-regisering-a-module.md)
-    * [11.5 获取注册模块](modules-and-dependency-injection/modules-and-the-injector/11.05-getting-a-registered-module.md)
+    * [11.5 获取已注册的模块](modules-and-dependency-injection/modules-and-the-injector/11.05-getting-a-registered-module.md)
     * [11.6 注射器](modules-and-dependency-injection/modules-and-the-injector/11.06-the-injector.md)
     * [11.7 注册常量](modules-and-dependency-injection/modules-and-the-injector/11.07-registering-a-constant.md)
     * [11.8 引入其他模块](modules-and-dependency-injection/modules-and-the-injector/11.08-requiring-other-modules.md)
