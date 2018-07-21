@@ -16,6 +16,5 @@
     * [11-11 在注入时允许绑定this](modules-and-dependency-injection/modules-and-the-injector/11-11-binding-this-in-injected-functions.md)
     * [11-12 在注入时允许附加本地变量](modules-and-dependency-injection/modules-and-the-injector/11-12-providing-locals-to-injected-functions.md)
     * [11-13 行内式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-13-array-style-dependency-annotation.md)
-
-
+    * [11-14-dependency-annotation-from-function-arguments](modules-and-dependency-injection/modules-and-the-injector/11-14-dependency-annotation-from-function-arguments.md)
 
