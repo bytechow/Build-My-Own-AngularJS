@@ -221,5 +221,43 @@ injector.invoke(function(_aVariable_) {
 
 > _译者注_：如果有一个本地变量b，我们需要在注射器函数中使用依赖b对本地变量b 进行赋值，我们可以在函数中传入形参 “\_b\_”，过滤下划线后我们可以顺利地获取到依赖 b 对应的缓存值 bValue，形参 “\_b\_”在函数被调用时自然被赋值为 bValue，因为名称不相同，"b = \_b\_" 可以完成需求。相反，如果我们不使用这种特殊处理方式，“b = b”的操作将毫无作用
 
-除了
+除了在参数名称两侧加下划线这种情况，下划线在单侧出现，或者在中间出现，都不会触发这个机制：
 
+test/injector_spec.js
+
+```js
+it('strips surrounding underscores from argument names when parsing', function() {
+  var injector = createInjector([]);
+  var fn = function(a, _b_, c_, _d, an_argument) { };
+
+  expect(injector.annotate(fn)).toEqual(['a', 'b', 'c_', '_d', 'an_argument']);
+});
+```
+
+我们将会把对双侧下划线的这种情况也放到 FN_ARG 正则中处理：
+
+```js
+var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
+```
+
+由于 FN_ARG 的捕获组发生了调整，我们的匹配结果也会发生变化，具体是从匹配结果的第二个数组元素变到了第三个：
+
+src/injector.js
+
+```js
+function annotate(fn) {
+  if (_.isArray(fn)) {
+    return fn.slice(0, fn.length - 1);
+  } else if (fn.$inject) {
+    return fn.$inject;
+  } else if (!fn.length) {
+    return [];
+  } else {
+    var source = fn.toString().replace(STRIP_COMMENTS, '');
+    var argDeclaration = source.match(FN_ARGS);
+    return _.map(argDeclaration[1].split(','), function(argName) {
+      return argName.match(FN_ARG)[2];
+    });
+  }
+}
+```
