@@ -9,7 +9,7 @@
     * [11.4 注册模块](modules-and-dependency-injection/modules-and-the-injector/11.04-regisering-a-module.md)
     * [11.5 获取注册模块](modules-and-dependency-injection/modules-and-the-injector/11.05-getting-a-registered-module.md)
     * [11.6 注射器](modules-and-dependency-injection/modules-and-the-injector/11.06-the-injector.md)
-    * [11.7 注册一个常量](modules-and-dependency-injection/modules-and-the-injector/11.07-registering-a-constant.md)
+    * [11.7 注册常量](modules-and-dependency-injection/modules-and-the-injector/11.07-registering-a-constant.md)
     * [11.8 引入其他模块](modules-and-dependency-injection/modules-and-the-injector/11.08-requiring-other-modules.md)
     * [11.9 声明式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11.09-dependency-injection.md)
     * [11.10 禁止使用非字符串的依赖名称](modules-and-dependency-injection/modules-and-the-injector/11.10-rejecting-non-string-di-token.md)
