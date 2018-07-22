@@ -20,4 +20,5 @@
     * [11-15 严格模式](modules-and-dependency-injection/modules-and-the-injector/11-15-strict-mode.md)
     * [11-16 在调用过程中使用注解](modules-and-dependency-injection/modules-and-the-injector/11-16-integrating-annotation-with-invocation.md)
     * [11-17-instantiating-objects-with-dependency-injection](modules-and-dependency-injection/modules-and-the-injector/11-17-instantiating-objects-with-dependency-injection.md)
+    * [11-18-summary](modules-and-dependency-injection/modules-and-the-injector/11-18-summary.md)
 
