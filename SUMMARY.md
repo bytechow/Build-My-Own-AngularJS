@@ -18,5 +18,5 @@
     * [11-13 行内式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-13-array-style-dependency-annotation.md)
     * [11-14 推断式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-14-dependency-annotation-from-function-arguments.md)
     * [11-15 严格模式](modules-and-dependency-injection/modules-and-the-injector/11-15-strict-mode.md)
-    * [11-16-integrating-annotation-with-invocation](modules-and-dependency-injection/modules-and-the-injector/11-16-integrating-annotation-with-invocation.md)
+    * [11-16 在调用过程中使用注解](modules-and-dependency-injection/modules-and-the-injector/11-16-integrating-annotation-with-invocation.md)
 
