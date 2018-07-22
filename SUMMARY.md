@@ -19,6 +19,6 @@
     * [11-14 推断式依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-14-dependency-annotation-from-function-arguments.md)
     * [11-15 严格模式](modules-and-dependency-injection/modules-and-the-injector/11-15-strict-mode.md)
     * [11-16 在调用过程中使用注解](modules-and-dependency-injection/modules-and-the-injector/11-16-integrating-annotation-with-invocation.md)
-    * [11-17-instantiating-objects-with-dependency-injection](modules-and-dependency-injection/modules-and-the-injector/11-17-instantiating-objects-with-dependency-injection.md)
-    * [11-18-summary](modules-and-dependency-injection/modules-and-the-injector/11-18-summary.md)
+    * [11-17 对构造函数使用依赖注入](modules-and-dependency-injection/modules-and-the-injector/11-17-instantiating-objects-with-dependency-injection.md)
+    * [11-18 本章总结](modules-and-dependency-injection/modules-and-the-injector/11-18-summary.md)
 
