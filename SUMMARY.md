@@ -23,4 +23,5 @@
     * [11-18 本章总结](modules-and-dependency-injection/11-modules-and-the-injector/11-18-summary.md)
   * [第12章 providers](modules-and-dependency-injection/12-providers/12-providers.md)
     * [12-1 最简单的provider——一个包含$get方法的对象](modules-and-dependency-injection/12-providers/12-1-the-simplest-possible-provider-an-object-with-a-get-method.md)
+    * [12-2](modules-and-dependency-injection/12-providers/12-2.md)
 
