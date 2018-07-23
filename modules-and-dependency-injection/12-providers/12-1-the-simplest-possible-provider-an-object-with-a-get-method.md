@@ -1,0 +1,1 @@
+### 最简单的provider——一个包含$get方法的对象（The Simplest Possible Provider: An Object with A $get Method）
