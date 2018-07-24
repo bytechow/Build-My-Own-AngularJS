@@ -1,4 +1,4 @@
-### 依赖的懒实例化（Lazy Instantiation of Dependencies）
+### 依赖的懒加载（Lazy Instantiation of Dependencies）
 
 有依赖包含依赖的情况存在，我们就需要考虑依赖加载顺序的问题。我们创建一个依赖时，该依赖所包含的依赖是否都已经可用了？思考下面的用例，当组件 b 依赖组件 a ，但 a 在 b 之后注册：
 
@@ -37,5 +37,23 @@ function createInjector(modulesToLoad, strictDi) {
 }
 ```
 
+然后在 $provider 对象中，我们将 constant 放在 instanceCache，将 provider 放到 providerCache。当接收到一个 provider，我们以 provider 名称再加上后缀 “Provider”作为 key 进行存储，这样我们就能从命名上起到区分的作用：
 
+src/injector.js
+
+```js
+var $provide = {
+  constant: function(key, value) {
+    if (key === 'hasOwnProperty') {
+      throw 'hasOwnProperty is not a valid constant name!';
+    }
+    instanceCache[key] = value;
+  },
+  provider: function(key, provider) {
+    providerCache[key + 'Provider'] = provider;
+  }
+};
+```
+
+当真正需要 provider 生成依赖值时（要么被依赖注入，要么是直接访问），我们需要检索这两个缓存。
 
