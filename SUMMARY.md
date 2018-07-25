@@ -23,8 +23,8 @@
     * [11-18 本章总结](modules-and-dependency-injection/11-modules-and-the-injector/11-18-summary.md)
   * [第12章 providers](modules-and-dependency-injection/12-providers/12-providers.md)
     * [12-1 最简单的provider——一个包含$get方法的对象](modules-and-dependency-injection/12-providers/12-1-the-simplest-possible-provider-an-object-with-a-get-method.md)
-    * [12-2-injecting-dependencies-to-the-$get-method](modules-and-dependency-injection/12-providers/12-2-injecting-dependencies-to-the-$get-method.md)
-    * [12-3-lazy-instantiation-of-dependencies](modules-and-dependency-injection/12-providers/12-3-lazy-instantiation-of-dependencies.md)
+    * [12-2 对 $get 方法注入依赖](modules-and-dependency-injection/12-providers/12-2-injecting-dependencies-to-the-$get-method.md)
+    * [12-3 依赖的懒加载](modules-and-dependency-injection/12-providers/12-3-lazy-instantiation-of-dependencies.md)
   * [13](modules-and-dependency-injection/13/13.md)
     * [13-1](modules-and-dependency-injection/13/13-1.md)
 
