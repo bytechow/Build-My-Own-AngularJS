@@ -55,5 +55,60 @@ var $provide = {
 };
 ```
 
-当真正需要 provider 生成依赖值时（要么被依赖注入，要么是直接访问），我们需要检索这两个缓存。
+当真正需要 provider 生成依赖值时（要么被依赖注入，要么是直接访问），我们需要检索这两个缓存。让我们在 createInjector 里新建一个内部方法 getService 完成这项工作。如果调用函数时传入一个依赖名称，我们会先检索依赖实例缓存（instance cache），若没有找到，然后再检索 provider 缓存。如果检索到的是一个 provider，那么就会像之前那样使用 invoke 方法进行调用：
+
+src/injector.js
+
+```js
+function getService(name) {
+  if (instanceCache.hasOwnProperty(name)) {
+    return instanceCache[name];
+  } else if (providerCache.hasOwnProperty(name + 'Provider')) {
+    var provider = providerCache[name + 'Provider'];
+    return invoke(provider.$get, provider);
+  }
+}
+```
+
+现在，在 invoke 方法里面我们也要使用 getService 方法代替直接的对象属性查找了：
+
+src/injector.js
+
+```js
+function invoke(fn, self, locals) {
+  var args = _.map(annotate(fn), function(token) {
+    if (_.isString(token)) {
+      return locals && locals.hasOwnProperty(token) ?
+        locals[token] :
+        getService(token);
+    } else {
+      throw 'Incorrect injection token! Expected a string, got ' + token;
+    }
+  });
+  if (_.isArray(fn)) {
+    fn = _.last(fn);
+  }
+  return fn.apply(self, args);
+}
+```
+
+同样，其他依赖属性检索的接口也要跟着变动，比如 has 和 get 方法：
+
+src/injector.js
+
+```js
+return {
+  has: function(key) {
+    return instanceCache.hasOwnProperty(key) ||
+      providerCache.hasOwnProperty(key + 'Provider');
+  },
+  get: getService,
+  annotate: annotate,
+  invoke: invoke
+};
+```
+
+从上面的代码实现，我们知道了只有当被注入过或者被显式调用过，provider 依赖才会被实例化。如果没有任何地方对依赖进行获取，这个依赖的 $get 方法将不会被执行，也就不会生成依赖了。
+
+你可以通过 injector.has 方法检查依赖是否已注册，但不能保证这个依赖已经被实例化了，毕竟有可能找到的是一个 provider。
 
