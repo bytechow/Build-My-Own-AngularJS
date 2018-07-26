@@ -26,7 +26,7 @@
     * [12-2 对 $get 方法注入依赖](modules-and-dependency-injection/12-providers/12-2-injecting-dependencies-to-the-$get-method.md)
     * [12-3 依赖的懒加载](modules-and-dependency-injection/12-providers/12-3-lazy-instantiation-of-dependencies.md)
     * [12-4 保证一切皆单例](modules-and-dependency-injection/12-providers/12-4-making-sure-everything-is-a-singleton.md)
-    * [12-5-circular-dependencies](modules-and-dependency-injection/12-providers/12-5-circular-dependencies.md)
+    * [12-5 处理循环依赖的问题](modules-and-dependency-injection/12-providers/12-5-circular-dependencies.md)
   * [13](modules-and-dependency-injection/13/13.md)
     * [13-1](modules-and-dependency-injection/13/13-1.md)
 
