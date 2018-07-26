@@ -1,8 +1,8 @@
 ### 处理循环依赖问题（Circular Dependencies）
 
-既然我们支持依赖注入其它依赖，我们就可能会遇到循环依赖问题。假设A依赖B，B依赖C，C又依赖A，一旦我们构建依赖就会陷入死循环，最终抛出堆栈溢出的错误。但是我们希望有一个更清晰的错误提示：
+既然支持依赖注入其它依赖，我们就可能会遇到循环依赖问题。假设A依赖B，B依赖C，C又依赖A，一旦我们构建依赖就会陷入死循环，最终抛出堆栈溢出的错误。但是我们希望有一个更清晰的错误提示：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```
 it('notifes the user about a circular dependency', function() {
@@ -35,3 +35,28 @@ var FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
 var STRIP_COMMENTS = /(\/\/.*$)|(\/\*.*?\*\/)/mg;
 var INSTANTIATING = { };
 ```
+
+在 getService 函数中，我们会在调用 $provider 之前在对应的实例依赖放入标识，并在每次调用 getService 时先检查对应的实例依赖是否已经被标记，若已经被标记，则说明出现了循环依赖：
+
+src/injector.js
+
+```js
+function getService(name) {
+  if (instanceCache.hasOwnProperty(name)) {
+    if (instanceCache[name] === INSTANTIATING) {
+      throw new Error('Circular dependency found');
+    }
+    return instanceCache[name];
+  } else if (providerCache.hasOwnProperty(name + 'Provider')) {
+    instanceCache[name] = INSTANTIATING;
+    var provider = providerCache[name + 'Provider'];
+    var instance = instanceCache[name] = invoke(provider.$get);
+    return instance;
+  }
+}
+```
+
+然后当
+
+
+
