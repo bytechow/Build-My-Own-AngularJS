@@ -28,6 +28,7 @@
     * [12-4 保证一切皆单例](modules-and-dependency-injection/12-providers/12-4-making-sure-everything-is-a-singleton.md)
     * [12-5 处理循环依赖的问题](modules-and-dependency-injection/12-providers/12-5-circular-dependencies.md)
     * [12-6 Provider构造函数](modules-and-dependency-injection/12-providers/12-6-provider-constructors.md)
+    * [12-7-two-injectors-the-provider-injector-and-the-instance-injector](modules-and-dependency-injection/12-providers/12-7-two-injectors-the-provider-injector-and-the-instance-injector.md)
   * [13](modules-and-dependency-injection/13/13.md)
     * [13-1](modules-and-dependency-injection/13/13-1.md)
 
