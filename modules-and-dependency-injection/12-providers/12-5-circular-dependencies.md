@@ -4,7 +4,7 @@
 
 test/injector\_spec.js
 
-```
+```js
 it('notifes the user about a circular dependency', function() {
   var module = window.angular.module('myModule', []);
   module.provider('a', {
