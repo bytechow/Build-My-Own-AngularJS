@@ -65,5 +65,81 @@ function getService(name) {
 
 > 译者注: provider 构造函数没有懒加载，当其实例化时，其依赖的 instance 可能还没有被生成出来，所以 provider 构造函数不能注入 instance
 
+test/injector_spec.js
 
+```js
+it('does not inject an instance to a provider constructor function', function() {
+  var module = window.angular.module('myModule', []);
+  module.provider('a', function AProvider() {
+    this.$get = function() {
+      return 1;
+    };
+  });
+  module.provider('b', function BProvider(a) {
+    this.$get = function() {
+      return a;
+    };
+  });
+  expect(function() {
+    createInjector(['myModule']);
+  }).toThrow();
+});
+```
 
+当你使用 provider 构造函数时，就仅允许注入 provider，而非 instance。
+
+相反，当你使用 $get、injector.invoke()、injector.get()，就不允许注入 provider。
+
+test/injector.js
+
+```js
+it('does not inject a provider to a $get function', function() {
+  var module = window.angular.module('myModule', []);
+  module.provider('a', function AProvider() {
+    this.$get = function() {
+      return 1;
+    };
+  });
+  module.provider('b', function BProvider() {
+    this.$get = function(aProvider) {
+      return aProvider.$get();
+    };
+  });
+  var injector = createInjector(['myModule']);
+  expect(function() {
+    injector.get('b');
+  }).toThrow();
+});
+```
+
+```js
+it('does not inject a provider to invoke', function() {
+  var module = window.angular.module('myModule', []);
+  module.provider('a', function AProvider() {
+    this.$get = function() {
+      return 1;
+    }
+  });
+  var injector = createInjector(['myModule']);
+  expect(function() {
+    injector.invoke(function(aProvider) {});
+  }).toThrow();
+});
+```
+
+```js
+it('does not give access to providers through get', function() {
+  var module = window.angular.module('myModule', []);
+  module.provider('a', function AProvider() {
+    this.$get = function() {
+      return 1;
+    };
+  });
+  var injector = createInjector(['myModule']);
+  expect(function() {
+    injector.get('aProvider');
+  }).toThrow();
+});
+```
+
+我们建立的这些测试都是为了让我们更好地区分两种依赖注入：
