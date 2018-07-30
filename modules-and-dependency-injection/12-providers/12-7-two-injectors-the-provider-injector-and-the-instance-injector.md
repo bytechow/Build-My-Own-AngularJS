@@ -59,7 +59,11 @@ function getService(name) {
 }
 ```
 
-现在
+现在我们检索 providerCache 可能有两个不同的目的：查找缓存中的 provider 并生成依赖值，或者就是要获取 provider 本身。
+
+但上面的解决方案太简单粗暴了。仔细想想，我们不可能将 provider 或者 instance 在任意地方注入。例如，你可以注入 provider 到一个 provider 构造函数中，但不可以注入 instance:
+
+> 译者注: provider 构造函数没有懒加载，当其实例化时，其依赖的 instance 可能还没有被生成出来，所以 provider 构造函数不能注入 instance
 
 
 
