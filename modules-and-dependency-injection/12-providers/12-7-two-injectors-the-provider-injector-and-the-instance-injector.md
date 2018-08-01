@@ -263,7 +263,7 @@ function createInternalInjector(cache, factoryFn) {
 
 除了以上三个函数需要搬迁，annotate 方法不需要变动。而 has 方法除了要查找对应的依赖缓存空间，也要查找 provider 缓存。
 
-现在我们就可以利用 createInternalInjector 来创建两个注射器。providerInjecctor 负责处理 provider 缓存。它的回退函数（factoryFn）将会抛出一个异常，告诉我们依赖查找不到：
+现在我们就可以利用 createInternalInjector 来创建两个注射器。providerInjecctor 负责处理 provider 缓存。它的工厂函数（factoryFn）将会抛出一个异常，告诉我们依赖查找不到：
 
 src/injector.js
 
@@ -277,5 +277,179 @@ function createInjector(modulesToLoad) {
 }
 ```
 
+对于 instance injector，它的工厂函数会查找 provider 并生成依赖。这实际上就是之前我们在 getService 的 else 分支做的“简单方案”：
 
+src/injector.js
 
+```js
+function createInjector(modulesToLoad) {
+  var providerCache = {};
+  var providerInjector = createInternalInjector(providerCache, function() {
+    throw 'Unknown provider: ' + path.join(' <- ');
+  });
+  var instanceCache = {};
+  var instanceInjector = createInternalInjector(instanceCache, function(name) {
+    var provider = providerInjector.get(name + 'Provider');
+    return instanceInjector.invoke(provider.$get, provider);
+  });
+  // ...
+}
+```
+
+注意到了吗？我们使用 providerInjector 查找 provider，但是使用 instanceInjector.invoke 来调用 provider 的 $get 方法，我们这样可以保证只有实例会被注入到 $get 中。
+
+另外，我们会使用 providerInjector.instantiate 来实例化 provider 构造函数，这样我们就能保证我们只能注入其他 provider:
+
+src/injector.js
+
+```js
+provider: function(key, provider) {
+  if (_.isFunction(provider)) {
+    provider = providerInjector.instantiate(provider);
+  }
+  providerCache[key + 'Provider'] = provider;
+}
+```
+
+常量是一个例外，我们应该能够在两个缓存中都能找到常量：
+
+src/injector.js
+
+```js
+constant: function(key, value) {
+  if (key === 'hasOwnProperty') {
+    throw 'hasOwnProperty is not a valid constant name!';
+  }
+  providerCache[key] = value;
+  instanceCache[key] = value;
+},
+```
+
+最后，我们会返回 instanceInjector 作为 createInjector 的结果值。
+
+下面是 createInjector 的全部代码：
+
+src/injector.js
+
+```js
+function createInjector(modulesToLoad, strictDi) {
+  var providerCache = {};
+  var providerInjector = createInternalInjector(providerCache, function() {
+    throw 'Unknown provider: ' + path.join(' <- ');
+  });
+  var instanceCache = {};
+  var instanceInjector = createInternalInjector(instanceCache, function(name) {
+    var provider = providerInjector.get(name + 'Provider');
+    return instanceInjector.invoke(provider.$get, provider);
+  });
+  var loadedModules = {};
+  var path = [];
+  strictDi = (strictDi === true);
+  var $provide = {
+    constant: function(key, value) {
+      if (key === 'hasOwnProperty') {
+        throw 'hasOwnProperty is not a valid constant name!';
+      }
+      providerCache[key] = value;
+      instanceCache[key] = value;
+    },
+    provider: function(key, provider) {
+      if (_.isFunction(provider)) {
+        provider = providerInjector.instantiate(provider);
+      }
+      providerCache[key + 'Provider'] = provider;
+    }
+  };
+
+  function annotate(fn) {
+    if (_.isArray(fn)) {
+      return fn.slice(0, fn.length - 1);
+    } else if (fn.$inject) {
+      return fn.$inject;
+    } else if (!fn.length) {
+      return [];
+    } else {
+      var source = fn.toString().replace(STRIP_COMMENTS, '');
+      var argDeclaration = source.match(FN_ARGS);
+      return _.map(argDeclaration[1].split(','), function(argName) {
+        return argName.match(FN_ARG)[2];
+      });
+    }
+  }
+
+  function createInternalInjector(cache, factoryFn) {
+    function getService(name) {
+      if (cache.hasOwnProperty(name)) {
+        if (cache[name] === INSTANTIATING) {
+          throw new Error('Circular dependency found: ' +
+            name + ' <- ' + path.join(' <- '));
+        }
+        return cache[name];
+      } else {
+        path.unshift(name);
+        cache[name] = INSTANTIATING;
+        try {
+          return (cache[name] = factoryFn(name));
+        }
+        fnally {
+          path.shift();
+          if (cache[name] === INSTANTIATING) {
+            delete cache[name]
+          }
+        }
+      }
+    }
+
+    function invoke(fn, self, locals) {
+      var args = _.map(annotate(fn), function(token) {
+        if (_.isString(token)) {
+          return locals && locals.hasOwnProperty(token) ?
+            locals[token] :
+            getService(token);
+        } else {
+          throw 'Incorrect injection token! Expected a string, got ' + token;
+        }
+      });
+      if (_.isArray(fn)) {
+        fn = _.last(fn);
+      }
+      return fn.apply(self, args);
+    }
+
+    function instantiate(Type, locals) {
+      var UnwrappedType = _.isArray(Type) ? _.last(Type) : Type;
+      var instance = Object.create(UnwrappedType.prototype);
+      invoke(Type, instance, locals);
+      return instance;
+    }
+    return {
+      has: function(name) {
+        return cache.hasOwnProperty(name) ||
+          providerCache.hasOwnProperty(name + 'Provider');
+      },
+      get: getService,
+      annotate: annotate,
+      invoke: invoke,
+      instantiate: instantiate
+    };
+  }
+  _.forEach(modulesToLoad, function loadModule(moduleName) {
+    if (!loadedModules.hasOwnProperty(moduleName)) {
+      loadedModules[moduleName] = true;
+      var module = window.angular.module(moduleName);
+      _.forEach(module.requires, loadModule);
+      _.forEach(module._invokeQueue, function(invokeArgs) {
+        var method = invokeArgs[0];
+        var args = invokeArgs[1];
+        $provide[method].apply($provide, args);
+      });
+    }
+  })
+  return instanceInjector;
+}
+```
+
+我们现在实现了依赖注入的两个阶段形态：
+
+1. providerInjector 会在执行模块任务队列时被注册，之后就不会再发生变化
+2. 在运行时，我们在调用注射器的API时，会同时实例化依赖，该过程会发生在 instanceInjecot（工厂函数） 中
