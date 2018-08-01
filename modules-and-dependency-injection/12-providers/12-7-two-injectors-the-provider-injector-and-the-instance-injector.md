@@ -88,7 +88,7 @@ it('does not inject an instance to a provider constructor function', function() 
 
 当你使用 provider 构造函数时，就仅允许注入 provider，而非 instance。
 
-相反，当你使用 $get、injector.invoke\(\)、injector.get\(\)，就不允许注入 provider。
+相反，当你使用 $get、injector.invoke\(\)、injector.get\(\)，就不允许注入 provider 构造函数。
 
 test/injector.js
 
@@ -142,5 +142,137 @@ it('does not give access to providers through get', function() {
 });
 ```
 
-我们建立的这些测试都是为了让我们更好地区分两种依赖注入：provider 注入
+我们建立的这些测试都是为了让我们更好地区分两种依赖注入：provider 构造函数只能注入其他 provider，而 $get 方法和 injector 对外的接口只能注入实例。依赖实例可能是由 provider 生成的，但 provider 是不会对外暴露的。
 
+我们可以通过将当前的单个 injector 分开成两个不同 injector 来实现这个目标：一个 injector 处理 provider，而另一个处理 instance。instanceInjector 将会对外暴露，而 providerInjector 只在 createInjector 内部使用。
+
+下面我们会一步步地实现，而在最后我们会呈现 createInjector 的完整源代码。
+
+首先我们会在 createInjector 内部创建一个内部方法 createInternalInjector，这个方法是用于创建上述的两个 injector 的。这个函数将会接受两个参数：要查找的依赖缓存空间（分别为 providerCache 和 instanceCache）、一个工厂函数（用于在指定的依赖缓存空间找不到依赖时的回退方案）。
+
+src/injector.js
+
+```js
+function createInternalInjector(cache, factoryFn) {
+}
+```
+
+我们需要把所有含有依赖查找逻辑的方法都迁移到 createInternalInjector 内部，因为我们要把查找范围都限定在某个缓存中。首先是搬迁 getService：
+
+src/injector.js
+
+```js
+function createInternalInjector(cache, factoryFn) {
+  function getService(name) {
+    if (cache.hasOwnProperty(name)) {
+      if (cache[name] === INSTANTIATING) {
+        throw new Error('Circular dependency found: ' +
+          name + ' <- ' + path.join(' <- '));
+      }
+      return cache[name];
+    } else {
+      path.unshift(name);
+      cache[name] = INSTANTIATING;
+      try {
+        return (cache[name] = factoryFn(name));
+      }
+      fnally {
+        path.shift();
+        if (cache[name] === INSTANTIATING) {
+          delete cache[name];
+        }
+      }
+    }
+  }
+}
+```
+
+现在我们不会在 else 分支里面显式调用 provider。我们会利用 factoryFn 来处理依赖查找不到的情况。我们之后会看到它是如何工作的。
+
+invoke 和 instantiate 都依赖 getService 方法，所以也要搬到 createInternalInjector 里面，但函数体内部的逻辑不需要更改。
+
+src/injector.js
+
+```js
+function createInternalInjector(cache, factoryFn) {
+  function getService(name) {
+    if (cache.hasOwnProperty(name)) {
+      if (cache[name] === INSTANTIATING) {
+        throw new Error('Circular dependency found: ' +
+          name + ' <- ' + path.join(' <- '));
+      }
+      return cache[name];
+    } else {
+      path.unshift(name);
+      cache[name] = INSTANTIATING;
+      try {
+        return (cache[name] = factoryFn(name));
+      }
+      fnally {
+        path.shift();
+        if (cache[name] === INSTANTIATING) {
+          delete cache[name];
+        }
+      }
+    }
+  }
+
+  function invoke(fn, self, locals) {
+    var args = annotate(fn).map(function(token) {
+      if (_.isString(token)) {
+        return locals && locals.hasOwnProperty(token) ?
+          locals[token] :
+          getService(token);
+      } else {
+        throw 'Incorrect injection token! Expected a string, got ' + token;
+      }
+    });
+    if (_.isArray(fn)) {
+      fn = _.last(fn);
+    }
+    return fn.apply(self, args);
+  }
+
+  function instantiate(Type, locals) {
+    var instance = Object.create((_.isArray(Type) ? _.last(Type) : Type).prototype);
+    invoke(Type, instance, locals);
+    return instance;
+  }
+}
+```
+
+最后就是要返回的 injector 实例，基本与之前保持一致：
+
+src/injector.js
+
+```js
+function createInternalInjector(cache, factoryFn) {
+  // ...
+  return {
+    has: function(name) {
+      return cache.hasOwnProperty(name) ||
+        providerCache.hasOwnProperty(name + 'Provider');
+    },
+    get: getService,
+    annotate: annotate,
+    invoke: invoke,
+    instantiate: instantiate
+  };
+}
+```
+
+除了以上三个函数需要搬迁，annotate 方法不需要变动。而 has 方法除了要查找对应的依赖缓存空间，也要查找 provider 缓存。
+
+现在我们就可以利用 createInternalInjector 来创建两个注射器。providerInjecctor 负责处理 provider 缓存。它的回退函数（factoryFn）将会抛出一个异常，告诉我们依赖查找不到：
+
+src/injector.js
+
+```js
+function createInjector(modulesToLoad) {
+  var providerCache = {};
+  var providerInjector = createInternalInjector(providerCache, function() {
+    throw 'Unknown provider: '+path.join(' <- ');
+  });
+  // ...
+}
+```
