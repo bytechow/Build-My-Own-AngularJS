@@ -29,8 +29,8 @@
     * [12-5 处理循环依赖的问题](modules-and-dependency-injection/12-providers/12-5-circular-dependencies.md)
     * [12-6 Provider构造函数](modules-and-dependency-injection/12-providers/12-6-provider-constructors.md)
     * [12-7 provider注射器和instance注射器](modules-and-dependency-injection/12-providers/12-7-two-injectors-the-provider-injector-and-the-instance-injector.md)
-    * [12-8-unshifting-constants-in-the-invoke-queue](modules-and-dependency-injection/12-providers/12-8-unshifting-constants-in-the-invoke-queue.md)
-    * [12-9-summary](modules-and-dependency-injection/12-providers/12-9-summary.md)
+    * [12-8 提升常量在任务队列的注册优先级](modules-and-dependency-injection/12-providers/12-8-unshifting-constants-in-the-invoke-queue.md)
+    * [12-9 本章总结](modules-and-dependency-injection/12-providers/12-9-summary.md)
   * [第13章 依赖注入进阶](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-high-level-dependency-injection-features.md)
     * [13-1-injecting-the-$injector](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-1-injecting-the-$injectors.md)
 
