@@ -31,6 +31,6 @@
     * [12-7 provider注射器和instance注射器](modules-and-dependency-injection/12-providers/12-7-two-injectors-the-provider-injector-and-the-instance-injector.md)
     * [12-8-unshifting-constants-in-the-invoke-queue](modules-and-dependency-injection/12-providers/12-8-unshifting-constants-in-the-invoke-queue.md)
     * [12-9-summary](modules-and-dependency-injection/12-providers/12-9-summary.md)
-  * [13](modules-and-dependency-injection/13/13.md)
-    * [13-1](modules-and-dependency-injection/13/13-1.md)
+  * [第13章 依赖注入进阶](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-high-level-dependency-injection-features.md)
+    * [13-1-injecting-the-$injector](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-1-injecting-the-$injectors.md)
 
