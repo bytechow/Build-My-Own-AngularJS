@@ -42,8 +42,40 @@ it('does not allow injecting the $provide service to $get', function() {
 src/injector.js
 
 ```js
-
+providerCache.$provide = {
+  constant: function(key, value) {
+    if (key === 'hasOwnProperty') {
+      throw 'hasOwnProperty is not a valid constant name!';
+    }
+    providerCache[key] = value;
+    instanceCache[key] = value;
+  },
+  provider: function(key, provider) {
+    if (_.isFunction(provider)) {
+      provider = providerInjector.instantiate(provider);
+    }
+    providerCache[key + 'Provider'] = provider;
+  }
+};
 ```
 
+当然，我们的调用处也需要更新：
 
+src/injector.js
 
+```js
+_.forEach(modulesToLoad, function loadModule(moduleName) {
+  if (!loadedModules.hasOwnProperty(moduleName)) {
+    loadedModules[moduleName] = true;
+    var module = window.angular.module(moduleName);
+    _.forEach(module.requires, loadModule);
+    _.forEach(module._invokeQueue, function(invokeArgs) {
+      var method = invokeArgs[0];
+      var args = invokeArgs[1];
+      providerCache.$provide[method].apply(providerCache.$provide, args);
+    });
+  }
+});
+```
+
+通过提供 $injector 和 $provider，就可以让应用开发者直接调用 injector 的一些内部方法。虽然，大部分应用开发者只会用到模块和依赖注入两个特性，但这两个 API 让我们可以有进行配置和“临时”引入的便利方法。
