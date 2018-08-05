@@ -33,4 +33,5 @@
     * [12-9 本章总结](modules-and-dependency-injection/12-providers/12-9-summary.md)
   * [第13章 依赖注入进阶](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-high-level-dependency-injection-features.md)
     * [13-1-injecting-the-$injector](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-1-injecting-the-$injectors.md)
+    * [13-2-injecting-$provider](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-2-injecting-provider.md)
 
