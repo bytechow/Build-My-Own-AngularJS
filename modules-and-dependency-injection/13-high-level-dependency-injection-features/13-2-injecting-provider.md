@@ -37,5 +37,13 @@ it('does not allow injecting the $provide service to $get', function() {
 });
 ```
 
-实际上，我们要注入的 $provider 就是我们在 createInjector 中声明的内部函数 $provider，它目前拥有 constant 和 provider 方法。所以，我们现在知道为什么叫这个名字了（[转至关联处](/modules-and-dependency-injection/11-modules-and-the-injector/11-07-registering-a-constant.md)）
+实际上，我们要注入的 $provider 就是我们在 createInjector 中声明的内部函数 $provider，它目前拥有 constant 和 provider 方法。所以，我们现在知道为什么叫这个名字了（[转至关联处](/modules-and-dependency-injection/11-modules-and-the-injector/11-07-registering-a-constant.md)）。现在我们只需要把 $provider 这个内部函数放到 provIderCache 中即可，就像我们之前加入 $injector 一样：
+
+src/injector.js
+
+```js
+
+```
+
+
 
