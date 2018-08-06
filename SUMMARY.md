@@ -35,4 +35,5 @@
     * [13-1-injecting-the-$injector](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-1-injecting-the-$injectors.md)
     * [13-2-injecting-$provider](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-2-injecting-provider.md)
     * [13-3-config-blocks](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-3-config-blocks.md)
+    * [13-4-run-blocks](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-4-run-blocks.md)
 
