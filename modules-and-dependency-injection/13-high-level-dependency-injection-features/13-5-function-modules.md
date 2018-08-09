@@ -80,5 +80,46 @@ it('supports returning a run block from a function module', function() {
 
 src/injector.js
 
+```js
+var runBlocks = [];
+_.forEach(modulesToLoad, function loadModule(module) {
+    if (_.isString(module)) {
+        if (!loadedModules.hasOwnProperty(module)) {
+            loadedModules[module] = true;
+            module = window.angular.module(module);
+            _.forEach(module.requires, loadModule);
+            runInvokeQueue(module._invokeQueue);
+            runInvokeQueue(module._confgBlocks);
+            runBlocks = runBlocks.concat(module._runBlocks);
+        }
+    } else if (_.isFunction(module) || _.isArray(module)) {
+        runBlocks.push(providerInjector.invoke(module));
+    }
+});
+_.forEach(_.compact(runBlocks), function(runBlock) {
+    instanceInjector.invoke(runBlock);
+});
+```
 
+要加载函数式模块，我们还有一些工作要做。在第9章中，我们提到了模块的单例化——即使被引入多次，也只会加载一次。为此，我们使用了一个名为 loadedModules 的对象来记录已经加载过的模块。
+
+但对于函数式模块，我们就无法使用这个 loadedModules 对象检测是否重复加载。也就是说，如果我们引入函数式依赖两次，它就真的会被实例化两次：
+
+ test/injector_spec.js
+
+```js
+it('only loads function modules once', function() {
+    var loadedTimes = 0;
+    var functionModule = function() {
+        loadedTimes++;
+    };
+    window.angular.module('myModule', [functionModule, functionModule]);
+    createInjector(['myModule']);
+    expect(loadedTimes).toBe(1);
+});
+```
+
+我们没办法将函数作为对象的属性名，所以目前的函数式模块无法记录在 loadedModules 里。这里，我们就需要用到一个新的数据结构——HashMap。
+
+在 ES2015（ES6）发布以前，JavaScript 还没有支持这种数据结构，所以 Angular 框架实现了 HashMap。我们将会在 loadedModules 应用这个数据结构。尽管还有很多的 JavaScript 第三方库支持 HashMap，我们还是会采用 Angular 本身的实现方案，毕竟对于我们了解原理已经足够了。接下来，我们会先暂时放下依赖注入的讲解，尝试一下自己实现 HashMap。
 
