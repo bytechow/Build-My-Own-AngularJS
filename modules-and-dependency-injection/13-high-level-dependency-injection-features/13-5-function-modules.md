@@ -57,7 +57,7 @@ src/injector.js
 });
 ```
 
-当你有一个函数形式的模块时，你也可以在里面返回一个函数，这个函数会作为 run 服务执行。这个小细节允许定义“点对点”的模块和相关的 run 服务，这在单元测试里面很有用。
+当你有一个函数式模块时，你也可以在里面返回一个函数，这个函数会作为 run 服务执行。这个小细节允许定义“点对点”的模块和相关的 run 服务，这在单元测试里面很有用。
 
 test/injector\_spec.js
 
@@ -75,6 +75,10 @@ it('supports returning a run block from a function module', function() {
   expect(result).toBe(42);
 });
 ```
+
+当函数式模块被执行时，我们需要需要把函数返回值放到 run 服务任务队列一样。当然，是否有返回值目前是可选的，也就意味着我们需要应对返回值为 undefined 的情况。我们可以利用 Lodash 中的 \_.compact 方法筛选掉值为 undefined 的数组元素：
+
+src/injector.js
 
 
 
