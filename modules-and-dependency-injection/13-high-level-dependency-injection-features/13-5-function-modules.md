@@ -57,5 +57,24 @@ src/injector.js
 });
 ```
 
+当你有一个函数形式的模块时，你也可以在里面返回一个函数，这个函数会作为 run 服务执行。这个小细节允许定义“点对点”的模块和相关的 run 服务，这在单元测试里面很有用。
+
+test/injector\_spec.js
+
+```js
+it('supports returning a run block from a function module', function() {
+  var result;
+  var functionModule = function($provide) {
+    $provide.constant('a', 42);
+    return function(a) {
+      result = a;
+    };
+  };
+  window.angular.module('myModule', [functionModule]);
+  createInjector(['myModule']);
+  expect(result).toBe(42);
+});
+```
+
 
 
