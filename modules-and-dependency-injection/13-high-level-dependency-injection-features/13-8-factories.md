@@ -1,4 +1,4 @@
-### factory 服务（factories）
+### factory 服务（Factories）
 
 本节开始，我们将会实现 Angular 应用开发者最常用的高阶组件注册方法： factory、value 和 service。实际上，现在开发这三个服务并不费事，因为我们已经在前面的章节打下了基础。
 
@@ -18,7 +18,7 @@ factory 函数允许注入依赖，（是通过 constant 加入的依赖？）�
 ```js
 it('injects a factory function with instances', function() {
   var module = window.angular.module('myModule', []);
-  
+
   module.factory('a', function() { return 1; });
   module.factory('b', function(a) { return a + 2; });
 
@@ -144,3 +144,4 @@ providerCache.$provide = {
 ```
 
 现在 factory 注册后，其生成的 provider 的 $get 是一个匿名函数，在匿名函数内部会使用 instanceInjector 对 factory 服务函数进行调用，并获取其返回值，如果检测返回值为 undefined，则会抛出一个明确的错误。
+
