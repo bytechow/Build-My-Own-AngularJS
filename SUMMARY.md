@@ -38,4 +38,5 @@
     * [13-4-run-blocks](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-4-run-blocks.md)
     * [13-5-function-modules](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-5-function-modules.md)
     * [13-6-hash-keys-and-hash-maps](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-6-hash-keys-and-hash-maps.md)
+    * [13-7-function-module-redux](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-7-function-modules-redux.md)
 
