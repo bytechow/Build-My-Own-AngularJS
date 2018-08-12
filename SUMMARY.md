@@ -41,4 +41,5 @@
     * [13-7-function-modules-redux](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-7-function-modules-redux.md)
     * [13-8-factories](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-8-factories.md)
     * [13-9-values](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-9-values.md)
+    * [13-10-services](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-10-services.md)
 
