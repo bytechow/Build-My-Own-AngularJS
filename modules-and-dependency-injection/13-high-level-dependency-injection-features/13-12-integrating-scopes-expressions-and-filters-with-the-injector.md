@@ -20,5 +20,59 @@ describe('angularPublic', function() {
 });
 ```
 
+这个用例非常简单，只是把之前的 setupModuleLoader 放到了 publishExternalAPI 中执行而已：
+
+```js
+'use strict';
+var setupModuleLoader = require('./loader');
+
+function publishExternalAPI() {
+  setupModuleLoader(window);
+}
+module.exports = publishExternalAPI;
+```
+
+这个函数应该初始化 ng 模块：
+
+test/angular_public_spec.js
+
+```js
+var publishExternalAPI = require('../src/angular_public');
+var createInjector = require('../src/injector');
+describe('angularPublic', function() {
+  it('sets up the angular object and the module loader', function() {
+    publishExternalAPI();
+    expect(window.angular).toBeDefned();
+    expect(window.angular.module).toBeDefned();
+  });
+  it('sets up the ng module', function() {
+    publishExternalAPI();
+    expect(createInjector(['ng'])).toBeDefned();
+  });
+});
+```
+
+src/angular_public.js
+
+```js
+function publishExternalAPI() {
+  setupModuleLoader(window);
+  var ngModule = window.angular.module('ng', []);
+}
+```
+
+这个 ng 模块将会承载所有的 Angular 原生组件，包括 service、directive、filter 等组件。之后，我们学到 Angular 启动（bootstrap）后，我们会在这个模块中存放所有的 Angular 应用。对于应用开发者来说，他们也不需要知道它的存在。但这就是 Angular 暴露自己的服务给其他服务或者应用的方式。
+
+> 由于我们正在使用依赖注入的方式重构之前实现的功能，所以暂时所有的测试用例可能都会受影响，不必担心，等我们完全处理好之后，所有的测试用例都会恢复正常。
+
+首先要放到 ng 模块里面去的是 $filter，也就是我们的过滤器服务：
+
+```js
+it('sets up the $flter service', function() {
+  publishExternalAPI();
+  var injector = createInjector(['ng']);
+  expect(injector.has('$flter')).toBe(true);
+});
 
 
+```
