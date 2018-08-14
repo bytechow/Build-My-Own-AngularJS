@@ -117,5 +117,57 @@ module.exports = $FilterProvider;
 接着，我们需要修改对应的测试文件 filter_spec.js，我们应该使用我们在上边注册的 ng 模块，而不是直接调用引入的 register 和filter:
 
 ```js
+'use strict';
+var publishExternalAPI = require('../src/angular_public');
+var createInjector = require('../src/injector');
+describe('filter', function() {
+  beforeEach(function() {
+    publishExternalAPI();
+  });
 
+  it('can be registered and obtained', function() {
+    var myFilter = function() {};
+    var myFilterFactory = function() {
+      return myFilter;
+    };
+    var injector = createInjector(['ng', function($filterProvider) {
+      $filterProvider.register('my', myFilterFactory);
+    }]);
+    var $filter = injector.get('$filter');
+    expect($filter('my')).toBe(myFilter);
+  });
+
+  it('allows registering multiple filters with an object', function() {
+    var myFilter = function() {};
+    var myOtherFilter = function() {};
+    var injector = createInjector(['ng', function($filterProvider) {
+      $filterProvider.register({
+        my: function() {
+          return myFilter;
+        },
+        myOther: function() {
+          return myOtherFilter;
+        }
+      });
+    }]);
+    var $filter = injector.get('$filter');
+    expect($filter('my')).toBe(myFilter);
+    expect($filter('myOther')).toBe(myOtherFilter);
+  });
+});
+```
+
+另外，$filter 服务将会对 filter 进行实例化，并对其进行依赖注入，让它们成为常规函数。如果你注册了一个过滤器名为 my，它除了在 $filter 服务中可用，也会生成一个名为 myFilter 的依赖在缓存中：
+
+```js
+it('is available through injector', function() {
+  var myFilter = function() {};
+  var injector = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('my', function() {
+      return myFilter;
+    });
+  }]);
+  expect(injector.has('myFilter')).toBe(true);
+  expect(injector.get('myFilter')).toBe(myFilter);
+});
 ```
