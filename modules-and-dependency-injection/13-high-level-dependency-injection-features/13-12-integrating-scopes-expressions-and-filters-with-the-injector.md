@@ -113,3 +113,9 @@ function $FilterProvider() {
 }
 module.exports = $FilterProvider;
 ```
+
+接着，我们需要修改对应的测试文件 filter_spec.js，我们应该使用我们在上边注册的 ng 模块，而不是直接调用引入的 register 和filter:
+
+```js
+
+```
