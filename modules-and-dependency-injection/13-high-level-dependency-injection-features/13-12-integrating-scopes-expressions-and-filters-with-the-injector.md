@@ -6,7 +6,7 @@
 
 > 在本书的最后，我们会完成 Angular 完整的启动流程。
 
-我们会将核心组件的注册放到一个新文件中，新文件命名为 src/angular_public.js。下面我们会在里面加入第一个测试用例：
+我们会将核心组件的注册放到一个新文件中，新文件命名为 src/angular\_public.js。下面我们会在里面加入第一个测试用例：
 
 ```js
 'use strict';
@@ -34,7 +34,7 @@ module.exports = publishExternalAPI;
 
 这个函数应该初始化 ng 模块：
 
-test/angular_public_spec.js
+test/angular\_public\_spec.js
 
 ```js
 var publishExternalAPI = require('../src/angular_public');
@@ -52,7 +52,7 @@ describe('angularPublic', function() {
 });
 ```
 
-src/angular_public.js
+src/angular\_public.js
 
 ```js
 function publishExternalAPI() {
@@ -86,7 +86,7 @@ function publishExternalAPI(){
 }
 ```
 
-改造如此，也就说我们要在 filter.js 源码中默认暴露一个 provider 构造函数，这个构造函数就是我们 $filter 服务的 provider。
+我们要在 filter.js 源码中默认暴露一个 provider 构造函数，这个构造函数就是我们 $filter 服务的 provider。
 
 在本书的第二部分，我们在 filter.js 文件中做的仅仅是建立和对外暴露两个函数——register 和 filter。现在我们需要把它们封装到 provider 中了。这个 register 函数将会变成 provider 的一个方法，而 filter 函数将会变成 $get 方法的返回值。换句话说，filter 函数将会成为我们在应用中使用的 $filter 服务：
 
@@ -114,7 +114,7 @@ function $FilterProvider() {
 module.exports = $FilterProvider;
 ```
 
-接着，我们需要修改对应的测试文件 filter_spec.js，我们应该使用我们在上边注册的 ng 模块，而不是直接调用引入的 register 和filter:
+接着，我们需要修改对应的测试文件 filter\_spec.js，我们应该使用我们在上边注册的 ng 模块，而不是直接调用引入的 register 和filter:
 
 ```js
 'use strict';
@@ -171,3 +171,47 @@ it('is available through injector', function() {
   expect(injector.get('myFilter')).toBe(myFilter);
 });
 ```
+
+filter 服务函数也可能会注入依赖：
+
+```js
+it('may have dependencies in factory', function() {
+  var injector = createInjector(['ng', function($provide, $flterProvider) {
+    $provide.constant('suffx', '!');
+    $flterProvider.register('my', function(suffx) {
+      return function(v) {
+        return suffx + v;
+      };
+    });
+  }]);
+  expect(injector.has('myFilter')).toBe(true);
+})
+```
+
+我们会通过在 $FilterProvider 注册过滤器的同时，在 $provider 服务也注册来解决这个问题：
+
+```js
+function $FilterProvider($provide) {
+  var flters = {};
+  this.register = function(name, factory) {
+    if (_.isObject(name)) {
+      return _.map(name, function(factory, name) {
+         return register(name, factory);
+      });
+    } else {
+        return $provide.factory(name + 'Filter', factory);
+    }
+  };
+  this.$get = function() {
+    return function flter(name) {
+      return flters[name];
+    };
+  };
+  this.register('flter', require('./flter_flter'));
+}
+$FilterProvider.$inject = ['$provide'];
+module.exports = $FilterProvider;
+```
+
+
+
