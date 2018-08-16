@@ -213,5 +213,5 @@ $FilterProvider.$inject = ['$provide'];
 module.exports = $FilterProvider;
 ```
 
-
+在运行时，$filter 服务使用 $injector 获取 filter。我们不在需要内部
 
