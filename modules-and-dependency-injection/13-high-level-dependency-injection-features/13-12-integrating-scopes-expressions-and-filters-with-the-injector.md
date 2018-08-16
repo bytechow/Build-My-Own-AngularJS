@@ -213,5 +213,145 @@ $FilterProvider.$inject = ['$provide'];
 module.exports = $FilterProvider;
 ```
 
-在运行时，$filter 服务使用 $injector 获取 filter。我们不在需要内部
+在运行时，$filter 服务使用 $injector 获取 filter。我们不再需要内部变量 filters 来存储注册的过滤器了，也就是说，我们会使用依赖注入系统进行过滤器的存取：
 
+```js
+function $FilterProvider($provide) {
+  this.register = function(name, factory) {
+    if (_.isObject(name)) {
+      return _.map(name, function(factory, name) {
+        return register(name, factory);
+      });
+    } else {
+      return $provide.factory(name + 'Filter', factory);
+    }
+  };
+  this.$get = ['$injector', function($injector) {
+    return function flter(name) {
+      return $injector.get(name + 'Filter');
+    };
+  }];
+  this.register('flter', require('./flter_flter'));
+}
+$FilterProvider.$inject = ['$provide'];
+module.exports = $FilterProvider;
+```
+
+Angular 还提供了一种通过公共 API 注册过滤器的快捷方式。它会在模块实例上挂载一个 filter 方法，该方法的第一个参数是过滤器的名称，第二个参数是过滤器函数。它比在 config 服务中使用 $filterProvider 注册过滤器要更方便：
+
+```js
+it('can be registered through module API', function() {
+  var myFilter = function() {};
+  var module = window.angular.module('myModule', [])
+    .flter('my', function() {
+      return myFilter;
+    });
+  var injector = createInjector(['ng', 'myModule']);
+  expect(injector.has('myFilter')).toBe(true);
+  expect(injector.get('myFilter')).toBe(myFilter);
+});
+```
+
+下面，在模块加载器，我们将会引入 filter 方法：
+
+```js
+var moduleInstance = {
+  name: name,
+  requires: requires,
+  constant: invokeLater('$provide', 'constant', 'unshift'),
+  provider: invokeLater('$provide', 'provider'),
+  factory: invokeLater('$provide', 'factory'),
+  value: invokeLater('$provide', 'value'),
+  service: invokeLater('$provide', 'service'),
+  decorator: invokeLater('$provide', 'decorator'),
+  flter: invokeLater('$flterProvider', 'register'),
+  confg: invokeLater('$injector', 'invoke', 'push', confgBlocks),
+  run: function(fn) {
+    moduleInstance._runBlocks.push(fn);
+    return moduleInstance;
+  },
+  _invokeQueue: invokeQueue,
+  _confgBlocks: confgBlocks,
+  _runBlocks: []
+};
+```
+
+跟其他注册方法不同的是，filter 方法不需要考虑 $provide 方法的调用顺序，而会在 $filterProvider 中进行调用顺序的重排序。
+
+我们也会需要更新我们的 filter 过滤器：
+
+```js
+'use strict';
+var publishExternalAPI = require('../src/angular_public');
+var createInjector = require('../src/injector');
+describe('flter flter', function() {
+  beforeEach(function() {
+    publishExternalAPI();
+  });
+  it('is available', function() {
+    var injector = createInjector(['ng']);
+    expect(injector.has('flterFilter')).toBe(true);
+  });
+  // ...
+});
+```
+
+> 注意，当前 filter_filter_spec.js 文件的其他用例依然会报错，这是因为我们还没有重构 parse 服务
+
+接下来，我们要重构的是表达式解析器（parser）:
+
+```js
+it('sets up the $parse service', function() {
+  publishExternalAPI();
+  var injector = createInjector(['ng']);
+  expect(injector.has('$parse')).toBe(true);
+});
+```
+
+它被注册为一个 provider：
+
+```js
+function publishExternalAPI() {
+  setupModuleLoader(window);
+  var ngModule = angular.module('ng', []);
+  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$parse', require('./parse'));
+}
+```
+
+跟 filter 一样，我们也希望在 parse.js 里面有一个 provider 构造函数，这个构造函数可以用语构建 $parse 服务的 provider。
+
+```js
+function $ParseProvider() {
+  this.$get = function() {
+    return function(expr) {
+      switch (typeof expr) {
+        case 'string':
+          var lexer = new Lexer();
+          var parser = new Parser(lexer);
+          var oneTime = false;
+          if (expr.charAt(0) === ':' && expr.charAt(1) === ':') {
+            oneTime = true;
+            expr = expr.substring(2);
+          }
+          var parseFn = parser.parse(expr);
+          if (parseFn.constant) {
+            parseFn.$$watchDelegate = constantWatchDelegate;
+          } else if (oneTime) {
+            parseFn.$$watchDelegate = parseFn.literal ?
+              oneTimeLiteralWatchDelegate :
+              oneTimeWatchDelegate;
+          } else if (parseFn.inputs) {
+            parseFn.$$watchDelegate = inputsWatchDelegate;
+          }
+          return parseFn;
+        case 'function':
+          return expr;
+        default:
+          return _.noop;
+      }
+    };
+  };
+}
+module.exports = $ParseProvider;
+```
