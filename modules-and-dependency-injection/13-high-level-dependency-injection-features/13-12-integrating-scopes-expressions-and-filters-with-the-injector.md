@@ -358,5 +358,196 @@ module.exports = $ParseProvider;
 
 实际上就是把之前的 parse 函数作为 $get 方法的返回值，也就是说，我们注入的 $parse 变量就是 parse 函数。
 
-我们
+我们还需要往 parse 中获取 $filter 服务。首先，我们要移除 require filter 的代码。然后，我们要采用依赖注入的方式，往 $get 方法中注入 $filter 服务
 
+```js
+this.$get = ['$flter', function($flter) {
+  return function(expr) {
+    switch (typeof expr) {
+      case 'string':
+        var lexer = new Lexer();
+        var parser = new Parser(lexer, $flter);
+        var oneTime = false;
+        if (expr.charAt(0) === ':' && expr.charAt(1) === ':') {
+          oneTime = true;
+          expr = expr.substring(2);
+        }
+        var parseFn = parser.parse(expr);
+        if (parseFn.constant) {
+          parseFn.$$watchDelegate = constantWatchDelegate;
+        } else if (oneTime) {
+          parseFn.$$watchDelegate = parseFn.literal ? oneTimeLiteralWatchDelegate :
+            oneTimeWatchDelegate;
+        } else if (parseFn.inputs) {
+          parseFn.$$watchDelegate = inputsWatchDelegate;
+        }
+        return parseFn;
+      case 'function':
+        return expr;
+      default:
+        return _.noop;
+    }
+  };
+}];
+```
+
+Parser 构造函数则会传递 $filter 服务给 ASTCompiler 构造函数：
+
+```js
+function Parser(lexer, $flter) {
+  this.lexer = lexer;
+  this.ast = new AST(this.lexer);
+  this.astCompiler = new ASTCompiler(this.ast, $flter);
+}
+```
+
+ASTCompiler 构造函数会把它保存为自己的实例属性：
+
+```js
+function ASTCompiler(astBuilder, $flter) {
+  this.astBuilder = astBuilder;
+  this.$flter = $flter;
+}
+```
+
+第一处会用到这个实例属性的地方是生成表达式代码时可能会用到的 filter 方法，我们实际上会使用 $filter 服务进行过滤：
+
+```js
+/* jshint -W054 */
+var fn = new Function(
+  'ensureSafeMemberName',
+  'ensureSafeObject',
+  'ensureSafeFunction',
+  'ifDefned',
+  'flter',
+  fnString)(
+  ensureSafeMemberName,
+  ensureSafeObject,
+  ensureSafeFunction,
+  ifDefned,
+  this.$flter);
+/* jshint +W054 */
+```
+
+第二处用到 $filter 的地方是 markConstantAndWatchExpressions，这个函数之前使用的是全局的 filter 函数：
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  var ast = this.astBuilder.ast(text);
+  var extra = '';
+  markConstantAndWatchExpressions(ast, this.$flter);
+  // ...
+};
+```
+
+在 markConstantAndWatchExpressions 中，由于会进行递归调用，我们也需要在所有递归调用处使用 $filter 服务：
+
+```js
+function markConstantAndWatchExpressions(ast, $flter) {
+  var allConstants;
+  var argsToWatch;
+  switch (ast.type) {
+    case AST.Program:
+      allConstants = true;
+      _.forEach(ast.body, function(expr) {
+        markConstantAndWatchExpressions(expr, $flter);
+        allConstants = allConstants && expr.constant;
+      });
+      ast.constant = allConstants;
+      break;
+    case AST.Literal:
+      ast.constant = true;
+      ast.toWatch = [];
+      break;
+    case AST.Identifer:
+      ast.constant = false;
+      ast.toWatch = [ast];
+      break;
+    case AST.ArrayExpression:
+      allConstants = true;
+      argsToWatch = [];
+      _.forEach(ast.elements, function(element) {
+        markConstantAndWatchExpressions(element, $flter);
+        allConstants = allConstants && element.constant;
+        if (!element.constant) {
+          argsToWatch.push.apply(argsToWatch, element.toWatch);
+        }
+      });
+      ast.constant = allConstants;
+      ast.toWatch = argsToWatch;
+      break;
+    case AST.ObjectExpression:
+      allConstants = true;
+      argsToWatch = [];
+      _.forEach(ast.properties, function(property) {
+        markConstantAndWatchExpressions(property.value, $flter);
+        allConstants = allConstants && property.value.constant;
+        if (!property.value.constant) {
+          argsToWatch.push.apply(argsToWatch, property.value.toWatch);
+        }
+      });
+      ast.constant = allConstants;
+      ast.toWatch = argsToWatch;
+      break;
+    case AST.ThisExpression:
+      ast.constant = false;
+      ast.toWatch = [];
+      break;
+    case AST.MemberExpression:
+      markConstantAndWatchExpressions(ast.object, $flter);
+      if (ast.computed) {
+        markConstantAndWatchExpressions(ast.property, $flter);
+      }
+      ast.constant = ast.object.constant &&
+        (!ast.computed || ast.property.constant);
+      ast.toWatch = [ast];
+      break;
+    case AST.CallExpression:
+      var stateless = ast.flter && !$flter(ast.callee.name).$stateful;
+      allConstants = stateless ? true : false;
+      argsToWatch = [];
+      _.forEach(ast.arguments, function(arg) {
+        markConstantAndWatchExpressions(arg, $flter);
+        allConstants = allConstants && arg.constant;
+        if (!arg.constant) {
+          argsToWatch.push.apply(argsToWatch, arg.toWatch);
+        }
+      });
+      ast.constant = allConstants;
+      ast.toWatch = stateless ? argsToWatch : [ast];
+      break;
+    case AST.AssignmentExpression:
+      markConstantAndWatchExpressions(ast.left, $flter);
+      markConstantAndWatchExpressions(ast.right, $flter);
+      ast.constant = ast.left.constant && ast.right.constant;
+      ast.toWatch = [ast];
+      break
+
+    case AST.UnaryExpression:
+      markConstantAndWatchExpressions(ast.argument, $flter);
+      ast.constant = ast.argument.constant;
+      ast.toWatch = ast.argument.toWatch;
+      break;
+    case AST.BinaryExpression:
+      markConstantAndWatchExpressions(ast.left, $flter);
+      markConstantAndWatchExpressions(ast.right, $flter);
+      ast.constant = ast.left.constant && ast.right.constant;
+      ast.toWatch = ast.left.toWatch.concat(ast.right.toWatch);
+      break;
+    case AST.LogicalExpression:
+      markConstantAndWatchExpressions(ast.left, $flter);
+      markConstantAndWatchExpressions(ast.right, $flter);
+      ast.constant = ast.left.constant && ast.right.constant;
+      ast.toWatch = [ast];
+      break;
+    case AST.ConditionalExpression:
+      markConstantAndWatchExpressions(ast.test, $flter);
+      markConstantAndWatchExpressions(ast.consequent, $flter);
+      markConstantAndWatchExpressions(ast.alternate, $flter);
+      ast.constant =
+        ast.test.constant && ast.consequent.constant && ast.alternate.constant;
+      ast.toWatch = [ast];
+      break;
+  }
+}
+```
