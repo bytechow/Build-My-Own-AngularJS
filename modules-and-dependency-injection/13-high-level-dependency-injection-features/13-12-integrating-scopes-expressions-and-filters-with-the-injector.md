@@ -296,7 +296,7 @@ describe('flter flter', function() {
 });
 ```
 
-> 注意，当前 filter_filter_spec.js 文件的其他用例依然会报错，这是因为我们还没有重构 parse 服务
+> 注意，当前 filter\_filter\_spec.js 文件的其他用例依然会报错，这是因为我们还没有重构 parse 服务
 
 接下来，我们要重构的是表达式解析器（parser）:
 
@@ -355,3 +355,8 @@ function $ParseProvider() {
 }
 module.exports = $ParseProvider;
 ```
+
+实际上就是把之前的 parse 函数作为 $get 方法的返回值，也就是说，我们注入的 $parse 变量就是 parse 函数。
+
+我们
+
