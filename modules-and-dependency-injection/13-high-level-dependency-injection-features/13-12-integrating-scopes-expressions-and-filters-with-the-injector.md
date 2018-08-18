@@ -552,7 +552,87 @@ function markConstantAndWatchExpressions(ast, $flter) {
 }
 ```
 
-现在我们
+现在我们可以满足刚才加到 parse_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
 
+```js
+'use strict';
+var _ = require('lodash');
+var publishExternalAPI = require('../src/angular_public');
+var createInjector = require('../src/injector');
+describe('parse', function() {
+  var parse;
+  beforeEach(function() {
+    publishExternalAPI();
+    parse = createInjector(['ng']).get('$parse');
+  });
+  // ...
+});
+```
 
+那些注册和使用过滤器的测试单元也需要进行升级，它们也会创建自己的注射器，并通过 $filterProvider 注册过滤器：
 
+```js
+it('can parse flter expressions', function() {
+  parse = createInjector(['ng', function($flterProvider) {
+    $flterProvider.register('upcase', function() {
+      return function(str) {
+        return str.toUpperCase();
+      };
+    });
+  }]).get('$parse');
+  var fn = parse('aString | upcase');
+  expect(fn({
+    aString: 'Hello'
+  })).toEqual('HELLO');
+});
+it('can parse flter chain expressions', function() {
+  parse = createInjector(['ng', function($flterProvider) {
+    $flterProvider.register('upcase', function() {
+      return function(s) {
+        return s.toUpperCase();
+      };
+    });
+    $flterProvider.register('exclamate', function() {
+      return function(s) {
+        return s + '!';
+      };
+    });
+  }]).get('$parse');
+  var fn = parse('"hello" | upcase | exclamate');
+  expect(fn()).toEqual('HELLO!');
+});
+it('can pass an additional argument to flters', function() {
+  parse = createInjector(['ng', function($flterProvider) {
+    $flterProvider.register('repeat', function() {
+      return function(s, times) {
+        return _.repeat(s, times);
+      };
+    });
+  }]).get('$parse');
+  var fn = parse('"hello" | repeat:3');
+  expect(fn()).toEqual('hellohellohello');
+});
+it('can pass several additional arguments to flters', function() {
+  parse = createInjector(['ng', function($flterProvider) {
+    $flterProvider.register('surround', function() {
+      return function(s, left, right) {
+        return left + s + right;
+      };
+    });
+  }]).get('$parse');
+  var fn = parse('"hello" | surround:"*":"!"');
+  expect(fn()).toEqual('*hello!');
+});
+// ...
+it('marks flters constant if arguments are', function() {
+  parse = createInjector(['ng', function($flterProvider) {
+    $flterProvider.register('aFilter', function() {
+      return _.identity;
+    });
+  }]).get('$parse');
+  expect(parse('[1, 2, 3] | aFilter').constant).toBe(true);
+  expect(parse('[1, 2, a] | aFilter').constant).toBe(false);
+  expect(parse('[1, 2, 3] | aFilter:42').constant).toBe(true);
+  expect(parse('[1, 2, 3] | aFilter:a').constant).toBe(false);
+});
+```
