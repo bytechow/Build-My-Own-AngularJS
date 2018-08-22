@@ -552,7 +552,9 @@ function markConstantAndWatchExpressions(ast, $flter) {
 }
 ```
 
-现在我们可以满足刚才加到 parse_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
+现在我们可以满足刚才加到 parse\_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse\_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
+
+parse\_spec.js
 
 ```js
 'use strict';
@@ -636,3 +638,6 @@ it('marks flters constant if arguments are', function() {
   expect(parse('[1, 2, 3] | aFilter:a').constant).toBe(false);
 });
 ```
+
+
+
