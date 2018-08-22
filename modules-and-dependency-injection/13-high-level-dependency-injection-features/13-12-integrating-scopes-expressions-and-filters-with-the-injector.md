@@ -639,5 +639,19 @@ it('marks flters constant if arguments are', function() {
 });
 ```
 
+我们接着就可以修复 filter_filter_spec.js 里面的测试用例了:
 
+```js
+'use strict';
+var publishExternalAPI = require('../src/angular_public');
+var createInjector = require('../src/injector');
+describe('filter filter', function() {
+  var parse;
+  beforeEach(function() {
+    publishExternalAPI();
+    parse = createInjector(['ng']).get('$parse');
+  });
+  // ...
+});
+```
 
