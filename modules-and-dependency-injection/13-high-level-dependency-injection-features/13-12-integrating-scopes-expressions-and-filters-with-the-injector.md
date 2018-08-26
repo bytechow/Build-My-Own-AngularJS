@@ -709,5 +709,16 @@ module.exports = $RootScopeProvider;
 当然，我们要把之前依赖 parse 全局函数的地方改成使用 $parse 服务。由于我们已经创建了 provider 和它的 $get 方法，我们就可以注入 $parse 服务：
 
 ```js
+'use strict';
+var _ = require('lodash');
 
+function $RootScopeProvider() {
+  this.$get = ['$parse', function($parse) {
+    // All previous code from scope.js goes here.
+    var $rootScope = new Scope();
+    return $rootScope;
+  }];
+}
+
+module.exports = $RootScopeProvider;
 ```
