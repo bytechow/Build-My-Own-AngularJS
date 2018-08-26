@@ -722,3 +722,33 @@ function $RootScopeProvider() {
 
 module.exports = $RootScopeProvider;
 ```
+
+现在我们可以改变 $watch 函数，将它的依赖从 parse 全局函数变成 $parse 服务：
+
+```js
+Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
+  // ...
+  watchFn = $parse(watchFn);
+  // ...
+};
+```
+
+对 $eval 方法也做同样的处理：
+
+```js
+Scope.prototype.$eval = function(expr, locals) {
+  return $parse(expr)(this, locals);
+};
+```
+
+就这样，我们就实现了 $rootScope。但对于 $rootScope 服务的单元测试还存在问题。接下来，我们会继续进行修复。
+
+首先得更新 scope_spec.js 最前面的引用依赖的代码。现在，我们只需要模块和注射器就可以了：
+
+```js
+'use strict';
+
+var _ = require('lodash');
+var publishExternalAPI = require('../src/angular_public');
+var createInjector = require('../src/injector');
+```
