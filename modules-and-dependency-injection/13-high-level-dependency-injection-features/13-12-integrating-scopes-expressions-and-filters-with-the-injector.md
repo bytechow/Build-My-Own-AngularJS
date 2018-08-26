@@ -552,9 +552,7 @@ function markConstantAndWatchExpressions(ast, $flter) {
 }
 ```
 
-现在我们可以满足刚才加到 parse\_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse\_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
-
-parse\_spec.js
+现在我们可以满足刚才加到 parse_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
 
 ```js
 'use strict';
@@ -639,13 +637,13 @@ it('marks flters constant if arguments are', function() {
 });
 ```
 
-我们接着就可以修复 filter_filter_spec.js 里面的测试用例了:
+现在，我们也可以用同样的方法对 filter 过滤器进行处理：
 
 ```js
 'use strict';
 var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
-describe('filter filter', function() {
+describe('flter flter', function() {
   var parse;
   beforeEach(function() {
     publishExternalAPI();
@@ -655,3 +653,72 @@ describe('filter filter', function() {
 });
 ```
 
+目前，$parse 服务已经被成功注入，让我们把目光转向 scope.js。scope 的相关单元测试已经有部分在报错了，这是因为它们依赖的全局函数 parse 和 register 已经不复存在了。接下来，我们来快速修复一下。
+
+就像 $filter 和 $parse 服务，ng 模块需要注入一个 scope 实例作为根 scope，也就是 $rootScope：
+
+```js
+it('sets up the $rootScope', function() {
+  publishExternalAPI();
+  var injector = createInjector(['ng']);
+  expect(injector.has('$rootScope')).toBe(true);
+});
+```
+
+同样使用 provider 注册 $rootScope：
+
+```js
+function publishExternalAPI() {
+  setupModuleLoader(window);
+  var ngModule = angular.module('ng', []);
+  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$parse', require('./parse'));
+  ngModule.provider('$rootScope', require('./scope'));
+}
+```
+
+我们要做的就是把 scope.js 的实现代码都放到 $RootScopeProvider.$get 的方法体中：
+
+```js
+'use strict';
+var _ = require('lodash');
+
+function $RootScopeProvider() {
+  this.$get = function() {
+    // Move all previous code from scope.js here.
+  };
+}
+module.exports = $RootScopeProvider;
+```
+
+我们还需要从 $get 方法中返回一个值，所以我们最后会创建并返回一个 Scope 实例：
+
+```js
+function $RootScopeProvider() {
+  this.$get = function() {
+    // All previous code from scope.js goes here.
+    var $rootScope = new Scope();
+    return $rootScope;
+  };
+}
+module.exports = $RootScopeProvider;
+```
+
+显然，这个返回值就是 $rootScope。注意，目前所有 scope 相关的属性和变量已变成了私有的了，无法在 provider 外部被访问到。我们对外暴露的只有 $rootScope。
+
+当然，我们要把之前依赖 parse 全局函数的地方改成使用 $parse 服务。由于我们已经创建了 provider 和它的 $get 方法，我们就可以注入 $parse 服务：
+
+```js
+'use strict';
+var _ = require('lodash');
+
+function $RootScopeProvider() {
+  this.$get = ['$parse', function($parse) {
+    // All previous code from scope.js goes here.
+    var $rootScope = new Scope();
+    return $rootScope;
+  }];
+}
+
+module.exports = $RootScopeProvider;
+```
