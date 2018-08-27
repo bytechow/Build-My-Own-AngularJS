@@ -552,7 +552,7 @@ function markConstantAndWatchExpressions(ast, $flter) {
 }
 ```
 
-现在我们可以满足刚才加到 parse_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
+现在我们可以满足刚才加到 parse\_spec.js 文件里单元测试了，但是其他测试单元还是报错了，这是因为它们还是依赖之前的全局函数 parse。因此，我们需要修改 parse\_spec.js 中对 parse 服务的引入，我们会在 beforeEach 代码块中创建一个 injector 来获取 $parse 服务，代码如下：
 
 ```js
 'use strict';
@@ -743,7 +743,7 @@ Scope.prototype.$eval = function(expr, locals) {
 
 就这样，我们就实现了 $rootScope。但对于 $rootScope 服务的单元测试还存在问题。接下来，我们会继续进行修复。
 
-首先得更新 scope_spec.js 最前面的引用依赖的代码。现在，我们只需要模块和注射器就可以了：
+首先得更新 scope\_spec.js 最前面的引用依赖的代码。现在，我们只需要模块和注射器就可以了：
 
 ```js
 'use strict';
@@ -752,3 +752,6 @@ var _ = require('lodash');
 var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
 ```
+
+接着
+
