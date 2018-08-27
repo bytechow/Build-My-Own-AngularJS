@@ -753,5 +753,14 @@ var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
 ```
 
-接着
+接着，我们遗憾底宣布，scope_spec.js 的第一个测试用例将会被去掉，就是下面这段代码：
 
+```js
+it('can be constructed and used as an object', function() {
+  var scope = new Scope();
+  scope.aProperty = 1;
+  expect(scope.aProperty).toBe(1);
+});
+```
+
+现在，我们要获得一个 Scope，需要通过 $rootScope 服务，而不是构造函数。所以我们要去除这个测试用例。
