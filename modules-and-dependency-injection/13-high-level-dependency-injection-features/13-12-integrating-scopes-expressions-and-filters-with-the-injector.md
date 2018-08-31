@@ -834,4 +834,50 @@ describe('$watchCollection', function() {
   });
   // ...
 });
+
+在 describe('Events') 代码块中，我们会设置父作用域是根作用域，并让其他依赖也准备就绪：
+
+```js
+describe('Events', function() {
+  var parent;
+  var scope;
+  var child;
+  var isolatedChild;
+  beforeEach(function() {
+    publishExternalAPI();
+    parent = createInjector(['ng']).get('$rootScope');
+    scope = parent.$new();
+    child = scope.$new();
+    isolatedChild = scope.$new(true);
+  });
+  // ..
+});
+
+最后，还有一个测试用例是需要注册过滤器的，我们需要改为从注射器注入 $filterProvider 来进行注册：
+
+```js
+it('allows $stateful filter value to change over time', function(done) {
+  var injector = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('withTime', function() {
+      return _.extend(function(v) {
+        return new Date().toISOString() + ': ' + v;
+      }, {
+        $stateful: true
+      });
+    });
+  }]);
+  scope = injector.get('$rootScope');
+  var listenerSpy = jasmine.createSpy();
+  scope.$watch('42 | withTime', listenerSpy);
+  scope.$digest();
+  var firstValue = listenerSpy.calls.mostRecent().args[0];
+  setTimeout(function() {
+    scope.$digest();
+    var secondValue = listenerSpy.calls.mostRecent().args[0];
+    expect(secondValue).not.toEqual(firstValue);
+    done();
+  }, 100);
+});
 ```
+
+现在我们所有的单元测试应该都通过了。
