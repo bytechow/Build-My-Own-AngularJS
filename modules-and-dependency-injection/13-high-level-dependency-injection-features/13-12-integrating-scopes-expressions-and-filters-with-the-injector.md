@@ -763,4 +763,8 @@ it('can be constructed and used as an object', function() {
 });
 ```
 
-现在，我们要获得一个 Scope，需要通过 $rootScope 服务，而不是构造函数。所以我们要去除这个测试用例。
+现在，我们要获得一个 Scope，需要通过 $rootScope 服务，而不是构造函数。所以我们要去除这个测试用例。你可以通过 $rootScope 获取一个 scope，这个我们已经在 angular_public_spec.js 注册并测试了。
+
+现在我们需要检查 scope_spec.js 中所有嵌套的 describe 代码块，并且使用 injector 加载一个 scope 对象，以便现存的测试用例使用。
+
+在 scope_spec.js 每个测试模块，如 describe('digest')，describe('$eval')，describe('$apply')，describe('$evalAsync')，describe('$applyAsync')，describe('$$postDigest') 和 describe('$watchGroup')，我们会为它们新增一个 beforeEach 代码块，在代码块里面我们会通过注射器获取根作用域。
