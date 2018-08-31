@@ -768,3 +768,70 @@ it('can be constructed and used as an object', function() {
 现在我们需要检查 scope_spec.js 中所有嵌套的 describe 代码块，并且使用 injector 加载一个 scope 对象，以便现存的测试用例使用。
 
 在 scope_spec.js 每个测试模块，如 describe('digest')，describe('$eval')，describe('$apply')，describe('$evalAsync')，describe('$applyAsync')，describe('$$postDigest') 和 describe('$watchGroup')，我们会为它们新增一个 beforeEach 代码块，在代码块里面我们会通过注射器获取根作用域。
+
+```js
+var scope;
+
+beforeEach(function() {
+  publishExternalAPI();
+  scope = createInjector(['ng']).get('$rootScope');
+});
+```
+
+在 describe('inheritance') 代码块中，我们会加入一个新的 beforeEach 代码块来获取根作用域，以便我们在其后的单元测试中使用：
+
+```js
+describe('inheritance', function() {
+  var parent;
+  beforeEach(function() {
+    publishExternalAPI();
+    parent = createInjector(['ng']).get('$rootScope');
+  });
+  // ...
+});
+```
+
+另外，在 describe('inheritance') 代码块中，我们现在需要移除 var parent = new Scope()。毕竟我们现在已经使用 beforeEach 代码块中注入的根作用域来代替了。比如，我们可以在第一个单元测试中直接使用 parent 变量作为根作用域，而不需要再创建它：
+
+```js
+it('inherits the parents properties', function() {
+  parent.aValue = [1, 2, 3];
+  var child = parent.$new();
+  expect(child.aValue).toEqual([1, 2, 3]);
+});
+```
+
+下面就可以按照这个测试用例来进行改造。
+
+但还有两个例外情况。第一个存在于“can be nested at any depth”测试用例中，我们会将 parent 赋值给 a：
+
+```js
+it('can be nested at any depth', function() {
+  var a = parent;
+  // ...
+});
+```
+
+第二个例外在“can take some other scope as the parent” test，我们会在最开始通过 parent 生成两个子作用域：
+
+```js
+it('can take some other scope as the parent', function() {
+  var prototypeParent = parent.$new();
+  var hierarchyParent = parent.$new();
+  var child = prototypeParent.$new(false, hierarchyParent);
+  // ...
+});
+```
+
+在 describe('$watchCollection') 代码块中，我们也会改成通过注射器注入的方式获取根作用域：
+
+```js
+describe('$watchCollection', function() {
+  var scope;
+  beforeEach(function() {
+    publishExternalAPI();
+    scope = createInjector(['ng']).get('$rootScope');
+  });
+  // ...
+});
+```
