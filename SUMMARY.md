@@ -45,4 +45,5 @@
     * [13-11-decorators](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-11-decorators.md)
     * [13-12-integrating-scopes-expressions-and-filters-with-the-injector](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-12-integrating-scopes-expressions-and-filters-with-the-injector.md)
     * [13-13-making-a-configurable-provider-digest-ttl](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-13-making-a-configurable-provider-digest-ttl.md)
+    * [13-14-summary](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-14-summary.md)
 
