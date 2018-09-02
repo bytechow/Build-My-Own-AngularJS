@@ -13,7 +13,7 @@ $routeProvider.when('/someUrl', {
 
 我们可以通过模块实例的 config 方法增加一个配置服务。这个配置服务的值是一个函数，当我们的 injector 被创建时，这个函数就会被调用：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('runs confg blocks when the injector is created', function() {
@@ -29,7 +29,7 @@ it('runs confg blocks when the injector is created', function() {
 
 当然，配置服务函数是允许注入依赖的，注入的方法依然可以是我们之前实现的三种方式之一。比如，你可以注入 $provider：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('injects confg blocks with provider injector', function() {
@@ -44,7 +44,7 @@ it('injects confg blocks with provider injector', function() {
 
 所以，我们可以说 config 服务就是一个允许注入 provider 依赖的函数。我们可以通过 providerInjector.invoke 来调用配置服务，来完成这一需求：
 
-首先，我们需要在模块实例中新增配置服务的接口。我们需要对要调用 providerInjector.invoke 方法的任务进行重新排序。要进行调整的话，我们首先会遇到的问题是，目前我们所以的任务都是基于 $provider 对象的方法执行，而没有用到 $injector。我们将对此进行改进，我们将会对任务队列创建方法（也就是 invokeLater ）进行改造，它的参数将会改变为：1）任务执行方法所在的对象， 2) 任务执行方法名称 3) 以那种方法插入任务
+首先，我们需要在模块实例中新增配置服务的接口。我们需要对要调用 providerInjector.invoke 方法的任务进行重新排序。要进行调整的话，我们首先会遇到的问题是，目前我们所有的任务都是基于 $provider 对象的方法执行，而没有用到 $injector。我们将对此进行改进，我们将会对任务队列创建方法（也就是 invokeLater ）进行改造，它的参数将会改变为：1）任务执行方法所在的对象， 2\) 任务执行方法名称 3\) 以那种方法插入任务
 
 src/loader.js
 
@@ -74,7 +74,7 @@ var moduleInstance = {
 
 另一个问题是，目前按照我们的代码实现，我们所有的任务都在同一个队列中，调用顺序跟注册顺序是一致的。但当我们要加入 config 服务，我们就要进行改变了。简单来说，我们希望所有的注册工作可以在 config 服务之前完成。这样我们才能保证，当 config 服务函数被执行时，所有的 provider 已经处于可用状态，不管他们是在 config 服务之前还是之后注册的：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('allows registering confg blocks before providers', function() {
@@ -146,7 +146,7 @@ _.forEach(modulesToLoad, function loadModule(moduleName) {
     runInvokeQueue(module._invokeQueue);
     runInvokeQueue(module._confgBlocks);
   }
-}) 
+})
 ```
 
 由于任务执行的服务对象不一定是 $provider，我们会在每一个任务注册时新增一个 service 参数，且作为第一个参数，我们需要进行修改：
@@ -164,9 +164,9 @@ function runInvokeQueue(queue) {
 }
 ```
 
-现在，我们可以通过调用模块实例的 config 方法来增加一个配置任务。我们还会提供另一种简便的方式，就是对 angular.module 新增一个可选参数：
+现在，我们可以通过调用模块实例的 config 方法来增加一个配置任务。我们还会提供另一种简便的方式，就是对 angular.module 新增一个可选参数，这个参数是一个用于配置的函数：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('runs a confg block added during module registration', function() {
@@ -229,3 +229,6 @@ var createModule = function(name, requires, modules, confgFn) {
   return moduleInstance;
 };
 ```
+
+
+
