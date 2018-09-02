@@ -1,6 +1,6 @@
 ### 处理循环依赖问题（Circular Dependencies）
 
-既然支持依赖注入其它依赖，我们就可能会遇到循环依赖问题。假设A依赖B，B依赖C，C又依赖A，一旦我们构建依赖就会陷入死循环，最终抛出堆栈溢出的错误。但是我们希望有一个更清晰的错误提示：
+既然支持依赖注入其它依赖，我们就可能会遇到循环依赖问题。假设A依赖B，B依赖C，C又依赖A，一旦我们构建类似的依赖，程序就会陷入死循环，最终抛出堆栈溢出的错误。但是我们希望有一个更清晰的错误提示：
 
 test/injector\_spec.js
 
@@ -58,7 +58,7 @@ function getService(name) {
 
 然后当依赖最终被创建完成时，自然会把 INSTANTIATING 标识替换为依赖值。但在实例化过程中也可能出错，如果出错，我们不希望这个实例化标识还留在实例依赖中：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('cleans up the circular marker when instantiation fails', function() {
@@ -78,7 +78,7 @@ it('cleans up the circular marker when instantiation fails', function() {
 });
 ```
 
-上面测试用例的做法是，尝试获取一个抛出特殊错误的 provider 依赖，并重复执行，看两次执行结果是不是都抛出了这个错误。现在测试用例不通过，原因是我们第一次获取时把实例化标识放到了 provider a 对应的实例依赖中，第二次调用的时候，由于先检查是否循环依赖再进行 $get 方法的调用，第一次调用时已经进行了实例化标记，自然程序判断出现了循环依赖，所以抛出的时循环依赖的错误。我们应该保证无论程序是否抛出错误，都要清除实例化标识：
+上面测试用例的做法是，尝试获取一个抛出特殊错误的 provider 依赖，并重复执行，看两次执行结果是不是都抛出了这个错误。现在测试用例不通过，原因是我们第一次获取时把实例化标识放到了 provider a 对应的实例依赖中，第二次调用的时候，由于先检查是否循环依赖再进行 $get 方法的调用，第一次调用时已经进行了实例化标记，程序认定出现了循环依赖，所以抛出的是循环依赖的错误。我们应该保证无论程序是否抛出错误，都要清除实例化标识：
 
 src/injector.js
 
@@ -115,7 +115,7 @@ function getService(name) {
 a <- c <- b <- a
 ```
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('notifes the user about a circular dependency', function() {
@@ -152,6 +152,7 @@ function createInjector(modulesToLoad, strictDi) {
 在 getService 函数中，我们会把 path 作为一个栈空间对依赖路径进行存储。当我们开始解决某个依赖，我们会把依赖的名字放到数组的开头。如果依赖解决完成（获取成功），我们就把它的名字从 path 中去除：
 
 src/injector.js
+
 ```js
 function getService(name) {
   if (instanceCache.hasOwnProperty(name)) {
@@ -167,7 +168,7 @@ function getService(name) {
       var instance = instanceCache[name] = invoke(provider.$get);
       return instance;
     }
-    fnally {
+    finally {
       path.shift();
       if (instanceCache[name] === INSTANTIATING) {
         delete instanceCache[name];
@@ -205,3 +206,4 @@ function getService(name) {
 ```
 
 现在用户更清楚错误产生的原因是什么了！
+

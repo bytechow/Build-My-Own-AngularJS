@@ -55,7 +55,7 @@ var getModule = function(name, modules) {
 };
 ```
 
-从上面的代码我们了解到所有的模块都存储到内部变量 modules 中，这也是为什么我们需要保证 angular 全局对象和 angular.module 方法只会初始化一次，否则在之前注册的模块都会被清除掉。
+从上面的代码我们了解到所有的模块都存储到内部变量 modules 中，这也是为什么我们需要保证 angular 全局对象和 angular.module 方法只会初始化一次，否则在之前注册的模块都会被替换掉。
 
 当前，我们如果访问一个尚未注册的模块，结果会是 undefined。但 Angular 需要抛出一个异常来表明发生了异常，并说明异常原因：
 

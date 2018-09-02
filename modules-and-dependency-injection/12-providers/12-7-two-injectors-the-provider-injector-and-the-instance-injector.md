@@ -453,3 +453,6 @@ function createInjector(modulesToLoad, strictDi) {
 
 1. providerInjector 会在执行模块任务队列时被注册，之后就不会再发生变化
 2. 在运行时，我们在调用注射器的API时，会同时实例化依赖，该过程会发生在 instanceInjecot（工厂函数） 中
+
+
+

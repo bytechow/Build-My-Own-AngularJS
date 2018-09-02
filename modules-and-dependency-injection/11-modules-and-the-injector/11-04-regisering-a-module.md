@@ -16,7 +16,7 @@ describe('modules', function() {
 
 首先测试一下我们是否能通过调用 angular.module 函数获取一个模块对象
 
-angular.module 接收两个参数，第一个参数是模块名称，第二个是一个包含模块依赖的数组（字符串数组，可能为空）。这个方法会返回一个模块对象，对象中的 name 属性对应模块名称：
+angular.module 接收两个参数，第一个参数是模块名称，第二个是一个包含模块依赖的数组（可能为空）。这个方法会返回一个模块对象，对象中的 name 属性对应模块名称：
 
 test/loader\_spec.js
 

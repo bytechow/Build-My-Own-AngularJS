@@ -4,9 +4,9 @@
 
 因此，很多开发者选择不使用这种“非注解”依赖注入方式（或者使用 ng-annotate 服务提前生成注解）。Angular 也提供了一种检测方案，能够限制在代码中使用推断式注入的行为，一旦在运行过程中发现有这种行为，会抛出一个错误进行提醒。
 
-我们可以通过在调用 createInject 函数时，传入一个布尔值来控制是否开启严格模式：
+我们可以通过在调用 createInjector 函数时，传入一个布尔值来控制是否开启严格模式：
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('throws when using a non-annotated fn in strict mode', function() {
@@ -18,7 +18,7 @@ it('throws when using a non-annotated fn in strict mode', function() {
 });
 ```
 
- 同时，我们希望传入的第二个参数必须是 true，而不是其他真值（truthy）:
+同时，我们希望传入的第二个参数必须是 true，而不是其他真值（truthy）:
 
 ```js
 function createInjector(modulesToLoad, strictDi) {
@@ -32,6 +32,7 @@ function createInjector(modulesToLoad, strictDi) {
 在 annotate 方法中，我们在提取函数参数之前，检查当前注射器是否采用严格模式：
 
 src/injector.js
+
 ```js
 function annotate(fn) {
   if (_.isArray(fn)) {
@@ -55,3 +56,4 @@ function annotate(fn) {
 ```
 
 如果你有压缩代码的需要，开启严格模式是绝对有必要的。即使你在代码中不小心使用了推断式注入，你也能从抛出的错误得到一个明确的提示，而不是告诉你要查找的某个依赖不存在，而这个依赖你根本没有注册过。
+

@@ -11,7 +11,7 @@ it('exposes the angular module function', function() {
 });
 ```
 
-就像全局对象 angular 一样，module 方法也应该是单例的：
+就像全局对象 angular 一样，module 方法也需要是单例的（后面会作出解释）：
 
 ```js
 it('exposes the angular module function just once', function() {
