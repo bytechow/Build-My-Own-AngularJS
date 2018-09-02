@@ -1,6 +1,6 @@
 ### module 方法（The module Method）
 
-我们要介绍的第一个在 angular 全局对象的方法是 module，这个方法将会在本章以及之后的章节被大量使用。首先，我们断然这个方法存在与新创建的 angular 全局对象
+我们要介绍的第一个在 angular 全局对象的方法是 module，这个方法将会在本章以及之后的章节被大量使用。首先，我们断言这个方法是存在的：
 
 test/loader\_spec.js
 

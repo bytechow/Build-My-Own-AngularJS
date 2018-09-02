@@ -1,10 +1,10 @@
 ### 全局对象 angular（The angular Global）
 
-用过Angular的人都应该接触过全局对象 angular，现在是时候引入这个对象了。
+用过Angular的人都应该已经接触过全局对象 angular，现在是时候引入这个对象了。
 
 需要有容器来承载模块和注射器，而这个容器就是 angular 全局对象。
 
-处理模块的框架组件被称为_模块加载器（module loader）_，我们会把这个组件的代码放到 loader.js 中。在 loader.js 中，我们正式引入 angular 全局对象。但首先，我们会按照惯例先创建对应的测试代码。
+处理模块的框架组件被称为_模块加载器（module loader）_，我们会把这个组件的代码放到 loader.js 中。在 loader.js 中，我们正式引入 angular 全局对象。但首先，我们会按照惯例创建对应的测试代码。
 
 test/loader\_spec.js
 
