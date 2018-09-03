@@ -214,7 +214,7 @@ var hashKey = require('../src/hash_map').hashKey;
 
 现在我们需要对传入hashKey方法的对象进行检测，如果其 $$hashKey 值为一个函数，我们就调用它来生成 ID
 
-```
+```js
 function hashKey(value) {
   var type = typeof value;
   var uid;
