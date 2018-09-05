@@ -1,4 +1,4 @@
-### 函数式模块状态管理器（Function Modules Redux）
+### 兼容函数式模块的状态管理器（Function Modules Redux）
 
 有了 HashMap，我们终于可以解决 injector_spec.js 中的还没解决的单元测试了，也就是我们可以保证函数式模块也只会被加载一次。
 
