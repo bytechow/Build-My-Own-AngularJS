@@ -46,5 +46,5 @@
     * [13-12 使用注射器注入Scope、Expression和Filter](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-12-integrating-scopes-expressions-and-filters-with-the-injector.md)
     * [13-13 构建一个可配置的provider：Digest TTL](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-13-making-a-configurable-provider-digest-ttl.md)
     * [13-14 总结](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-14-summary.md)
-* [第五部分 工具类](di-wu-bu-fen-gong-ju-lei.md)
+* [第五部分 工具类](utilities/utilities.md)
 
