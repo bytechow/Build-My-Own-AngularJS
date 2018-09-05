@@ -1,4 +1,4 @@
-### 注入 $provider（Injecting $provider）
+### 注入 $provider 服务（Injecting $provider）
 
 injector 实例对象可以让你获取已经配置好的依赖，但你没办法对依赖进行配置，也就是说这是一个只读的API。如果你希望配置依赖，你需要使用 $provder 依赖。
 

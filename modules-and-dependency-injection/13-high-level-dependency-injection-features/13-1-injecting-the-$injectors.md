@@ -1,4 +1,4 @@
-### 注入 $injector（Injecting The $injectors）
+### 注入 $injector 服务（Injecting The $injectors）
 
 当你创建了一个 injector 对象，你就可以使用它的 API 来引入、注入依赖。对于应用开发者来说，可能其中最有趣的 API 是 get 方法，因为使用它可以动态获取一个依赖，甚至不用理会它的名称是否已放到了注解中进行声明。
 
