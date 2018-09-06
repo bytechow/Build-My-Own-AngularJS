@@ -6,17 +6,5 @@
 
 本章节，我们将学习如何创建模块，然后学习如何创建一个注射器来加载这些模块
 
-> 下载[本章代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter10-expressions-and-watches)
-
-### 
-
-### 
-
-### 
-
-### 
-
-### 
-
-
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter10-expressions-and-watches)
 

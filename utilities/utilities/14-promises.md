@@ -15,3 +15,5 @@ element.addEventListener('click', function(evt) {
 * 如果一个业务处理中需要多个异步函数的顺序执行，步骤还比较多的话，我们页会面临难以编写和维护该功能代码的问题，会导致诸如“回调地狱“之类的问题出现
 
 * 回调函数的方式并没有错误处理的机制。按照传统的处理，我们会在回调函数中加入一个特殊的错误参数，而且这种方式必须用到每一个出现回调函数的地方去。
+
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter13-high-level-dependency-injection-features)

@@ -6,7 +6,7 @@
 
 provider 是除了 constant 之外其它所有应用组件的基础。之后介绍的 service、factory 和 value 等服务本质上都是在使用 provider。
 
-> 下载[本章代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter11-modules-and-the-injector)
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter11-modules-and-the-injector)
 
 
 

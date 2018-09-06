@@ -6,7 +6,7 @@
 
 另外，为了使用依赖注入统一管理 Angular 的其余特性，我们也要用依赖注入和模块化的方法，对前三章实现的功能进行重构。
 
-> 下载[本章代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter12-providers)
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter12-providers)
 
 
 
