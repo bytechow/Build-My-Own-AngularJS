@@ -49,4 +49,5 @@
 * [第五部分 工具类](utilities/utilities.md)
   * [14-promises](utilities/utilities/14-promises.md)
     * [14-1-promises](utilities/utilities/14-promises/14-1-promises.md)
+    * [14-2-promise-implementations](utilities/utilities/14-promises/14-2-promise-implementations.md)
 
