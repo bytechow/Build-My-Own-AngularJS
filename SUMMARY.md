@@ -51,4 +51,5 @@
     * [14-1-promises](utilities/14-promises/14-1-promises.md)
     * [14-2-promise-implementations](utilities/14-promises/14-2-promise-implementations.md)
     * [14-3-promises-in-angularjs](utilities/14-promises/14-3-promises-in-angularjs.md)
+    * [14-4-further-reading](utilities/14-promises/14-4-further-reading.md)
 
