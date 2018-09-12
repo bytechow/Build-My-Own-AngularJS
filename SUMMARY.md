@@ -47,7 +47,7 @@
     * [13-13 构建一个可配置的provider：Digest TTL](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-13-making-a-configurable-provider-digest-ttl.md)
     * [13-14 总结](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-14-summary.md)
 * [第五部分 工具类](utilities/utilities.md)
-  * [14-promises](utilities/utilities/14-promises.md)
-    * [14-1-promises](utilities/utilities/14-promises/14-1-promises.md)
-    * [14-2-promise-implementations](utilities/utilities/14-promises/14-2-promise-implementations.md)
+  * [14-promises](utilities/14-promises/14-promises.md)
+    * [14-1-promises](utilities/14-promises/14-1-promises.md)
+    * [14-2-promise-implementations](utilities/14-promises/14-2-promise-implementations.md)
 
