@@ -53,4 +53,5 @@
     * [14-3-promises-in-angularjs](utilities/14-promises/14-3-promises-in-angularjs.md)
     * [14-4-further-reading](utilities/14-promises/14-4-further-reading.md)
     * [14-5-the-$q-provider](utilities/14-promises/14-5-the-q-provider.md)
+    * [14-6-creating-deferreds](utilities/14-promises/14-6-creating-deferreds.md)
 
