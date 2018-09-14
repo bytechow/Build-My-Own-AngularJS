@@ -54,4 +54,5 @@
     * [14-4-further-reading](utilities/14-promises/14-4-further-reading.md)
     * [14-5-the-$q-provider](utilities/14-promises/14-5-the-q-provider.md)
     * [14-6-creating-deferreds](utilities/14-promises/14-6-creating-deferreds.md)
+    * [14-7-accessing-the-promise-of-a-deferred](utilities/14-promises/14-7-accessing-the-promise-of-a-deferred.md)
 
