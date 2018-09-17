@@ -1,6 +1,6 @@
-### 不允许多次决议（Preventing Multiple Resolutions）
+### 避免多次决议（Preventing Multiple Resolutions）
 
-Deferred 的一个重要特性是它们只会被 resolve 一次。一旦 Deferred 经过 resolve 获得一个结果值，这个值之后就不会再变更
+Deferred 的一个重要特性是它们只会被 resolve 一次。一旦 Deferred 经过 resolve 获得一个结果值，这个值之后就不会再变更  
 。Promise 的回调也只会被调用一次。如果你尝试再次对 Deferred 进行 resolve，回调调用将会被忽略：
 
 ```js
@@ -44,3 +44,6 @@ Deferred.prototype.resolve = function(value) {
   scheduleProcessQueue(this.promise.$$state);
 };
 ```
+
+
+
