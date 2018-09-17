@@ -57,4 +57,5 @@
     * [14-7-accessing-the-promise-of-a-deferred](utilities/14-promises/14-7-accessing-the-promise-of-a-deferred.md)
     * [14-8-resolving-a-deferred](utilities/14-promises/14-8-resolving-a-deferred.md)
     * [14-9-preventing-multiple-resolutions](utilities/14-promises/14-9-preventing-multiple-resolutions.md)
+    * [14-10-ensuring-that-callbacks-get-invoked](utilities/14-promises/14-10-ensuring-that-callbacks-get-invoked.md)
 
