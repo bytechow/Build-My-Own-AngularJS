@@ -24,3 +24,6 @@ Promise.prototype.then = function(onFulflled) {
   }
 };
 ```
+
+
+
