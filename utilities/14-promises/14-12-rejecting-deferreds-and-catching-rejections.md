@@ -83,3 +83,87 @@ Promise.prototype.then = function(onFulflled, onRejected) {
   }
 };
 ```
+
+在 processQueue 方法，我们可以通过获取当前 Promise 的决议状态来决定使用哪个回调，并不需要额外工作来进行区分：
+
+```js
+function processQueue(state) {
+  var pending = state.pending;
+  state.pending = undefned;
+  _.forEach(pending, function(handlers) {
+    var fn = handlers[state.status];
+    fn(state.value);
+  });
+}
+```
+
+当前的实现还有一个问题，就是我们目前默认每一个 then 方法调用都会给出完成时回调和拒绝时回调。事实上，我们应该允许忽略其中一个回调（技术上两个回调都可以忽略）：
+
+```js
+it('does not require a failure handler each time', function() {
+  var d = $q.defer();
+
+  var fulfllSpy = jasmine.createSpy();
+  var rejectSpy = jasmine.createSpy();
+  d.promise.then(fulfllSpy);
+  d.promise.then(null, rejectSpy);
+  
+  d.reject('fail');
+  $rootScope.$apply();
+  
+  expect(rejectSpy).toHaveBeenCalledWith('fail');
+});
+
+it('does not require a success handler each time', function() {
+  var d = $q.defer();
+
+  var fulfllSpy = jasmine.createSpy();
+  var rejectSpy = jasmine.createSpy();
+  
+  d.promise.then(fulfllSpy);
+  d.promise.then(null, rejectSpy);
+  
+  d.resolve('ok');
+  $rootScope.$apply();
+  
+  expect(fulfllSpy).toHaveBeenCalledWith('ok');
+});
+```
+
+要修复这个问题，我们会对传入的回调函数的类型进行检测：
+
+```js
+function processQueue(state) {
+  var pending = state.pending;
+  state.pending = undefned;
+  _.forEach(pending, function(handlers) {
+    var fn = handlers[state.status];
+    if (_.isFunction(fn)) {
+      fn(state.value);
+    }
+  });
+}
+```
+
+对于 Promise.then(null, callback) 这种只有错误回调的监听器，我们可以使用一个便捷方法：
+
+```js
+it('can register rejection handler with catch', function() {
+  var d = $q.defer();
+  
+  var rejectSpy = jasmine.createSpy();
+  d.promise.catch(rejectSpy);
+  d.reject('fail');
+  $rootScope.$apply();
+  
+  expect(rejectSpy).toHaveBeenCalled();
+});
+```
+
+实际上 catch 方法在底层也只是调用 then，并没有什么特别之处：
+
+```js
+Promise.prototype.catch = function(onRejected) {
+  return this.then(null, onRejected);
+};
+```
