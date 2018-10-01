@@ -60,4 +60,5 @@
     * [14-10-ensuring-that-callbacks-get-invoked](utilities/14-promises/14-10-ensuring-that-callbacks-get-invoked.md)
     * [14-11-registering-multiple-promise-callbacks](utilities/14-promises/14-11-registering-multiple-promise-callbacks.md)
     * [14-12-rejecting-deferreds-and-catching-rejections](utilities/14-promises/14-12-rejecting-deferreds-and-catching-rejections.md)
+    * [14-13-cleaning-up-at-the-end-finally](utilities/14-promises/14-13-cleaning-up-at-the-end-finally.md)
 

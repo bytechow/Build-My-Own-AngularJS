@@ -107,10 +107,10 @@ it('does not require a failure handler each time', function() {
   var rejectSpy = jasmine.createSpy();
   d.promise.then(fulfllSpy);
   d.promise.then(null, rejectSpy);
-  
+
   d.reject('fail');
   $rootScope.$apply();
-  
+
   expect(rejectSpy).toHaveBeenCalledWith('fail');
 });
 
@@ -119,13 +119,13 @@ it('does not require a success handler each time', function() {
 
   var fulfllSpy = jasmine.createSpy();
   var rejectSpy = jasmine.createSpy();
-  
+
   d.promise.then(fulfllSpy);
   d.promise.then(null, rejectSpy);
-  
+
   d.resolve('ok');
   $rootScope.$apply();
-  
+
   expect(fulfllSpy).toHaveBeenCalledWith('ok');
 });
 ```
@@ -145,17 +145,17 @@ function processQueue(state) {
 }
 ```
 
-对于 Promise.then(null, callback) 这种只有错误回调的监听器，我们可以使用一个便捷方法：
+对于 Promise.then\(null, callback\) 这种只有错误回调的监听器，我们可以使用一个便捷方法：
 
 ```js
 it('can register rejection handler with catch', function() {
   var d = $q.defer();
-  
+
   var rejectSpy = jasmine.createSpy();
   d.promise.catch(rejectSpy);
   d.reject('fail');
   $rootScope.$apply();
-  
+
   expect(rejectSpy).toHaveBeenCalled();
 });
 ```
@@ -167,3 +167,6 @@ Promise.prototype.catch = function(onRejected) {
   return this.then(null, onRejected);
 };
 ```
+
+
+
