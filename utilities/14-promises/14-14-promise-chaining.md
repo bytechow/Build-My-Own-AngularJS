@@ -14,10 +14,10 @@ it('allows chaining handlers', function() {
   }).then(function(result) {
     return result * 2;
   }).then(fulflledSpy);
-  
+
   d.resolve(20);
   $rootScope.$apply();
-  
+
   expect(fulflledSpy).toHaveBeenCalledWith(42);
 });
 ```
@@ -27,7 +27,7 @@ it('allows chaining handlers', function() {
 ```js
 it('does not modify original resolution in chains', function() {
   var d = $q.defer();
-  
+
   var fulflledSpy = jasmine.createSpy();
   d.promise.then(function(result) {
     return result + 1;
@@ -43,4 +43,33 @@ it('does not modify original resolution in chains', function() {
 });
 ```
 
-我们需要在 then 方法里面创建一个新的 Deferred——它代表在上一个工作流程 onFulfilled 回调传递的计算结果
+我们需要在 then 方法里面创建一个新的 Deferred——它代表在本次工作流程中 onFulfilled 回调的计算结果。之后可以 then 方法的最后直接返回它的 Promise：
+
+```js
+Promise.prototype.then = function(onFulflled, onRejected) {
+  var result = new Deferred();
+  this.$$state.pending = this.$$state.pending || [];
+  this.$$state.pending.push([null, onFulflled, onRejected]);
+  if (this.$$state.status > 0) {
+    scheduleProcessQueue(this.$$state);
+  }
+  return result.promise;
+};
+```
+
+我们还得把 Defferred  对应的计算结果放到 onFulfilled 回调被调用的地方才行，这样才能实现传递。我们会把这个结算结果作为 $$state.pending 第一个参数：
+
+```js
+Promise.prototype.then = function(onFulflled, onRejected) {
+  var result = new Deferred();
+  this.$$state.pending = this.$$state.pending || [];
+  this.$$state.pending.push([result, onFulflled, onRejected]);
+  if (this.$$state.status > 0) {
+    scheduleProcessQueue(this.$$state);
+  }
+  return result.promise;
+};
+```
+
+
+
