@@ -57,7 +57,7 @@ Promise.prototype.then = function(onFulflled, onRejected) {
 };
 ```
 
-我们还得把 Defferred  对应的计算结果放到 onFulfilled 回调被调用的地方才行，这样才能实现传递。我们会把这个结算结果作为 $$state.pending 第一个参数：
+我们还得把 Defferred  对应的计算结果放到 onFulfilled 回调被调用的地方才行，这样才能实现传递。我们会把这个计算结果作为 $$state.pending 第一个参数：
 
 ```js
 Promise.prototype.then = function(onFulflled, onRejected) {
@@ -71,5 +71,24 @@ Promise.prototype.then = function(onFulflled, onRejected) {
 };
 ```
 
+在之后我们要在 processQueue 中执行回调时，就可以把计算结果拿出来，并传递给对应的回调函数：
 
+```js
+unction processQueue(state) {
+  var pending = state.pending;
+  state.pending = undefned;
+  _.forEach(pending, function(handlers) {
+    var deferred = handlers[0];
+    var fn = handlers[state.status];
+    if (_.isFunction(fn)) {
+      deferred.resolve(fn(state.value));
+    }
+  });
+}
+```
 
+这就是我们可以使用 then 形成 Promise 链的关键。每一个 Promise 处理节点都会创建一个新的 Deferred，同时也意味着创建了一个 Promise。这个新的 Deferred 与原始的 Deferred 是完全独立的，但只要原始的 Deferred 被决议，新的 Deferred 也会跟随着变成被决议的状态。
+
+当然，由于每一个 then 都会创建一个新的 Deferred 并返回一个 Promise，所以在 Promise 处理链条的最后一个节点也会返回一个 Promise，但这个 Promise 自然会被忽略掉。
+
+Promise 链的另一个特性是，计算结果的状态和值都会被向下传递。比如，我们拒绝了一个 Deferred，然后在 Promise 链的下一个流程只注册成功后回调（不注册失败回调），到再下一个流程我们才绑定一个失败回调。由于在 Promise 链中，拒绝（rejection）这个状态和值都会一直向下传递，所以我们可以实现`one.then(two)`
