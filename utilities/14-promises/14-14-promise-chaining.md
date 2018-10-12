@@ -1,4 +1,4 @@
-### Promise 链（promise-chaining）
+### Promise 链（Promise Chaining）
 
 上面我们已经了解到 Deferred 和 Promise 是怎么配合运作的，对于执行一个异步任务来说已经足够了，但 Promise 的价值在于它支持依次多个异步任务，形成一个工作流。这个工作流也就是我们需要实现的 Promise 链。
 
@@ -99,10 +99,10 @@ it('catches rejection on chained handler', function() {
 
   var rejectedSpy = jasmine.createSpy();
   d.promise.then(_.noop).catch(rejectedSpy);
-  
+
   d.reject('fail');
   $rootScope.$apply();
-  
+
   expect(rejectedSpy).toHaveBeenCalledWith('fail');
 });
 ```
@@ -157,7 +157,7 @@ function processQueue(state) {
 ```js
 it('treats catch return value as resolution', function() {
   var d = $q.defer();
-  
+
   var fulflledSpy = jasmine.createSpy();
   d.promise
     .catch(function() {
@@ -167,7 +167,10 @@ it('treats catch return value as resolution', function() {
 
   d.reject('fail');
   $rootScope.$apply();
-  
+
   expect(fulflledSpy).toHaveBeenCalledWith(42);
 });
 ```
+
+
+
