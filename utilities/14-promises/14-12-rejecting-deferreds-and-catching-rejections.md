@@ -1,4 +1,4 @@
-拒绝 Deffered，捕捉拒绝决议
+### 拒绝 Deffered 并捕获 Rejection（Rejecting Deferreds And Catching Rejection）
 
 正如我们在本章开始时提到的，回调函数处理异步时有一个弊端，就是缺乏一种统一的错误处理机制。我们可能会选择某一个的回调函数参数传递错误，但大部分库或应用对其的处理都大不相同。
 

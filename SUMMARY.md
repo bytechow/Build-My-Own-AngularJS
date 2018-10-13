@@ -64,4 +64,5 @@
     * [14-14-promise-chaining](utilities/14-promises/14-14-promise-chaining.md)
     * [14-15-exception-handling](utilities/14-promises/14-15-exception-handling.md)
     * [14-16-callbacks-returning-promises](utilities/14-promises/14-16-callbacks-returning-promises.md)
+    * [14-17-chaining-handlers-on-finally](utilities/14-promises/14-17-chaining-handlers-on-finally.md)
 
