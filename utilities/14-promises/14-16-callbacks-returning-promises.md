@@ -51,7 +51,7 @@ it('waits on promise given to resolve', function() {
 it('rejects when promise returned from handler rejects', function() {
   var d = $q.defer();
   var rejectedSpy = jasmine.createSpy();
-  
+
   d.promise.then(function() {
     var d2 = $q.defer();
     d2.reject('fail');
@@ -60,7 +60,7 @@ it('rejects when promise returned from handler rejects', function() {
   d.resolve('ok');
 
   $rootScope.$apply();
-  
+
   expect(rejectedSpy).toHaveBeenCalledWith('fail');
 });
 ```
@@ -85,7 +85,7 @@ Deferred.prototype.resolve = function(value) {
 };
 ```
 
-这样的话，我们所有的测试用例就都通过了，因为它们都会调用 resolve 方法来进行流程。
+这样的话，其实我们的测试用例就都通过了，因为上面提到如果有绑定回调函数，都最终会通过 resolve 方法来处理计算结果，所以这里只需要更改 resolve 方法就可以了。
 
 > 注意，在上面的代码实现中，我们没有对 Promise 进行严格的类型判定。事实上，我们并要求它必须是一个 Promise 的示例，只要是一个含有 then 方法的对象（也称为 thenable 对象），我们都是允许的。这样做的好处是，我们可以使用其他的 Promise 实现作为嵌套 Promise，也就意味着，我们可以在 AngularJS 中兼容使用其他库或者就是 ES2015 的 Promise。
 
