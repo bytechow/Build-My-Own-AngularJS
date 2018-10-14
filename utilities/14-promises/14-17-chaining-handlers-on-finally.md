@@ -213,5 +213,57 @@ function makePromise(value, resolved) {
 }
 ```
 
+现在我们可以在 finally 的代码实现中使用这个帮助函数：
 
+```js
+Promise.prototype.fnally = function(callback) {
+  return this.then(function(value) {
+    var callbackValue = callback();
+    if (callbackValue && callbackValue.then) {
+      return callbackValue.then(function() {
+        return makePromise(value, true);
+      });
+    } else {
+      return value;
+    }
+  }, function(rejection) {
+    var callbackValue = callback();
+    if (callbackValue && callbackValue.then) {
+      return callbackValue.then(function() {
+        return makePromise(rejection, false);
+      });
+    } else {
+      return makePromise(rejection, false);
+    }
+  });
+};
+```
 
+我们还可以对 finally 中 then 绑定的两个回调函数进行封装，毕竟这两个回调函数的逻辑都基本一致：
+
+```js
+Promise.prototype.fnally = function(callback) {
+  return this.then(function(value) {
+    return handleFinallyCallback(callback, value, true);
+  }, function(rejection) {
+    return handleFinallyCallback(callback, rejection, false);
+  });
+};
+```
+
+这个帮助函数会调用 finally 回调，然后返回一个与原始结果值相同的 Promise，除非 finally 回调本身返回结果值为 rejection:
+
+```js
+function handleFinallyCallback(callback, value, resolved) {
+  var callbackValue = callback();
+  if (callbackValue && callbackValue.then) {
+    return callbackValue.then(function() {
+      return makePromise(value, resolved);
+    });
+  } else {
+    return makePromise(value, resolved);
+  }
+}
+```
+
+综上，当 finally 返回值是一个 Promise 时，我们会等待 Promise 完成后才往下继续处理流程。除非 finally 内部的 Promise 被 reject 了，否则我们都会直接把原始结果值往下传递。
