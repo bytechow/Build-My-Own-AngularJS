@@ -66,4 +66,5 @@
     * [14-16-callbacks-returning-promises](utilities/14-promises/14-16-callbacks-returning-promises.md)
     * [14-17-chaining-handlers-on-finally](utilities/14-promises/14-17-chaining-handlers-on-finally.md)
     * [14-18-notifying-progress](utilities/14-promises/14-18-notifying-progress.md)
+    * [14-19-immediate-rejection-$q-reject](utilities/14-promises/14-19-immediate-rejection-q-reject.md)
 
