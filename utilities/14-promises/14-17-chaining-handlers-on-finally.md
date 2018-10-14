@@ -15,9 +15,9 @@ it('allows chaining handlers on finally, with original value', function() {
     return result * 2;
   }).then(fulflledSpy);
   d.resolve(20);
-  
+
   $rootScope.$apply();
-  
+
   expect(fulflledSpy).toHaveBeenCalledWith(21);
 });
 ```
@@ -35,7 +35,7 @@ it('allows chaining handlers on finally, with original rejection', function() {
   d.resolve(20);
 
   $rootScope.$apply();
-  
+
   expect(rejectedSpy).toHaveBeenCalledWith('fail');
 });
 ```
@@ -58,7 +58,7 @@ Promisei.prototype.finally = function(callback) {
 ```js
 it('resolves to orig value when nested promise resolves', function() {
   var d = $q.defer();
-  
+
   var fulflledSpy = jasmine.createSpy();
   var resolveNested;
 
@@ -72,10 +72,10 @@ it('resolves to orig value when nested promise resolves', function() {
     return d2.promise;
   }).then(fulflledSpy);
   d.resolve(20);
-  
+
   $rootScope.$apply();
   expect(fulflledSpy).not.toHaveBeenCalled();
-  
+
   resolveNested();
 
   $rootScope.$apply();
@@ -107,7 +107,7 @@ it('rejects to original value when nested promise resolves', function() {
 
   $rootScope.$apply();
   expect(rejectedSpy).not.toHaveBeenCalled();
-  
+
   resolveNested();
   $rootScope.$apply();
   expect(rejectedSpy).toHaveBeenCalledWith('fail');
@@ -119,7 +119,7 @@ it('rejects to original value when nested promise resolves', function() {
 ```js
 it('rejects when nested promise rejects in fnally', function() {
   var d = $q.defer();
-  
+
   var fulflledSpy = jasmine.createSpy();
   var rejectedSpy = jasmine.createSpy();
   var rejectNested;
@@ -199,5 +199,19 @@ Promise.prototype.fnally = function(callback) {
 
 现在我们已经实现了完整版的 finally 了，但目前的实现还是有点冗长。下面我们通过封装几个帮助函数来简化流程：
 
- 首先，我们可以使用一个通用的帮助函数，这个函数可以接收一个结果值和布尔值标识，并根据布尔值返回
+首先，我们可以使用一个通用的帮助函数，这个函数可以接收一个原始结果值和布尔值标识，并根据布尔值标识返回一个带上原始结果值的已经 resolve 或 reject 的 Promise 对象。
+
+```js
+function makePromise(value, resolved) {
+  var d = new Deferred();
+  if (resolved) {
+    d.resolve(value);
+  } else {
+    d.reject(value);
+  }
+  return d.promise;
+}
+```
+
+
 
