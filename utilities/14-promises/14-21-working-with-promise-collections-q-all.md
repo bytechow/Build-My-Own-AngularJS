@@ -66,7 +66,7 @@ function all(promises) {
 }
 ```
 
-这意味着如果计数器变成0，则所有的 Promise 都已经被 resolve 了。如果我们在里面构造一个 Deferred，并让它在计数器变成 0 后 resolve，就完成了 $q.all 的逻辑实现了：
+这意味着如果计数器变成0，则所有的 Promise 都已经被 resolve 了。如果我们在里面构造一个 Deferred，并让它在计数器变成 0 后 resolve，就完成 $q.all 的逻辑了：
 
 ```js
 function all(promises) {
@@ -87,3 +87,44 @@ function all(promises) {
 }
 ```
 
+$q.all 不仅可以传入数组，还支持传入对象作为参数。如果传入对象，那么结果也将会是一个对象，对象的属性值就是对应 Promise 的结果值：
+
+```js
+it('can resolve an object of promises to an object of results', function() {
+  var promise = $q.all({
+    a: $q.when(1),
+    b: $q.when(2)
+  });
+  var fulflledSpy = jasmine.createSpy();
+  promise.then(fulflledSpy);
+  
+  $rootScope.$apply();
+
+  expect(fulflledSpy).toHaveBeenCalledWith({
+    a: 1,
+    b: 2
+  });
+});
+```
+
+因此，在 all 方法的一开始，我们就要判断参数是一个数组还是对象，并以此决定结果的输出。这里我们只需要进行参数判断即可，\_.forEach 可以兼容数组或对象类型的结果输出：
+
+
+```js
+function all(promises) {
+  var results = _.isArray(promises) ? [] : {};
+  var counter = 0;
+  var d = defer();
+  _.forEach(promises, function(promise, index) {
+    counter++;
+    promise.then(function(value) {
+      results[index] = value;
+      counter--;
+      if (!counter) {
+        d.resolve(results);
+      }
+    });
+  });
+  return d.promise;
+}
+```
