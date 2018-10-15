@@ -15,8 +15,22 @@ describe('all', function() {
     promise.then(fulflledSpy);
 
     $rootScope.$apply();
-    
-    expect(fulflledSpy).toHaveBeenCalledWith([1, 2, 3]);
+function all(promises) {
+  var results = _.isArray(promises) ? [] : {};
+  var counter = 0;
+  var d = defer();
+  _.forEach(promises, function(promise, index) {
+    counter++;
+    promise.then(function(value) {
+      results[index] = value;
+      counter--;
+      if (!counter) {
+        d.resolve(results);
+      }
+    });
+  });
+  return d.promise;
+}    expect(fulflledSpy).toHaveBeenCalledWith([1, 2, 3]);
   });
 });
 ```
@@ -97,7 +111,7 @@ it('can resolve an object of promises to an object of results', function() {
   });
   var fulflledSpy = jasmine.createSpy();
   promise.then(fulflledSpy);
-  
+
   $rootScope.$apply();
 
   expect(fulflledSpy).toHaveBeenCalledWith({
@@ -108,7 +122,6 @@ it('can resolve an object of promises to an object of results', function() {
 ```
 
 因此，在 all 方法的一开始，我们就要判断参数是一个数组还是对象，并以此决定结果的输出。这里我们只需要进行参数判断即可，\_.forEach 可以兼容数组或对象类型的结果输出：
-
 
 ```js
 function all(promises) {
@@ -128,3 +141,6 @@ function all(promises) {
   return d.promise;
 }
 ```
+
+
+
