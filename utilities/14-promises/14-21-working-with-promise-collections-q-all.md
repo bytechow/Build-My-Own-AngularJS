@@ -36,3 +36,54 @@ return {
   all: all
 };
 ```
+
+这个函数会创建一个存放计算结果的数据，并为每一个 Promise 增加一个回调函数，结果数组的元素位置与 Promise 的位置一一对应：
+
+```js
+function all(promises) {
+  var results = [];
+  _.forEach(promises, function(promise, index) {
+    promise.then(function(value) {
+      results[index] = value;
+    });
+  });
+}
+```
+
+在这个函数里面还有一个内部变量充当计数器，每一次循环都将会加1，而如果有 Promise 回调被调用就会减 1:
+
+```js
+function all(promises) {
+  var results = [];
+  var counter = 0;
+  _.forEach(promises, function(promise, index) {
+    counter++;
+    promise.then(function(value) {
+      results[index] = value;
+      counter--;
+    });
+  });
+}
+```
+
+这意味着如果计数器变成0，则所有的 Promise 都已经被 resolve 了。如果我们在里面构造一个 Deferred，并让它在计数器变成 0 后 resolve，就完成了 $q.all 的逻辑实现了：
+
+```js
+function all(promises) {
+  var results = [];
+  var counter = 0;
+  var d = defer();
+  _.forEach(promises, function(promise, index) {
+    counter++;
+    promise.then(function(value) {
+      results[index] = value;
+      counter--;
+      if (!counter) {
+        d.resolve(results);
+      }
+    });
+  });
+  return d.promise;
+}
+```
+
