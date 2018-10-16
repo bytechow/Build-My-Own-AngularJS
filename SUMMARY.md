@@ -69,4 +69,5 @@
     * [14-19-immediate-rejection-$q-reject](utilities/14-promises/14-19-immediate-rejection-q-reject.md)
     * [14-20-immediate-resolution-$q-when](utilities/14-promises/14-20-immediate-resolution-q-when.md)
     * [14-21-working-with-promise-collections-$q-all](utilities/14-promises/14-21-working-with-promise-collections-q-all.md)
+    * [14-22-es2015-style-promises](utilities/14-promises/14-22-es2015-style-promises.md)
 
