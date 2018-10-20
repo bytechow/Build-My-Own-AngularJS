@@ -109,7 +109,7 @@ src/injector.js
 function createInjector(modulesToLoad) {
   var $provide = {
     constant: function(key, value) {
-    
+
     }
   };
   _.forEach(modulesToLoad, function(moduleName) {
@@ -181,7 +181,7 @@ constant: function(key, value) {
 }
 ```
 
-注射器除了检查应用组件是否存在，还提供了一个方法 get 用于获取应用组件：
+除了提供 has 方法用于检查应用组件是否存在，注射器还提供了一个方法 get 用于获取应用组件：
 
 test/injector\_spec.js
 
@@ -194,7 +194,7 @@ it('can return a registered constant', function() {
 });
 ```
 
-这个方法暂时只是简单地从缓存中获取对应的值：
+暂时，我们就直接从缓存中获取对应的值就好：
 
 src/injector.js
 
