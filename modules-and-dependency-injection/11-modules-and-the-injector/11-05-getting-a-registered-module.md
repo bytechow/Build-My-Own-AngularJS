@@ -45,7 +45,7 @@ var createModule = function(name, requires, modules) {
 };
 ```
 
-然后在 getModule 方法中，我们只需要从modules中读取即可：
+然后在 getModule 方法中，我们只需要从 modules 中读取即可：
 
 src/loader.js
 
@@ -83,7 +83,7 @@ var getModule = function(name, modules) {
 };
 ```
 
-由于我们使用了 hasOwnProperty 方法来检查模块是否存在，我们要确保hasOwnProperty 不会被作为模块名称被注册，否则会覆盖 hasOwnProperty 方法，导致失效或者错误：
+由于我们使用了 hasOwnProperty 方法来检查模块是否存在，我们要确保 hasOwnProperty 不会被作为模块名称被注册，否则会覆盖 hasOwnProperty 方法，导致失效甚至发生错误：
 
 _src/loader\_spec.js_
 

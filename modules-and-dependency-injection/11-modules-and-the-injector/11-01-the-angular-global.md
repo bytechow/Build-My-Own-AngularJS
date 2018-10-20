@@ -1,6 +1,6 @@
 ### 全局对象 angular（The angular Global）
 
-用过Angular的人都应该已经接触过全局对象 angular，现在是时候引入这个对象了。
+用过Angular的人都应该已经接触过全局对象 angular，而现在是时候引入这个对象了。
 
 需要有容器来承载模块和注射器，而这个容器就是 angular 全局对象。
 
