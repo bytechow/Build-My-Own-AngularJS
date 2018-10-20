@@ -24,7 +24,7 @@ it('injects the $get method of a provider lazily', function() {
 
 如果 Angular 的注射器真的是这么工作的话，我们必须时刻注意依赖加载的顺序。幸亏注射器实际上采用的是懒加载的模式——只有当 $get 方法的返回值（第一次）被需要，才会调用 $get 进行实例化。所以，在本例中，组件 b 虽然注册在先，但它的 $get 方法并不会立即执行。只有当我们创建一个依赖组件 b 的注射器时，$get 方法才会被真正执行，这时 a 肯定已经注册好了。
 
-由于我们需要 provider 的 $get 方法延后调用，所以我们需要有一个空间存储 provider 对象。我们自然而然地想到了之前使用的 cache 对象，但 cache 对象存储的应该只能是依赖实例，而不是 provider。所以我们要使用两个存储空间进行保存，一个用于存放 provider，另一个存放依赖实例：
+由于我们需要 provider 的 $get 方法延后调用，所以我们需要有一个空间存储 provider 对象。我们自然而然地想到了之前使用的 cache 对象，但 cache 对象存储的应该只能是依赖实例，而不是 provider。因此，我们对存储空间进行拆分，一个用于存放 provider，另一个存放依赖实例（instance）：
 
 src/injector.js
 
@@ -92,7 +92,7 @@ function invoke(fn, self, locals) {
 }
 ```
 
-同样，其他依赖属性检索的接口也要跟着变动，比如 has 和 get 方法：
+同样，其它需要进行依赖属性检索的接口也要跟着变动，比如 has 和 get 方法：
 
 src/injector.js
 
@@ -110,5 +110,5 @@ return {
 
 从上面的代码实现，我们知道了只有当 provider 依赖被注入过或者被显式调用过，provider 依赖才会被实例化。如果没有任何地方对依赖进行获取，这个依赖的 $get 方法将不会被执行，也就不会生成依赖了。
 
-你可以通过 injector.has 方法检查依赖是否已注册，但不能保证这个依赖已经被实例化了，毕竟有可能找到的是一个 provider。
+目前，我们可以通过 injector.has 方法检查依赖是否已注册，但不能保证这个依赖已经被实例化了，毕竟有可能找到的是一个 provider。
 
