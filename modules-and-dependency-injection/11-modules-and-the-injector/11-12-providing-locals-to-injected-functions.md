@@ -1,4 +1,4 @@
-### 在注入时允许附加本地变量（Providing Locals to Injected Functions）
+### 附加局部变量（Providing Locals to Injected Functions）
 
 有时你可能希望在注入时提供一些额外的参数（locals），这可能发生在两种情景中：你希望覆盖某些参数，或者某些参数还未曾在注射器中注册。
 
