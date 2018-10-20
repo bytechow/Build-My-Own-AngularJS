@@ -26,7 +26,7 @@ it('overrides dependencies with locals when invoking', function() {
 });
 ```
 
-在源码实现中，同样地，当查找依赖时我们会先从 locals 中进行检索，若找到直接返回 locals 中检索到的值，没有找到才从 cache 中进行查找：
+在源码实现中，我们会先从 locals 中进行检索，若找到依赖值就直接返回，没有找到才从 cache 中进行查找：
 
 src/injector.js
 
