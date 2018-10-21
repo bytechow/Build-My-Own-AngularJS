@@ -18,3 +18,9 @@ it('sets up $http and $httpBackend', function() {
   expect(injector.has('$httpBackend')).toBe(true);
 });
 ```
+
+这两个服务各用一个文件存放。$httpBackend 会存放在 http_backend.js，这个文件会导出一个`Provider`:
+
+```js
+
+```
