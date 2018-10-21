@@ -95,7 +95,7 @@ it('is the same key when asked for the same object many times', function() {
 });
 ```
 
-有趣的事，即使我们对某个对象进行更改，它的 hashKey 依然会是稳定的：
+有趣的是，即使我们对某个对象进行更改，它的 hashKey 依然会是稳定的：
 
 ```js
 it('does not change when object value changes', function() {
@@ -212,7 +212,7 @@ var _ = require('lodash');
 var hashKey = require('../src/hash_map').hashKey;
 ```
 
-现在我们需要对传入hashKey方法的对象进行检测，如果其 $$hashKey 值为一个函数，我们就调用它来生成 ID
+现在我们需要对传入 hashKey 方法的对象进行检测，如果其 $$hashKey 值为一个函数，我们就调用它来生成 ID
 
 ```js
 function hashKey(value) {
