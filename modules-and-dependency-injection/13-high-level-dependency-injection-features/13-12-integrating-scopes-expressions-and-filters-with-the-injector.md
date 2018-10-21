@@ -88,7 +88,7 @@ function publishExternalAPI(){
 
 我们要在 filter.js 源码中默认暴露一个 provider 构造函数，这个构造函数就是我们 $filter 服务的 provider。
 
-在本书的第二部分，我们在 filter.js 文件中做的仅仅是建立和对外暴露两个函数——register 和 filter。现在我们需要把它们封装到 provider 中了。这个 register 函数将会变成 provider 的一个方法，而 filter 函数将会变成 $get 方法的返回值。换句话说，filter 函数将会成为我们在应用中使用的 $filter 服务：
+在本书的第二部分，我们在 filter.js 文件中做的仅仅是建立和对外暴露两个函数——register 和 filter。现在我们需要把它们封装到 provider 中了。register 函数将会变成 provider 的一个方法，而 filter 函数将会变成 $get 方法的返回值。换句话说，filter 函数将会成为我们在应用中使用的 $filter 服务：
 
 ```js
 function $FilterProvider() {
