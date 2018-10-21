@@ -834,6 +834,7 @@ describe('$watchCollection', function() {
   });
   // ...
 });
+```
 
 在 describe('Events') 代码块中，我们会设置父作用域是根作用域，并让其他依赖也准备就绪：
 
@@ -852,6 +853,7 @@ describe('Events', function() {
   });
   // ..
 });
+```
 
 最后，还有一个测试用例是需要注册过滤器的，我们需要改为从注射器注入 $filterProvider 来进行注册：
 
