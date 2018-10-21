@@ -61,7 +61,7 @@ function publishExternalAPI() {
 }
 ```
 
-这个 ng 模块将会承载所有的 Angular 原生组件，包括 service、directive、filter 等组件。之后，我们学到 Angular 启动（bootstrap）后，我们会在这个模块中存放所有的 Angular 应用。对于应用开发者来说，他们也不需要知道它的存在。但这就是 Angular 暴露自己的服务给其他服务或者应用的方式。
+这个 ng 模块将会承载所有的 Angular 原生组件，包括 service、directive、filter 等组件。之后，我们学到 Angular 启动（bootstrap）后，就会发现所有的 Angular 应用都会引用这个模块。对于应用开发者来说，他们也不需要知道它的存在。但这就是 Angular 暴露自己的服务给其他服务或者应用的方式。
 
 > 由于我们正在使用依赖注入的方式重构之前实现的功能，所以暂时所有的测试用例可能都会受影响，不必担心，等我们完全处理好之后，所有的测试用例都会恢复正常。
 
@@ -753,7 +753,7 @@ var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
 ```
 
-接着，我们遗憾底宣布，scope_spec.js 的第一个测试用例将会被去掉，就是下面这段代码：
+接着，我们遗憾底宣布，scope\_spec.js 的第一个测试用例将会被去掉，就是下面这段代码：
 
 ```js
 it('can be constructed and used as an object', function() {
@@ -763,11 +763,11 @@ it('can be constructed and used as an object', function() {
 });
 ```
 
-现在，我们要获得一个 Scope，需要通过 $rootScope 服务，而不是构造函数。所以我们要去除这个测试用例。你可以通过 $rootScope 获取一个 scope，这个我们已经在 angular_public_spec.js 注册并测试了。
+现在，我们要获得一个 Scope，需要通过 $rootScope 服务，而不是构造函数。所以我们要去除这个测试用例。你可以通过 $rootScope 获取一个 scope，这个我们已经在 angular\_public\_spec.js 注册并测试了。
 
-现在我们需要检查 scope_spec.js 中所有嵌套的 describe 代码块，并且使用 injector 加载一个 scope 对象，以便现存的测试用例使用。
+现在我们需要检查 scope\_spec.js 中所有嵌套的 describe 代码块，并且使用 injector 加载一个 scope 对象，以便现存的测试用例使用。
 
-在 scope_spec.js 每个测试模块，如 describe('digest')，describe('$eval')，describe('$apply')，describe('$evalAsync')，describe('$applyAsync')，describe('$$postDigest') 和 describe('$watchGroup')，我们会为它们新增一个 beforeEach 代码块，在代码块里面我们会通过注射器获取根作用域。
+在 scope\_spec.js 每个测试模块，如 describe\('digest'\)，describe\('$eval'\)，describe\('$apply'\)，describe\('$evalAsync'\)，describe\('$applyAsync'\)，describe\('$$postDigest'\) 和 describe\('$watchGroup'\)，我们会为它们新增一个 beforeEach 代码块，在代码块里面我们会通过注射器获取根作用域。
 
 ```js
 var scope;
@@ -778,7 +778,7 @@ beforeEach(function() {
 });
 ```
 
-在 describe('inheritance') 代码块中，我们会加入一个新的 beforeEach 代码块来获取根作用域，以便我们在其后的单元测试中使用：
+在 describe\('inheritance'\) 代码块中，我们会加入一个新的 beforeEach 代码块来获取根作用域，以便我们在其后的单元测试中使用：
 
 ```js
 describe('inheritance', function() {
@@ -791,7 +791,7 @@ describe('inheritance', function() {
 });
 ```
 
-另外，在 describe('inheritance') 代码块中，我们现在需要移除 var parent = new Scope()。毕竟我们现在已经使用 beforeEach 代码块中注入的根作用域来代替了。比如，我们可以在第一个单元测试中直接使用 parent 变量作为根作用域，而不需要再创建它：
+另外，在 describe\('inheritance'\) 代码块中，我们现在需要移除 var parent = new Scope\(\)。毕竟我们现在已经使用 beforeEach 代码块中注入的根作用域来代替了。比如，我们可以在第一个单元测试中直接使用 parent 变量作为根作用域，而不需要再创建它：
 
 ```js
 it('inherits the parents properties', function() {
@@ -823,7 +823,7 @@ it('can take some other scope as the parent', function() {
 });
 ```
 
-在 describe('$watchCollection') 代码块中，我们也会改成通过注射器注入的方式获取根作用域：
+在 describe\('$watchCollection'\) 代码块中，我们也会改成通过注射器注入的方式获取根作用域：
 
 ```js
 describe('$watchCollection', function() {
@@ -881,3 +881,4 @@ it('allows $stateful filter value to change over time', function(done) {
 ```
 
 现在我们所有的单元测试应该都通过了。
+
