@@ -59,5 +59,15 @@ module.exports = $HttpProvider;
 _src/angular_public.js_
 
 ```js
-
+function publishExternalAPI() {
+  setupModuleLoader(window);
+  var ngModule = angular.module('ng', []);
+  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$parse', require('./parse'));
+  ngModule.provider('$rootScope', require('./scope'));
+  ngModule.provider('$q', require('./q').$QProvider);
+  ngModule.provider('$$q', require('./q').$$QProvider);
+  ngModule.provider('$httpBackend', require('./http_backend'));
+  ngModule.provider('$http', require('./http'));
+}
 ```
