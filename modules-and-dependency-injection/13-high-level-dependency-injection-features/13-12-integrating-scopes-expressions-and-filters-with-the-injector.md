@@ -68,10 +68,10 @@ function publishExternalAPI() {
 首先要放到 ng 模块里面去的是 $filter，也就是我们的过滤器服务：
 
 ```js
-it('sets up the $flter service', function() {
+it('sets up the $filter service', function() {
   publishExternalAPI();
   var injector = createInjector(['ng']);
-  expect(injector.has('$flter')).toBe(true);
+  expect(injector.has('$filter')).toBe(true);
 });
 ```
 
@@ -176,9 +176,9 @@ filter 服务函数也可能会注入依赖：
 
 ```js
 it('may have dependencies in factory', function() {
-  var injector = createInjector(['ng', function($provide, $flterProvider) {
+  var injector = createInjector(['ng', function($provide, $filterProvider) {
     $provide.constant('suffx', '!');
-    $flterProvider.register('my', function(suffx) {
+    $filterProvider.register('my', function(suffx) {
       return function(v) {
         return suffx + v;
       };
@@ -192,7 +192,7 @@ it('may have dependencies in factory', function() {
 
 ```js
 function $FilterProvider($provide) {
-  var flters = {};
+  var filters = {};
   this.register = function(name, factory) {
     if (_.isObject(name)) {
       return _.map(name, function(factory, name) {
@@ -203,11 +203,11 @@ function $FilterProvider($provide) {
     }
   };
   this.$get = function() {
-    return function flter(name) {
-      return flters[name];
+    return function filter(name) {
+      return filters[name];
     };
   };
-  this.register('flter', require('./flter_flter'));
+  this.register('filter', require('./filter_filter'));
 }
 $FilterProvider.$inject = ['$provide'];
 module.exports = $FilterProvider;
@@ -227,11 +227,11 @@ function $FilterProvider($provide) {
     }
   };
   this.$get = ['$injector', function($injector) {
-    return function flter(name) {
+    return function filter(name) {
       return $injector.get(name + 'Filter');
     };
   }];
-  this.register('flter', require('./flter_flter'));
+  this.register('filter', require('./filter_filter'));
 }
 $FilterProvider.$inject = ['$provide'];
 module.exports = $FilterProvider;
@@ -243,7 +243,7 @@ Angular 还提供了一种通过公共 API 注册过滤器的快捷方式。它�
 it('can be registered through module API', function() {
   var myFilter = function() {};
   var module = window.angular.module('myModule', [])
-    .flter('my', function() {
+    .filter('my', function() {
       return myFilter;
     });
   var injector = createInjector(['ng', 'myModule']);
@@ -264,7 +264,7 @@ var moduleInstance = {
   value: invokeLater('$provide', 'value'),
   service: invokeLater('$provide', 'service'),
   decorator: invokeLater('$provide', 'decorator'),
-  flter: invokeLater('$flterProvider', 'register'),
+  filter: invokeLater('$filterProvider', 'register'),
   confg: invokeLater('$injector', 'invoke', 'push', confgBlocks),
   run: function(fn) {
     moduleInstance._runBlocks.push(fn);
@@ -284,13 +284,13 @@ var moduleInstance = {
 'use strict';
 var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
-describe('flter flter', function() {
+describe('filter filter', function() {
   beforeEach(function() {
     publishExternalAPI();
   });
   it('is available', function() {
     var injector = createInjector(['ng']);
-    expect(injector.has('flterFilter')).toBe(true);
+    expect(injector.has('filterFilter')).toBe(true);
   });
   // ...
 });
@@ -314,7 +314,7 @@ it('sets up the $parse service', function() {
 function publishExternalAPI() {
   setupModuleLoader(window);
   var ngModule = angular.module('ng', []);
-  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$filter', require('./filter'));
   ngModule.provider('$parse', require('./parse'));
 }
 ```
@@ -366,7 +366,7 @@ this.$get = ['$filter', function($filter) {
     switch (typeof expr) {
       case 'string':
         var lexer = new Lexer();
-        var parser = new Parser(lexer, $flter);
+        var parser = new Parser(lexer, $filter);
         var oneTime = false;
         if (expr.charAt(0) === ':' && expr.charAt(1) === ':') {
           oneTime = true;
@@ -394,19 +394,19 @@ this.$get = ['$filter', function($filter) {
 Parser 构造函数则会传递 $filter 服务给 ASTCompiler 构造函数：
 
 ```js
-function Parser(lexer, $flter) {
+function Parser(lexer, $filter) {
   this.lexer = lexer;
   this.ast = new AST(this.lexer);
-  this.astCompiler = new ASTCompiler(this.ast, $flter);
+  this.astCompiler = new ASTCompiler(this.ast, $filter);
 }
 ```
 
 ASTCompiler 构造函数会把它保存为自己的实例属性：
 
 ```js
-function ASTCompiler(astBuilder, $flter) {
+function ASTCompiler(astBuilder, $filter) {
   this.astBuilder = astBuilder;
-  this.$flter = $flter;
+  this.$filter = $filter;
 }
 ```
 
@@ -419,13 +419,13 @@ var fn = new Function(
   'ensureSafeObject',
   'ensureSafeFunction',
   'ifDefned',
-  'flter',
+  'filter',
   fnString)(
   ensureSafeMemberName,
   ensureSafeObject,
   ensureSafeFunction,
   ifDefned,
-  this.$flter);
+  this.$filter);
 /* jshint +W054 */
 ```
 
@@ -435,7 +435,7 @@ var fn = new Function(
 ASTCompiler.prototype.compile = function(text) {
   var ast = this.astBuilder.ast(text);
   var extra = '';
-  markConstantAndWatchExpressions(ast, this.$flter);
+  markConstantAndWatchExpressions(ast, this.$filter);
   // ...
 };
 ```
@@ -443,14 +443,14 @@ ASTCompiler.prototype.compile = function(text) {
 在 markConstantAndWatchExpressions 中，由于会进行递归调用，我们也需要在所有递归调用处使用 $filter 服务：
 
 ```js
-function markConstantAndWatchExpressions(ast, $flter) {
+function markConstantAndWatchExpressions(ast, $filter) {
   var allConstants;
   var argsToWatch;
   switch (ast.type) {
     case AST.Program:
       allConstants = true;
       _.forEach(ast.body, function(expr) {
-        markConstantAndWatchExpressions(expr, $flter);
+        markConstantAndWatchExpressions(expr, $filter);
         allConstants = allConstants && expr.constant;
       });
       ast.constant = allConstants;
@@ -467,7 +467,7 @@ function markConstantAndWatchExpressions(ast, $flter) {
       allConstants = true;
       argsToWatch = [];
       _.forEach(ast.elements, function(element) {
-        markConstantAndWatchExpressions(element, $flter);
+        markConstantAndWatchExpressions(element, $filter);
         allConstants = allConstants && element.constant;
         if (!element.constant) {
           argsToWatch.push.apply(argsToWatch, element.toWatch);
@@ -480,7 +480,7 @@ function markConstantAndWatchExpressions(ast, $flter) {
       allConstants = true;
       argsToWatch = [];
       _.forEach(ast.properties, function(property) {
-        markConstantAndWatchExpressions(property.value, $flter);
+        markConstantAndWatchExpressions(property.value, $filter);
         allConstants = allConstants && property.value.constant;
         if (!property.value.constant) {
           argsToWatch.push.apply(argsToWatch, property.value.toWatch);
@@ -494,20 +494,20 @@ function markConstantAndWatchExpressions(ast, $flter) {
       ast.toWatch = [];
       break;
     case AST.MemberExpression:
-      markConstantAndWatchExpressions(ast.object, $flter);
+      markConstantAndWatchExpressions(ast.object, $filter);
       if (ast.computed) {
-        markConstantAndWatchExpressions(ast.property, $flter);
+        markConstantAndWatchExpressions(ast.property, $filter);
       }
       ast.constant = ast.object.constant &&
         (!ast.computed || ast.property.constant);
       ast.toWatch = [ast];
       break;
     case AST.CallExpression:
-      var stateless = ast.flter && !$flter(ast.callee.name).$stateful;
+      var stateless = ast.filter && !$filter(ast.callee.name).$stateful;
       allConstants = stateless ? true : false;
       argsToWatch = [];
       _.forEach(ast.arguments, function(arg) {
-        markConstantAndWatchExpressions(arg, $flter);
+        markConstantAndWatchExpressions(arg, $filter);
         allConstants = allConstants && arg.constant;
         if (!arg.constant) {
           argsToWatch.push.apply(argsToWatch, arg.toWatch);
@@ -517,33 +517,33 @@ function markConstantAndWatchExpressions(ast, $flter) {
       ast.toWatch = stateless ? argsToWatch : [ast];
       break;
     case AST.AssignmentExpression:
-      markConstantAndWatchExpressions(ast.left, $flter);
-      markConstantAndWatchExpressions(ast.right, $flter);
+      markConstantAndWatchExpressions(ast.left, $filter);
+      markConstantAndWatchExpressions(ast.right, $filter);
       ast.constant = ast.left.constant && ast.right.constant;
       ast.toWatch = [ast];
       break
 
     case AST.UnaryExpression:
-      markConstantAndWatchExpressions(ast.argument, $flter);
+      markConstantAndWatchExpressions(ast.argument, $filter);
       ast.constant = ast.argument.constant;
       ast.toWatch = ast.argument.toWatch;
       break;
     case AST.BinaryExpression:
-      markConstantAndWatchExpressions(ast.left, $flter);
-      markConstantAndWatchExpressions(ast.right, $flter);
+      markConstantAndWatchExpressions(ast.left, $filter);
+      markConstantAndWatchExpressions(ast.right, $filter);
       ast.constant = ast.left.constant && ast.right.constant;
       ast.toWatch = ast.left.toWatch.concat(ast.right.toWatch);
       break;
     case AST.LogicalExpression:
-      markConstantAndWatchExpressions(ast.left, $flter);
-      markConstantAndWatchExpressions(ast.right, $flter);
+      markConstantAndWatchExpressions(ast.left, $filter);
+      markConstantAndWatchExpressions(ast.right, $filter);
       ast.constant = ast.left.constant && ast.right.constant;
       ast.toWatch = [ast];
       break;
     case AST.ConditionalExpression:
-      markConstantAndWatchExpressions(ast.test, $flter);
-      markConstantAndWatchExpressions(ast.consequent, $flter);
-      markConstantAndWatchExpressions(ast.alternate, $flter);
+      markConstantAndWatchExpressions(ast.test, $filter);
+      markConstantAndWatchExpressions(ast.consequent, $filter);
+      markConstantAndWatchExpressions(ast.alternate, $filter);
       ast.constant =
         ast.test.constant && ast.consequent.constant && ast.alternate.constant;
       ast.toWatch = [ast];
@@ -572,9 +572,9 @@ describe('parse', function() {
 那些注册和使用过滤器的测试单元也需要进行升级，它们也会创建自己的注射器，并通过 $filterProvider 注册过滤器：
 
 ```js
-it('can parse flter expressions', function() {
-  parse = createInjector(['ng', function($flterProvider) {
-    $flterProvider.register('upcase', function() {
+it('can parse filter expressions', function() {
+  parse = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('upcase', function() {
       return function(str) {
         return str.toUpperCase();
       };
@@ -585,14 +585,14 @@ it('can parse flter expressions', function() {
     aString: 'Hello'
   })).toEqual('HELLO');
 });
-it('can parse flter chain expressions', function() {
-  parse = createInjector(['ng', function($flterProvider) {
-    $flterProvider.register('upcase', function() {
+it('can parse filter chain expressions', function() {
+  parse = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('upcase', function() {
       return function(s) {
         return s.toUpperCase();
       };
     });
-    $flterProvider.register('exclamate', function() {
+    $filterProvider.register('exclamate', function() {
       return function(s) {
         return s + '!';
       };
@@ -601,9 +601,9 @@ it('can parse flter chain expressions', function() {
   var fn = parse('"hello" | upcase | exclamate');
   expect(fn()).toEqual('HELLO!');
 });
-it('can pass an additional argument to flters', function() {
-  parse = createInjector(['ng', function($flterProvider) {
-    $flterProvider.register('repeat', function() {
+it('can pass an additional argument to filters', function() {
+  parse = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('repeat', function() {
       return function(s, times) {
         return _.repeat(s, times);
       };
@@ -612,9 +612,9 @@ it('can pass an additional argument to flters', function() {
   var fn = parse('"hello" | repeat:3');
   expect(fn()).toEqual('hellohellohello');
 });
-it('can pass several additional arguments to flters', function() {
-  parse = createInjector(['ng', function($flterProvider) {
-    $flterProvider.register('surround', function() {
+it('can pass several additional arguments to filters', function() {
+  parse = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('surround', function() {
       return function(s, left, right) {
         return left + s + right;
       };
@@ -624,9 +624,9 @@ it('can pass several additional arguments to flters', function() {
   expect(fn()).toEqual('*hello!');
 });
 // ...
-it('marks flters constant if arguments are', function() {
-  parse = createInjector(['ng', function($flterProvider) {
-    $flterProvider.register('aFilter', function() {
+it('marks filters constant if arguments are', function() {
+  parse = createInjector(['ng', function($filterProvider) {
+    $filterProvider.register('aFilter', function() {
       return _.identity;
     });
   }]).get('$parse');
@@ -643,7 +643,7 @@ it('marks flters constant if arguments are', function() {
 'use strict';
 var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
-describe('flter flter', function() {
+describe('filter filter', function() {
   var parse;
   beforeEach(function() {
     publishExternalAPI();
@@ -671,7 +671,7 @@ it('sets up the $rootScope', function() {
 function publishExternalAPI() {
   setupModuleLoader(window);
   var ngModule = angular.module('ng', []);
-  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$filter', require('./filter'));
   ngModule.provider('$parse', require('./parse'));
   ngModule.provider('$rootScope', require('./scope'));
 }
