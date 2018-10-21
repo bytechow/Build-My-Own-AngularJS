@@ -13,7 +13,7 @@ it('allows registering a factory', function() {
 });
 ```
 
-factory 函数允许注入依赖，（是通过 constant 加入的依赖？）。注意，它注入的是 instance 依赖。下面用例中的 bFactory 依赖 a：
+factory 函数允许注入依赖，（是通过 constant 加入的依赖？）。注意，它注入的是 instance 依赖。下面用例中的 bFactory 依赖 aFactory：
 
 ```js
 it('injects a factory function with instances', function() {
