@@ -753,7 +753,7 @@ var publishExternalAPI = require('../src/angular_public');
 var createInjector = require('../src/injector');
 ```
 
-接着，我们遗憾底宣布，scope\_spec.js 的第一个测试用例将会被去掉，就是下面这段代码：
+接着，我们将会去掉 scope\_spec.js 的第一个测试用例，就是下面这段代码：
 
 ```js
 it('can be constructed and used as an object', function() {
@@ -836,7 +836,7 @@ describe('$watchCollection', function() {
 });
 ```
 
-在 describe('Events') 代码块中，我们会设置父作用域是根作用域，并让其他依赖也准备就绪：
+在 describe\('Events'\) 代码块中，我们会设置父作用域是根作用域，并让其他依赖也准备就绪：
 
 ```js
 describe('Events', function() {
