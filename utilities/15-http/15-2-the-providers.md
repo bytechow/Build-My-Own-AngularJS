@@ -19,7 +19,7 @@ it('sets up $http and $httpBackend', function() {
 });
 ```
 
-这两个服务各用一个文件存放。$httpBackend 会存放在 http_backend.js，这个文件会导出一个`Provider`:
+这两个服务各用一个文件存放。$httpBackend 会存放在 http_backend.js，通过一个`Provider`创建:
 
 _src/http_backend.js_
 
@@ -27,10 +27,37 @@ _src/http_backend.js_
 'use strict';
 
 function $HttpBackendProvider() {
+
   this.$get = function() {
   
   };
 }
 
 module.exports = $HttpBackendProvider;
+```
+
+而 $http 服务则存放在 http.js 文件中，同时也会由一个`Provider`创建，这个`Provider`会先注入`$httpBackend`服务，虽然我们暂时还没用到它：
+
+_src/http.js_
+
+```js
+'use strict';
+
+function $HttpProvider() {
+  
+  this.$get = ['$httpBackend', function($httpBackend) {
+  
+  }];
+
+}
+
+module.exports = $HttpProvider;
+```
+
+现在，我们就可以在 ng 模块中注册这两个模块了：
+
+_src/angular_public.js_
+
+```js
+
 ```
