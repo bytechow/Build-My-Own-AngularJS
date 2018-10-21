@@ -319,7 +319,7 @@ function publishExternalAPI() {
 }
 ```
 
-跟 filter 一样，我们也希望在 parse.js 里面有一个 provider 构造函数，这个构造函数可以用语构建 $parse 服务的 provider。
+跟 filter 一样，我们也希望在 parse.js 里面有一个 provider 构造函数，这个构造函数可以用于构建 $parse 服务的 provider。
 
 ```js
 function $ParseProvider() {
@@ -361,7 +361,7 @@ module.exports = $ParseProvider;
 我们还需要往 parse 中获取 $filter 服务。首先，我们要移除 require filter 的代码。然后，我们要采用依赖注入的方式，往 $get 方法中注入 $filter 服务
 
 ```js
-this.$get = ['$flter', function($flter) {
+this.$get = ['$filter', function($filter) {
   return function(expr) {
     switch (typeof expr) {
       case 'string':
