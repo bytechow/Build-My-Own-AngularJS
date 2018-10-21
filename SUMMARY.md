@@ -47,7 +47,7 @@
     * [13-13 构建一个可配置的provider：Digest TTL](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-13-making-a-configurable-provider-digest-ttl.md)
     * [13-14 总结](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-14-summary.md)
 * [第五部分 工具类](utilities/utilities.md)
-  * [14-promises](utilities/14-promises/14-promises.md)
+  * [第14章 promises](utilities/14-promises/14-promises.md)
     * [14-1-promises](utilities/14-promises/14-1-promises.md)
     * [14-2-promise-implementations](utilities/14-promises/14-2-promise-implementations.md)
     * [14-3-promises-in-angularjs](utilities/14-promises/14-3-promises-in-angularjs.md)
@@ -71,5 +71,5 @@
     * [14-21-working-with-promise-collections-$q-all](utilities/14-promises/14-21-working-with-promise-collections-q-all.md)
     * [14-22-es2015-style-promises](utilities/14-promises/14-22-es2015-style-promises.md)
     * [14-23-promises-without-$digest-integration-$$q](utilities/14-promises/14-23-promises-without-digest-integration-q.md)
-  * [15-$http](utilities/14-promises/15-http.md)
+  * [第15章 HTTP](utilities/14-promises/15-http.md)
 
