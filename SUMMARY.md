@@ -72,5 +72,5 @@
     * [14-22-es2015-style-promises](utilities/14-promises/14-22-es2015-style-promises.md)
     * [14-23-promises-without-$digest-integration-$$q](utilities/14-promises/14-23-promises-without-digest-integration-q.md)
   * [第15章 HTTP](utilities/15-http/15-http.md)
-    * [15-1-what-we-wiil-skip](utilities/15-http/15-http/15-1-what-we-wiil-skip.md)
+    * [15-1-what-we-wiil-skip](utilities/15-http/15-1-what-we-wiil-skip.md)
 
