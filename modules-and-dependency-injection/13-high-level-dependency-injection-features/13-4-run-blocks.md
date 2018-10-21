@@ -121,5 +121,5 @@ _.forEach(runBlocks, function(runBlock) {
 });
 ```
 
-总结一下，config 服务会在模块加载期间执行，而 run 服务则会在模块加载后马上执行。
+总结一下，config 服务会在模块加载期间执行，而 run 服务则会在所有模块加载后马上执行。
 

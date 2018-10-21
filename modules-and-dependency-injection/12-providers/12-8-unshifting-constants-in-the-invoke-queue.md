@@ -6,7 +6,7 @@
 
 但对于常量来说，Angular 却会对它进行重新排序。具体来说，就是会把注册常量的任务提到前面去。这样一来，即使在 provider 构造函数中，也可以注入后面注册的常量。
 
-test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('registers constants frst to make them available to providers', function() {
@@ -46,3 +46,6 @@ var moduleInstance = {
   _invokeQueue: invokeQueue
 };
 ```
+
+
+

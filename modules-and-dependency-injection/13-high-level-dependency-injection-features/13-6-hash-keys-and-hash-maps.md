@@ -1,10 +1,10 @@
-### Hash 键和 Hash 映射（Hash Keys And Hash Maps）
+Hash 键和 Hash 映射（Hash Keys And Hash Maps）
 
 我们要实现的第一个函数叫 hashKey。这个函数会接收一个 JavaScript 的值，并返回一个字符串作为它的 hash key。这与 Java 的 Object.hashCode\(\) 和 Ruby 的 Object\#hash 机制类似。一个 hash key 应该是唯一的。我们将会马上用到 haskKey 这个函数。
 
 我们将会新建一个 src/hash\_map.js 文件来实现 Hash Map，当然，也有对应的测试文件 test/hash\_map\_spec.js。
 
-一般来说，一个值的 hash key 由两部分来组成。一部分是定义值类型，另一部分定义值的字符串表达。The two parts are separated with a colon。特别的，对于 undefined 这个值，它两部分都会是 'undefined'
+一般来说，一个值的 hash key 由两部分来组成，通过冒号进行分割。一部分是定义值类型，另一部分定义值的字符串表达。特别的，对于 undefined 这个值，它两部分都会是 'undefined'
 
 test/hash\_map\_spec.js
 
@@ -78,7 +78,7 @@ module.exports = {hashKey: hashKey};
 
 一般来说，一个对象的 hash key 由字符串 'object' 和一个唯一识别符来组成：
 
-test/hash_map_spec.js
+test/hash\_map\_spec.js
 
 ```js
 it('is object:[unique id] for objects', function() {
@@ -163,7 +163,7 @@ it('uses preassigned $$hashKey', function() {
 
 在实现代码，我们需要区别对待对象和非对象数据类型。对于对象（或函数）我们会查找它的 $$hashKey，若不存在，则生成。为了方便，我们直接使用 Lodash 提供的 uniqueId 方法来生成唯一 ID：
 
-src/hash_map.js
+src/hash\_map.js
 
 ```js
 'use strict';
@@ -291,7 +291,7 @@ module.exports = {
 };
 ```
 
-这种实现会产生一个副产物，我们可以直接使用属性访问符直接获取某个value（如 map['number:42']，虽然我们不推荐在实际应用代码中使用。
+这种实现会产生一个副产物，我们可以直接使用属性访问符直接获取某个value（如 map\['number:42'\]，虽然我们不推荐在实际应用代码中使用。
 
 HashMap 的第三个方法叫做 remove，顾名思义，它是用于移除 map 中的某个名值对的：
 

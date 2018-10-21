@@ -22,7 +22,7 @@ it('allows injecting the $provide service to providers', function() {
 
 要注意的是，$provider 只是在 provider 构造函数中可用，运行时中不能再使用 $provder 进行配置或者增加依赖项：
 
-test.injector\_spec.js
+test/injector\_spec.js
 
 ```js
 it('does not allow injecting the $provide service to $get', function() {
@@ -79,3 +79,4 @@ _.forEach(modulesToLoad, function loadModule(moduleName) {
 ```
 
 通过提供 $injector 和 $provider，就可以让应用开发者直接调用 injector 的一些内部方法。虽然，大部分应用开发者只会用到模块和依赖注入两个特性，但这两个 API 让我们可以有进行配置和“临时”引入的便利方法。
+

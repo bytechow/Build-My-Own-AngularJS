@@ -34,7 +34,7 @@ it('runs a function module with array injection as a confg block', function() {
 });
 ```
 
-函数形式的模块手机上就是 config 服务，一个会被注入 provider 的服务。它们的不同仅在于定义位置：config 服务会被注册到一个模块中，而函数式模块是模块的依赖。
+函数形式的模块实际上就是 config 服务，一个会被注入 provider 的服务。它们的不同仅在于定义位置：config 服务会被注册到一个模块中，而函数式模块是模块的依赖。
 
 现在如果我们需要加载模块，我们不再假设模块就是一个字符串了，它又可能是一个函数或者数组，我们可以都通过 providerInjector.invoke 来进行调用：
 
@@ -57,7 +57,7 @@ src/injector.js
 });
 ```
 
-当你有一个函数式模块时，你也可以在里面返回一个函数，这个函数会作为 run 服务执行。这个小细节允许定义“点对点”的模块和相关的 run 服务，这在单元测试里面很有用。
+当你有一个函数式模块时，你也可以在里面返回一个函数，这个函数会作为 run 服务执行。这个小细节允许定义“点对点”的模块和相关的 run 服务，这在单元测试里面很有用：
 
 test/injector\_spec.js
 
@@ -105,7 +105,7 @@ _.forEach(_.compact(runBlocks), function(runBlock) {
 
 但对于函数式模块，我们就无法使用这个 loadedModules 对象检测是否重复加载。也就是说，如果我们引入函数式依赖两次，它就真的会被实例化两次：
 
- test/injector_spec.js
+test/injector\_spec.js
 
 ```js
 it('only loads function modules once', function() {

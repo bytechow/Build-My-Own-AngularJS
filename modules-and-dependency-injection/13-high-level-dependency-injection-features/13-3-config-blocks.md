@@ -9,7 +9,7 @@ $routeProvider.when('/someUrl', {
 })
 ```
 
-要使用 $routeProvider，我们需要 provider 注射器，但以目前的代码实现来看，要完成这项工作，还只能在 provider 构造函数中做到。为了配置而定义一个 provider 函数并不方便。我们需要的是一个可以在模块加载期间进行任意配置的方法，另外也要实现对这个方法注入 provider。这个方法在 Angular 中就是 config 服务了。
+要使用 $routeProvider，我们需要 provider 注射器，但以目前的代码实现来看，要完成这项工作，还只能在 provider 构造函数中做到。为了配置而特意定义一个 provider 函数并不方便。我们需要的是一个可以在模块加载期间进行任意配置的方法，另外也要实现对这个方法注入 provider。这个方法在 Angular 中就是 config 服务了。
 
 我们可以通过模块实例的 config 方法增加一个配置服务。这个配置服务的值是一个函数，当我们的 injector 被创建时，这个函数就会被调用：
 
@@ -44,7 +44,7 @@ it('injects confg blocks with provider injector', function() {
 
 所以，我们可以说 config 服务就是一个允许注入 provider 依赖的函数。我们可以通过 providerInjector.invoke 来调用配置服务，来完成这一需求：
 
-首先，我们需要在模块实例中新增配置服务的接口。我们需要对要调用 providerInjector.invoke 方法的任务进行重新排序。要进行调整的话，我们首先会遇到的问题是，目前我们所有的任务都是基于 $provider 对象的方法执行，而没有用到 $injector。我们将对此进行改进，我们将会对任务队列创建方法（也就是 invokeLater ）进行改造，它的参数将会改变为：1）任务执行方法所在的对象， 2\) 任务执行方法名称 3\) 以那种方法插入任务
+首先，我们需要在模块实例中新增配置服务的接口。我们需要对要调用 providerInjector.invoke 方法的任务进行重新排序。要进行调整的话，我们首先会遇到的问题是，目前我们所有的任务都是基于 providerCache.$provider 对象方法执行，而没有用到 providerCache.$injector。我们将对此进行改进，我们将会对任务队列创建方法（也就是 invokeLater ）进行改造，它的参数将会改变为：1）任务执行方法所在的对象， 2\) 任务执行方法名称 3\) 以那种方法插入任务
 
 src/loader.js
 
