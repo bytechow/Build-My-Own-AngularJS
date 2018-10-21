@@ -71,5 +71,5 @@
     * [14-21-working-with-promise-collections-$q-all](utilities/14-promises/14-21-working-with-promise-collections-q-all.md)
     * [14-22-es2015-style-promises](utilities/14-promises/14-22-es2015-style-promises.md)
     * [14-23-promises-without-$digest-integration-$$q](utilities/14-promises/14-23-promises-without-digest-integration-q.md)
-  * [第15章 HTTP](utilities/14-promises/15-http.md)
+  * [第15章 HTTP](utilities/15-http/15-http.md)
 
