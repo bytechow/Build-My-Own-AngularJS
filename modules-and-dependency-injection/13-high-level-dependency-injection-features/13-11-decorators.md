@@ -1,4 +1,4 @@
-### decorator 服务（Decorators）
+decorator 服务（Decorators）
 
 我们要实现的最后一个依赖注入特性是 decorator 装饰器。decorator 与之前实现的特性不同的是，我们不会使用 decorator 来注册依赖，而会用它来修改依赖。
 
@@ -6,7 +6,7 @@ decorator 这个名字是从面向对象的装饰器设计模式（Decorator des
 
 decorator 有用之处在于，我们可以用来配置第三方依赖。我们可以注册针对某个依赖库或者 Angualr 本身的 decorator，就像 Brian Ford 说过一样。
 
-让我们看看 decorator 是如何工作的。下面我们会创建一个 factory，然后使用 factory 的名称创建一个同名的装饰器。decorator 是一个函数，也可以像 factory 一样注入依赖，另外它还拥有一个特殊的可注入参数 $delegate。这个 $delegate 会注入的是被装饰的那个服务生成的依赖。在下面的事例中，它就会被注入为名为 aValue 的 factory 所生成的依赖：
+让我们看看 decorator 是如何工作的。下面我们会创建一个 factory，然后使用 factory 的名称创建一个同名的装饰器。decorator 是一个函数，也可以像 factory 一样注入依赖，另外它还拥有一个特殊的可注入参数 $delegate。这个 $delegate 会被注入对应服务生成的依赖值。在下面的事例中，它就会被注入为名为 aValue 的 factory 所生成的依赖：
 
 ```js
 it('allows changing an instance using a decorator', function() {
@@ -114,7 +114,7 @@ decorator: function(serviceName, decoratorFn) {
 }
 ```
 
-我们上面实现的是最基础的版本，我们仅仅重写了 provider.$get 方法，但并没有加入装饰器的处理逻辑。
+我们上面实现的是最基础的版本，仅仅重写了 provider.$get 方法，但并没有加入装饰器的处理逻辑。
 
 最后一步自然是执行 decorator 函数。注意我们是通过依赖注入的方式来执行 decorator 函数，还加入 $delegate 这个额外参数。具体来说，我们使用了 instanceInjection 进行依赖注入，并且通过第 9 章实现的 locals 参数来增加额外变量：
 
@@ -156,3 +156,4 @@ var moduleInstance = {
 ```
 
 实现 decorator 之后，我们终于开发完成了完整的 Angular 依赖注入功能。
+
