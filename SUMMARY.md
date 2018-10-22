@@ -74,4 +74,5 @@
   * [第15章 HTTP](utilities/15-http/15-http.md)
     * [15-1-what-we-wiil-skip](utilities/15-http/15-1-what-we-wiil-skip.md)
     * [15-2-the-providers](utilities/15-http/15-2-the-providers.md)
+    * [15-3-sending-http-requests](utilities/15-http/15-3-sending-http-requests.md)
 
