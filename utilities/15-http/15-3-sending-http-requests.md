@@ -227,7 +227,42 @@ return function $http(confg) {
     });
   }
   
-  $httpBackend(confg.method, confg.url, confg.data, done);
+  $httpBackend(confg.method, confg.url, confg.data, done); 
   return deferred.promise;
 };
 ```
+
+目前的测试用例还没有完全符合我们的期望，问题出在 Promise 被解决的时候，在之前的章节中，回调并不会马上被 resolve，而是会在下一次 digest 中被执行。
+
+我们应该让`$http`在当前没有 digest 运行时，主动调用 digest。我们可以通过`$rootScope`服务的`$apply`方法：
+
+```js
+this.$get = ['$httpBackend', '$q', '$rootScope',
+  function($httpBackend, $q, $rootScope) {
+    
+    return function $http(confg) {
+      var deferred = $q.defer();
+
+      function done(status, response, statusText) {
+        deferred.resolve({
+          status: status,
+          data: response,
+          statusText: statusText,
+          confg: confg
+        });
+        if (!$rootScope.$$phase) {
+          $rootScope.$apply();
+        }
+      }
+
+      $httpBackend(confg.method, confg.url, confg.data, done);
+      return deferred.promise;
+    };
+  }
+];
+```
+
+这样，我们的测试用例就可以通过了！
+
+这也是 Angular `$http`服务的好处之一，框架里会帮我们自动检测调用`$apply`。
+
