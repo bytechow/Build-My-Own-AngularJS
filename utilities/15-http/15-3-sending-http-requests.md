@@ -344,3 +344,39 @@ it('rejects promise when XHR result errors/aborts', function() {
 ```
 
 在这种情况下，我们会把响应状态码设置为`0`，把响应数据设置为`null`。
+
+那么在`$httpBackend`中，我们需要为原生 XHR 对象绑定一个`onerror`回调。当它被调用时，我们传递给回调的状态码、响应数据和响应状态描述分别为：-1，null, ''：
+
+```js
+return function(method, url, post, callback) {
+  var xhr = new window.XMLHttpRequest();
+  xhr.open(method, url, true);
+  xhr.send(post || null);
+  xhr.onload = function() {
+    var response = ('response' in xhr) ? xhr.response :
+                                         xhr.responseText;
+    var statusText = xhr.statusText || '';
+    callback(xhr.status, response, statusText);
+  };
+  xhr.onerror = function() {
+    callback(-1, null, '');
+  };
+};
+```
+
+最后要做的是对状态码进行标准化。在错误响应中，`$httpBackend`会返回一个负值作为状态码，而我们在`$http`需要的状态码不可以小于0：
+
+```js
+function done(status, response, statusText) {
+  status = Math.max(status, 0);
+  deferred[isSuccess(status) ? 'resolve' : 'reject']({
+    status: status,
+    data: response,
+    statusText: statusText,
+    confg: confg
+  });
+  if (!$rootScope.$$phase) {
+    $rootScope.$apply();
+  }
+}
+```
