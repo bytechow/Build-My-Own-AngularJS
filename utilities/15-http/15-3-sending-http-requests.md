@@ -264,5 +264,83 @@ this.$get = ['$httpBackend', '$q', '$rootScope',
 
 这样，我们的测试用例就可以通过了！
 
-这也是 Angular `$http`服务的好处之一，框架里会帮我们自动检测调用`$apply`。
+这也是 AngularJS 应用中使用`$http`服务的好处之一，框架里会帮我们自动检测调用`$apply`。
 
+第二个好处是当 HTTP 请求出错时，Promise 的错误处理机制就能派上用场。我们可以在请求出错时直接拒绝掉 Promise，而无需一味地 resolve。比如，当网络请求返回`401`：
+
+```js
+it('rejects promise when XHR result received with error status', function() {
+  var requestConfg = {
+    method: 'GET',
+    url: 'http://teropa.info'
+  };
+  
+  var response;
+  $http(requestConfg).catch(function(r) {
+    response = r;
+  });
+
+  requests[0].respond(401, {}, 'Fail');
+
+  expect(response).toBeDefned();
+  expect(response.status).toBe(401);
+  expect(response.statusText).toBe('Unauthorized');
+  expect(response.data).toBe('Fail');
+  expect(response.confg.url).toEqual('http://teropa.info');
+});
+```
+
+出错时传递给 Promise 回调的数据也称为响应对象（response object）。区别只在于我们是调用的是 then 还是 catch。
+
+在代码中，我们可以根据响应的状态码决定是对 Deferred 进行 resolve 还是 reject：
+
+```js
+function done(status, response, statusText) {
+  deferred[isSuccess(status) ? 'resolve' : 'reject']({
+    status: status,
+    data: response,
+    statusText: statusText,
+    confg: confg
+  });
+  if (!$rootScope.$$phase) {
+    $rootScope.$apply();
+  }
+}
+```
+
+我们会新建一个`isSuccess`的辅助函数来判断请求是否成功，如果状态码是在 200 到 299 之间的话，就认为请求成功，否则就都判定为请求失败：
+
+```js
+function isSuccess(status) {
+  return status >= 200 && status < 300;
+}
+```
+
+> 实际上这样处理会把一些如302的重定向响应也认作请求失败，但由于浏览器内部都会重定向进行处理，所以并不会实际触发 $http 中的错误处理。
+
+请求没有完成也会使得 Promise 被 reject，因为在这种情况下根本不可能会有响应。导致请求不成功有几种原因：可能是网络出错了，也有可能发生跨域资源访问限制，或者请求本身根本已经被禁用。
+
+要想对这种情况进行单元测试，我们可以直接对 XHR 请求对象绑定一个`onerror`回调，这也是 XHR 原生支持的错误处理方式：
+
+```js
+it('rejects promise when XHR result errors/aborts', function() {
+  var requestConfg = {
+    method: 'GET',
+    url: 'http://teropa.info'
+  };
+  
+  var response;
+  $http(requestConfg).catch(function(r) {
+    response = r;
+  });
+
+  requests[0].onerror();
+
+  expect(response).toBeDefned();
+  expect(response.status).toBe(0);
+  expect(response.data).toBe(null);
+  expect(response.confg.url).toEqual('http://teropa.info');
+});
+```
+
+在这种情况下，我们会把响应状态码设置为`0`，把响应数据设置为`null`。
