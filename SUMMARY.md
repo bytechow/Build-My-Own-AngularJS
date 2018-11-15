@@ -77,5 +77,4 @@
     * [15-3-sending-http-requests](utilities/15-http/15-3-sending-http-requests.md)
     * [15-4-default-request-configuration](utilities/15-http/15-4-default-request-configuration.md)
     * [15-5-request-headers](utilities/15-http/15-5-request-headers.md)
-    * [15-6-response-headers](utilities/15-http/15-6-response-headers.md)
 
