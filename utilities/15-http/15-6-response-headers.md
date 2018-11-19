@@ -18,11 +18,13 @@ it('makes response headers available', function() {
   requests[0].respond(200, {
     'Content-Type': 'text/plain'
   }, 'Hello');
-  
+
   expect(response.headers).toBeDefned();
   expect(response.headers instanceof Function).toBe(true);
   expect(response.headers('Content-Type')).toBe('text/plain');
   expect(response.headers('content-type')).toBe('text/plain');
 });
 ```
+
+
 
