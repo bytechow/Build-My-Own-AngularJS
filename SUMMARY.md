@@ -78,4 +78,5 @@
     * [15-4-default-request-configuration](utilities/15-http/15-4-default-request-configuration.md)
     * [15-5-request-headers](utilities/15-http/15-5-request-headers.md)
     * [15-6-response-headers](utilities/15-http/15-6-response-headers.md)
+    * [15-7-allow-cors-authorization-withcredentials](utilities/15-http/15-7-allow-cors-authorization-withcredentials.md)
 
