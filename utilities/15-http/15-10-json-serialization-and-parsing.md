@@ -93,4 +93,4 @@ it('does not serialize blobs for requests', function() {
 
 在这个单元测试中，我们需要尝试使用不同的方法来构建 Blob 数据，这是因为各浏览器并没有一个统一的 API 标准，所以需要进行兼容。
 
-我们还需要跳过序列化步骤的是[https://developer.mozilla.org/en-US/docs/Web/API/FormData](FormData)
+我们还需要跳过序列化步骤的是[FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
