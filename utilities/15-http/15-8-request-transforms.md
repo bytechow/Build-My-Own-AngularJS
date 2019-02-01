@@ -28,7 +28,7 @@ it('allows transforming requests with functions', function() {
 
 我们在`$http`中会通过在发送请求之前调用`transformData`函数来应用转换器。这个函数有两个参数，一个是请求数据对象，另一个是 transformRequest 属性值。它的返回值最终会成为实际的请求数据：
 
-_src/http.js_
+_src/http.js_(未被注释的代码为新增代码)
 
 ```js
 function $http(requestConfg) {
@@ -74,3 +74,38 @@ function $http(requestConfg) {
   // return deferred.promise;
 }
 ```
+
+仅当转换器函数存在时，`transformData`函数才会执行转换，否则它仅仅是返回原始的请求数据：
+
+```js
+function transformData(data, transform) {
+  if (_.isFunction(transform)) {
+    return transform(data);
+  } else {
+    return data;
+  }
+}
+```
+
+Angular 也支持传递多个请求转换器，只需要把`transformRequest`的属性值变成一个函数数组即可，它们会被依次执行：
+
+_test/http_spec.js_
+
+```js
+it('allows multiple request transform functions', function() {
+  $http({
+    method: 'POST',
+    url: 'http://teropa.info',
+    data: 42,
+    transformRequest: [function(data) {
+      return '*' + data + '*';
+    }, function(data) {
+      return '-' + data + '-';
+    }]
+  });
+
+  expect(requests[0].requestBody).toBe('-*42*-');
+});
+```
+
+我们会使用_reduce_的方式来实现对属性形式的`transformData`的处理。我们也会利用_.reduce
