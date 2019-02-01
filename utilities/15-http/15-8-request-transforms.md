@@ -108,6 +108,6 @@ it('allows multiple request transform functions', function() {
 });
 ```
 
-我们会使用 _reduce_ 的方式来实现对属性形式的`transformData`的处理。我们也会利用 \_.reduce 会在传入的 transform 参数为空时返回原始数据的属性：
+我们会使用 _reduce_ 的方式来实现对属性形式的`transformData`的处理。我们也会利用`_.reduce`会在传入的 transform 参数为空时返回原始数据的属性：
 
 ```
