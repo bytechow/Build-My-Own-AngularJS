@@ -2,7 +2,7 @@
 
 当与服务器通信时，我们经常需要把请求数据进行预处理，从而将数据转换为服务器能理解的数据格式，如 JSON、XML，或其他自定义格式。
 
-在使用 Angular 时，当然你也是完全可以单独对每一个要发送的请求进行处理：确保每一个放在 data 属性中的数据都能被服务器理解。但要重复进行这样的处理也是不够理想的。如果我们可以把预处理从业务代码中抽取出来，这样会更便利。这就是我们需要`request transforms`(请求数据转换器)的原因。
+在使用 Angular 时，当然你也是完全可以单独对每一个要发送的请求进行处理：确保每一个放在 data 属性中的数据都能被服务器理解。但要重复进行这样的处理也是不够理想的。如果我们可以把预处理从业务代码中抽取出来，这样会更便利。这就是我们需要`request transforms`\(请求数据转换器\)的原因。
 
 请求数据转换器是一个函数，它会在我们发送请求体之前，对请求体进行预处理。处理后的对象将会替代原来的请求体数据。
 
@@ -10,7 +10,7 @@
 
 绑定请求转换器的其中一个方法，就是在请求对象中新增`transformRequest`属性：
 
-_test/http_spec.js_
+_test/http\_spec.js_
 
 ```js
 it('allows transforming requests with functions', function() {
@@ -28,7 +28,7 @@ it('allows transforming requests with functions', function() {
 
 我们在`$http`中会通过在发送请求之前调用`transformData`函数来应用转换器。这个函数有两个参数，一个是请求数据对象，另一个是 transformRequest 属性值。它的返回值最终会成为实际的请求数据：
 
-_src/http.js_(未被注释的代码为新增代码)
+_src/http.js_\(未被注释的代码为新增代码\)
 
 ```js
 function $http(requestConfg) {
@@ -89,7 +89,7 @@ function transformData(data, transform) {
 
 Angular 也支持传递多个请求转换器，只需要把`transformRequest`的属性值变成一个函数数组即可，它们会被依次执行：
 
-_test/http_spec.js_
+_test/http\_spec.js_
 
 ```js
 it('allows multiple request transform functions', function() {
@@ -126,7 +126,7 @@ _src/http.js_
 
 对每一个请求对象配置`transformRequest`固然好用，但配置默认属性可能更为常用。如果你对`$http.defaults`配置了转换器函数，就意味着“让每个请求在发送之前都执行这个转换”，这实现了更高层次的关注点分离——这使得你在发送请求时无需再考虑请求转换：
 
-_test/http_spec.js_
+_test/http\_spec.js_
 
 ```js
 it('allows settings transforms in defaults', function() {
@@ -162,7 +162,7 @@ function $http(requestConfg) {
 
 对于默认请求转换器来说，除了请求体，它们可能还会需要一些额外信息来完成它们的工作——例如，有些转换器可能只会在某些特定的 HTTP 内容类型下才会被执行。出于这方面的考虑，我们将请求头部作为转换器函数的第二个参数，这个请求头部参数将会被封装为一个根据传入的头部名称返回头部值的函数：
 
-_test/http_spec.js_
+_test/http\_spec.js_
 
 ```js
 it('passes request headers getter to transforms', function() {
@@ -239,3 +239,6 @@ _src/http.js_
   }
 // }
 ```
+
+
+
