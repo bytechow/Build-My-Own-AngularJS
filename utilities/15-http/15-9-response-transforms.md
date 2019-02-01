@@ -171,3 +171,148 @@ function $http(requestConfg) {
     .then(transformResponse);
 // }
 ```
+
+这个函数会接受一个响应对象作为参数，并把响应对象的`data`属性赋值为转换结果。我们可以重用`transformData`函数：
+
+```js
+function transformResponse(response) {
+  if (response.data) {
+    response.data = transformData(response.data, response.headers,
+      confg.transformResponse);
+  }
+  return response;
+}
+```
+
+我们也要加入对默认响应数据转换器的支持：
+
+```js
+function $http(requestConfg) {
+  var confg = _.extend({
+    method: 'GET',
+    transformRequest: defaults.transformRequest,
+    transformResponse: defaults.transformResponse
+  }, requestConfg);
+  
+  // ...
+}
+```
+
+我们不仅要支持对成功响应对象的支持，同时也要支持失败响应对象的支持，因为失败响应对象也可能会存在需要转换的数据：
+
+_test/http_spec.js_
+
+```js
+it('transforms error responses also', function() {
+  var response;
+  $http({
+    url: 'http://teropa.info',
+    transformResponse: function(data) {
+      return '*' + data + '*';
+    }
+  }).catch(function(r) {
+    response = r;
+  });
+
+  requests[0].respond(401, {
+    'Content-Type': 'text/plain'
+  }, 'Fail');
+  
+  expect(response.data).toEqual('*Fail*');
+});
+```
+
+`transformResponse`函数实际上已经支持这种情况，但由于它被用作一个promise的回调，我们需要再次 reject 请求失败响应。否则，请求失败会被认为是已被“捕获”，错误响应结果将会在成功回调中被接收，我们需要对此进行修复：
+
+_src/http.js_
+
+```js
+// function transformResponse(response) {
+//   if (response.data) {
+//     response.data = transformData(response.data, response.headers,
+//       confg.transformResponse);
+//   }
+  if (isSuccess(response.status)) {
+    // return response;
+  } else {
+    return $q.reject(response);
+  }
+// }
+// return sendReq(confg, reqData)
+  .then(transformResponse, transformResponse);
+```
+
+响应数据转换器的最后一个特性，也是请求数据转换器不具备的一个特性：响应对象的状态码（status code）。它将会作为每一个响应数据转换器的第三个参数。
+
+_test/http_spec.js_
+
+```js
+it('passes HTTP status to response transformers', function() {
+  var response;
+  $http({
+    url: 'http://teropa.info',
+    transformResponse: function(data, headers, status) {
+      if (status === 401) {
+        return 'unauthorized';
+      } else {
+        return data;
+      }
+    }
+  }).catch(function(r) {
+    response = r;
+  });
+
+  requests[0].respond(401, {
+    'Content-Type': 'text/plain'
+  }, 'Fail');
+  
+  expect(response.data).toEqual('unauthorized');
+});
+```
+
+在`transformResponse`，我们可以将状态码提取出来，并传递给`transformData`：
+
+_src/http.js_
+
+```js
+// function transformResponse(response) {
+//   if (response.data) {
+//     response.data = transformData(
+//       response.data,
+//       response.headers,
+      response.status,
+//       confg.transformResponse
+//     );
+//   }
+//   if (isSuccess(response.status)) {
+//     return response;
+//   } else {
+//     return $q.reject(response);
+//   }
+// }
+```
+
+上面我们加入了一个额外的参数给`transformData`，但由于请求数据转换也是使用改函数进行转换，所以对于请求数据转换，我们需要在调用时显式地传入`undefined`作为`transformData`的第三个参数——请求并不需要状态码：
+
+```js
+// var reqData = transformData(
+//   confg.data,
+//   headersGetter(confg.headers),
+  undefned,
+//   confg.transformRequest
+// );
+```
+
+在`transformData`我们可以接收这个参数，并将其传递到具体的转换器函数：
+
+```js
+function transformData(data, headers, status, transform) {
+  // if (_.isFunction(transform)) {
+    return transform(data, headers, status);
+  // } else {
+  //   return _.reduce(transform, function(data, fn) {
+      return fn(data, headers, status);
+//     }, data);
+//   }
+// }
+```
