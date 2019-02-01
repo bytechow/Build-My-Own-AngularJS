@@ -63,3 +63,34 @@ _src/http.js_
   }]
 // };
 ```
+
+在这个规则中，还有几个非常重要的例外情况需要考虑。如果响应数据是一个 Blob 类型，其中可能会包含一些二进制或文本数据，我们不应该对这部分的数据进行处理，而只需要原封不动地将它们发送出去就好，XMLHttpRequest 对象会对它们进行处理：
+
+_test/http_spec.js_
+
+```js
+it('does not serialize blobs for requests', function() {
+  var blob;
+  if (window.Blob) {
+    blob = new Blob(['hello']);
+  } else {
+    var BlobBuilder = window.BlobBuilder || window.WebKitBlobBuilder ||
+      window.MozBlobBuilder || window.MSBlobBuilder;
+    var bb = new BlobBuilder();
+    bb.append('hello');
+    blob = bb.getBlob('text/plain');
+  }
+  $http({
+    method: 'POST',
+    url: 'http://teropa.info',
+    data: blob
+  });
+  $rootScope.$apply();
+  
+  expect(requests[0].requestBody).toBe(blob);
+});
+```
+
+在这个单元测试中，我们需要尝试使用不同的方法来构建 Blob 数据，这是因为各浏览器并没有一个统一的 API 标准，所以需要进行兼容。
+
+我们还需要跳过序列化步骤的是[https://developer.mozilla.org/en-US/docs/Web/API/FormData](FormData)
