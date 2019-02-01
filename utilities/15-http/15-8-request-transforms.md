@@ -108,6 +108,134 @@ it('allows multiple request transform functions', function() {
 });
 ```
 
-我们会使用 _reduce_ 的方式来实现对属性形式的`transformData`的处理。我们也会利用`_.reduce`会在传入的 transform 参数为空时返回原始数据的属性：
+我们会使用 _reduce_ 的方式来实现对属性形式的`transformData`的处理。我们也会利用`_.reduce`会在传入的 transform 参数为空时返回原始数据的特性：
 
+_src/http.js_
+
+```js
+// function transformData(data, transform) {
+//   if (_.isFunction(transform)) {
+//     return transform(data);
+//   } else {
+    return _.reduce(transform, function(data, fn) {
+      return fn(data);
+    }, data);
+//   }
+// }
+```
+
+对每一个请求对象配置`transformRequest`固然好用，但配置默认属性可能更为常用。如果你对`$http.defaults`配置了转换器函数，就意味着“让每个请求在发送之前都执行这个转换”，这实现了更高层次的关注点分离——这使得你在发送请求时无需再考虑请求转换：
+
+_test/http_spec.js_
+
+```js
+it('allows settings transforms in defaults', function() {
+  $http.defaults.transformRequest = [function(data) {
+    return '*' + data + '*';
+  }];
+  $http({
+    method: 'POST',
+    url: 'http://teropa.info',
+    data: 42
+  });
+  expect(requests[0].requestBody).toBe('*42*');
+});
+```
+
+我们可以在构建请求配置对象时插入默认的`transformRequest`：
+
+_src/http.js_
+
+```js
+function $http(requestConfg) {
+  var deferred = $q.defer();
+
+  var confg = _.extend({
+    method: 'GET',
+    transformRequest: defaults.transformRequest
+  }, requestConfg);
+  confg.headers = mergeHeaders(requestConfg);
+
+  // ...
+}
+```
+
+对于默认请求转换器来说，除了请求体，它们可能还会需要一些额外信息来完成它们的工作——例如，有些转换器可能只会在某些特定的 HTTP 内容类型下才会被执行。出于这方面的考虑，我们将请求头部作为转换器函数的第二个参数，这个请求头部参数将会被封装为一个根据传入的头部名称返回头部值的函数：
+
+_test/http_spec.js_
+
+```js
+it('passes request headers getter to transforms', function() {
+  $http.defaults.transformRequest = [function(data, headers) {
+    if (headers('Content-Type') === 'text/emphasized') {
+      return '*' + data + '*';
+    } else {
+      return data;
+    }
+  }];
+  $http({
+    method: 'POST',
+    url: 'http://teropa.info',
+    data: 42,
+    headers: {
+      'content-type': 'text/emphasized'
+    }
+  });
+
+  expect(requests[0].requestBody).toBe('*42*');
+});
+```
+
+因此我们需要把请求头部传递给`transformData`。在此之前，我们需要将请求头部先通过`headersGetter`进行处理，因为这样会生成一个符合我们预期的用于获取头部的函数。当然，目前`headersGetter`目前还不能处理对象类型的请求头部对象，但我们马上就会修复这个问题。
+
+_src/http.js_
+
+```js
+// var reqData = transformData(
+  // confg.data,
+  headersGetter(confg.headers),
+  // confg.transformRequest
+// );
+```
+
+现在，在`transformData`函数中，我们就可以把获取到的请求头部传递到各个实际的转换器函数中去了：
+
+_src/http.js_
+
+```js
+function transformData(data, headers, transform) {
+  // if (_.isFunction(transform)) {
+    return transform(data, headers);
+  // } else {
+    // return _.reduce(transform, function(data, fn) {
+      return fn(data, headers);
+    // }, data);
+  // }
+}
+```
+
+要完成这个功能，我们还差一步。我们得让`headersGetter`，更准确来说，是让`parseHeaders`函数学会如何处理我们传入的请求头部对象。
+
+之前我们已经在`parseHeaders`实现了将请求头部字符串转换成为对象的功能。而对于请求头部对象，它本身就是一个对象了，所以我们只需要做“标准化”即可，也就是让请求头部名变成小写，并去除头部名和头部值两侧的空格：
+
+_src/http.js_
+
+```js
+// function parseHeaders(headers) {
+  if (_.isObject(headers)) {
+    return _.transform(headers, function(result, v, k) {
+      result[_.trim(k.toLowerCase())] = _.trim(v);
+    }, {});
+  } else {
+    // var lines = headers.split('\n');
+    // return _.transform(lines, function(result, line) {
+    //   var separatorAt = line.indexOf(':');
+    //   var name = _.trim(line.substr(0, separatorAt)).toLowerCase();
+    //   var value = _.trim(line.substr(separatorAt + 1));
+    //   if (name) {
+    //     result[name] = value;
+    //   }
+    // }, {});
+  }
+// }
 ```
