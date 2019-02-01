@@ -90,4 +90,71 @@ function headersGetter(headers) {
 
 通过这个模式，我们可以保证在没人需要头部信息的情况下，不会进行头部解析工作，以节省编译成本，提高效率：
 
-真正解析头部的操作会在另一个帮助函数`parseHeaders`中进行,它会对头部字符串进行解析并返回一个 HTTP 头部对象。解析头部对象的第一步就是以换行符为分隔符对字符串进行分离
+真正解析头部的操作会在另一个帮助函数`parseHeaders`中进行,它会对头部字符串进行解析并返回一个 HTTP 头部对象。解析头部对象的第一步就是以换行符为分隔符对字符串进行分离（HTTP 头部通常是每行放一个名值对），然后再对每行进行遍历：
+
+
+```js
+function parseHeaders(headers) {
+  var lines = headers.split('\n');
+    return _.transform(lines, function(result, line) {
+
+  }, {});
+}
+```
+
+每行都由一个头部名、一个分号“:”和一个头部值组成。我们只需要获取分号前后的内容，并做一些字符串处理（去除两端的空格、将头部名所有字母变成小写），最后再把处理结果放到结果对象中即可：
+
+```js
+function parseHeaders(headers) {
+  var lines = headers.split('\n');
+  return _.transform(lines, function(result, line) {
+    var separatorAt = line.indexOf(':');
+    var name = _.trim(line.substr(0, separatorAt)).toLowerCase();
+    var value = _.trim(line.substr(separatorAt + 1));
+    if (name) {
+      result[name] = value;
+    }
+  }, {});
+}
+```
+
+headers 函数被调用时也可能不会传入参数，这种情况我们应当返回这种解析好的头部对象：
+
+_test/http_spec.js_
+
+```js
+it('may returns all response headers', function() {
+  var response;
+  $http({
+    method: 'POST',
+    url: 'http://teropa.info',
+    data: 42
+  }).then(function(r) {
+    response = r;
+  });
+  requests[0].respond(200, {
+    'Content-Type': 'text/plain'
+  }, 'Hello');
+  expect(response.headers()).toEqual({
+    'content-type': 'text/plain'
+  });
+});
+```
+
+我们可以通过检测是否传入参数来区分：
+
+```js
+function headersGetter(headers) {
+  var headersObj;
+  return function(name) {
+    headersObj = headersObj || parseHeaders(headers);
+    if (name) {
+      return headersObj[name.toLowerCase()];
+    } else {
+      return headersObj;
+    }
+  };
+}
+```
+
+这样，我们就完成了响应头部的部分了！
