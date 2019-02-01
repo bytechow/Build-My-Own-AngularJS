@@ -28,6 +28,49 @@ it('allows transforming requests with functions', function() {
 
 我们在`$http`中会通过在发送请求之前调用`transformData`函数来应用转换器。这个函数有两个参数，一个是请求数据对象，另一个是 transformRequest 属性值。它的返回值最终会成为实际的请求数据：
 
-```js
+_src/http.js_
 
+```js
+function $http(requestConfg) {
+  // var deferred = $q.defer();
+  // var confg = _.extend({
+  //   method: 'GET'
+  // }, requestConfg);
+  // confg.headers = mergeHeaders(requestConfg);
+  // if (_.isUndefned(confg.withCredentials) &&
+  //   !_.isUndefned(defaults.withCredentials)) {
+  //   confg.withCredentials = defaults.withCredentials;
+  // }
+  var reqData = transformData(confg.data, confg.transformRequest);
+  if (_.isUndefned(reqData)) {
+  //   _.forEach(confg.headers, function(v, k) {
+  //     if (k.toLowerCase() === 'content-type') {
+  //       delete confg.headers[k];
+  //     }
+  //   });
+  // }
+
+  // function done(status, response, headersString, statusText) {
+  //   status = Math.max(status, 0);
+  //   deferred[isSuccess(status) ? 'resolve' : 'reject']({
+  //     status: status,
+  //     data: response,
+  //     statusText: statusText,
+  //     headers: headersGetter(headersString),
+  //     confg: confg
+  //   });
+  //   if (!$rootScope.$$phase) {
+  //     $rootScope.$apply();
+  //   }
+  // }
+  // $httpBackend(
+  //   confg.method,
+  //   confg.url,
+  //   reqData,
+  //   done,
+  //   confg.headers,
+  //   confg.withCredentials
+  // );
+  // return deferred.promise;
+}
 ```
