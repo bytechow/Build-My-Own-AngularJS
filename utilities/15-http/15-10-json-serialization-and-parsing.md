@@ -93,4 +93,119 @@ it('does not serialize blobs for requests', function() {
 
 在这个单元测试中，我们需要尝试使用不同的方法来构建 Blob 数据，这是因为各浏览器并没有一个统一的 API 标准，所以需要进行兼容。
 
-我们还需要跳过序列化步骤的是[FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
+我们还需要跳过序列化步骤的是 [FormData](https://developer.mozilla.org/en-US/docs/Web/API/FormData)。与 Blob 数据类似，XMLHttpRequest 已经能对 FormData 对象进行处理，我们就无须再将其转换为 JSON 格式：
+
+_test/http_spec.js_
+
+```js
+it('does not serialize form data for requests', function() {
+  var formData = new FormData();
+  formData.append('aField', 'aValue');
+  $http({
+    method: 'POST',
+    url: 'http://teropa.info',
+    data: formData
+  });
+  
+  expect(requests[0].requestBody).toBe(formData);
+});
+```
+
+在我们的转换器中，我们需要先对传入的数据对象进行检测，看它是不是其中一个无须进行序列化的特殊对象。同时，我们也会对第三种特殊对象——`File`进行特殊处理，我们没有专门对它做单元测试，这是因为构建一个文件对象比较麻烦，这并不值得：
+
+> 译者注：反正我们可以确定`File`对象是 XMLHttpRequest 能够进行处理的数据。
+
+_src/http.js_
+
+```js
+// transformRequest: [function(data) {
+  if (_.isObject(data) && !isBlob(data) &&
+    !isFile(data) && !isFormData(data)) {
+//     return JSON.stringify(data);
+//   } else {
+//     return data;
+//   }
+// }]
+```
+
+这里我们需要新增三个辅助函数，每一个函数都通过`toString`这个API来辨识它究竟是不是我们要的那种特殊对象：
+
+```js
+function isBlob(object) {
+  return object.toString() === '[object Blob]';
+}
+
+function isFile(object) {
+  return object.toString() === '[object File]';
+}
+
+function isFormData(object) {
+  return object.toString() === '[object FormData]';
+}
+```
+
+以上就是关于请求数据 JSON 转换的全部内容。下一个要实现 JSON 转换的是响应数据：如果服务器指定了响应数据的内容类型就是 JSON，那这个响应数据在到达应用代码之前会被转化为一个 JavaScript 数据结构。
+
+_test/http_spec.js_
+
+```js
+it('parses JSON data for JSON responses', function() {
+  var response;
+  $http({
+    method: 'GET',
+    url: 'http://teropa.info'
+  }).then(function(r) {
+    response = r;
+  });
+  requests[0].respond(
+    200, {
+      'Content-Type': 'application/json'
+    },
+    '{"message":"hello"}'
+  );
+  
+  expect(_.isObject(response.data)).toBe(true);
+  expect(response.data.message).toBe('hello');
+});
+```
+
+现在我们就需要引入 LoDash 到这个测试文件中来了：
+
+```js
+// 'use strict';
+
+var _ = require('lodash');
+// var sinon = require('sinon');
+// var publishExternalAPI = require('../src/angular_public');
+// var createInjector = require('../src/injector');
+```
+
+与请求类似，我们会添加一个默认的转换器函数来负责完成转换的工作：
+
+```js
+// var defaults = this.defaults = {
+//   headers: {
+//     common: {
+//       Accept: 'application/json, text/plain, */*'
+//     },
+//     post: {
+//       'Content-Type': 'application/json;charset=utf-8'
+//     },
+//     put: {
+//       'Content-Type': 'application/json;charset=utf-8'
+//     },
+//     patch: {
+//       'Content-Type': 'application/json;charset=utf-8'
+//     }
+//   },
+//   transformRequest: [function(data) {
+//     if (_.isObject(data) && !isBlob(data) &&
+//       !isFile(data) && !isFormData(data)) {
+//       return JSON.stringify(data);
+//     } else {
+//       return data;
+//     }
+//   }],
+  transformResponse: [defaultHttpResponseTransform]
+// };
+```
