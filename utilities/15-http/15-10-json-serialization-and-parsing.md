@@ -182,6 +182,8 @@ var _ = require('lodash');
 
 与请求类似，我们会添加一个默认的转换器函数来负责完成转换的工作：
 
+_src/http.js_
+
 ```js
 // var defaults = this.defaults = {
 //   headers: {
@@ -208,4 +210,89 @@ var _ = require('lodash');
 //   }],
   transformResponse: [defaultHttpResponseTransform]
 // };
+```
+
+这个函数跟普通的响应数据转换器一样，会接收响应数据和响应头部作为参数：
+
+```js
+function defaultHttpResponseTransform(data, headers) {
+
+}
+```
+
+这个函数首先会检查响应数据是否是字符串，还会检查指定的内容类型是否`application/json`。当这两个条件都为`true`，那这个响应数据就会被认为是 JSON 数据并进行解析，而其他的数据类型将不作处理：
+
+```js
+function defaultHttpResponseTransform(data, headers) {
+  if (_.isString(data)) {
+    var contentType = headers('Content-Type');
+    if (contentType && contentType.indexOf('application/json') === 0) {
+      return JSON.parse(data);
+    }
+  }
+  return data;
+}
+```
+
+Angular 通常会处理得更聪明一点：如果服务器并没有指明响应内容类型为 JSON，响应数据看起来“像”个JSON，它也会对它进行解析。像下面单元测试的响应数据虽然没指定响应的内容类型，但也会进行解析：
+
+_test/http_spec.js_
+
+```js
+it('parses a JSON object response without content type', function() {
+  var response;
+  $http({
+    method: 'GET',
+    url: 'http://teropa.info'
+  }).then(function(r) {
+    response = r;
+  });
+  requests[0].respond(200, {}, '{"message":"hello"}');
+
+  expect(_.isObject(response.data)).toBe(true);
+  expect(response.data.message).toBe('hello');
+});
+```
+
+这对于数组来说也是一样的：
+
+```js
+it('parses a JSON array response without content type', function() {
+  var response;
+  $http({
+    method: 'GET',
+    url: 'http://teropa.info'
+  }).then(function(r) {
+    response = r;
+  });
+  requests[0].respond(200, {}, '[1, 2, 3]');
+  
+  expect(_.isArray(response.data)).toBe(true);
+  expect(response.data).toEqual([1, 2, 3]);
+});
+```
+
+因此，在我们的 JSON 响应转换器中，我们就不单单需要检查内容类型参数，也会检查数据本身，看它“像”不“像”一个 JSON 数据？
+
+_src/http.js_
+
+```js
+function defaultHttpResponseTransform(data, headers) {
+  if (_.isString(data)) {
+    var contentType = headers('Content-Type');
+    if ((contentType && contentType.indexOf('application/json') === 0) ||
+      isJsonLike(data)) {
+      return JSON.parse(data);
+    }
+  }
+  return data;
+}
+```
+
+我们可以简单地判断如果数据字符串中以花括号（{）或方括号（[）开头，就是一个“像”JSON的数据：
+
+```js
+function isJsonLike(data) {
+  return data.match(/^\{/) || data.match(/^\[/);
+}
 ```
