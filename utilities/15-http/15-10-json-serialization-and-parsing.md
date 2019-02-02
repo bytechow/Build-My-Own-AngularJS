@@ -296,3 +296,5 @@ function isJsonLike(data) {
   return data.match(/^\{/) || data.match(/^\[/);
 }
 ```
+
+Angular 还尝试了一种更聪明的解决方案。
