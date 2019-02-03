@@ -297,4 +297,52 @@ function isJsonLike(data) {
 }
 ```
 
-Angular 还尝试了一种更聪明的解决方案。
+实际上，Angular 做的检测会更聪明。一个响应数据虽然是以 JSON 类型的符号开头，但结尾用的符号不同，我们不应该对它进行 JSON 解析，否则会报出错误：
+
+_test/http_spec.js_
+
+```js
+it('does not choke on response resembling JSON but not valid', function() {
+  var response;
+  $http({
+    method: 'GET',
+    url: 'http://teropa.info'
+  }).then(function(r) {
+    response = r;
+  });
+  requests[0].respond(200, {}, '{1, 2, 3]');
+  
+  expect(response.data).toEqual('{1, 2, 3]');
+});
+```
+
+看似 JSON 数据实际上不是的响应字符串，还有一种情况。这种响应字符串是用两个花括号包裹的。我们会考虑这种特殊情况主要是因为我们之后会用到`$http`对 Angular 模板进行加载。在 Angular 模板中，使用双花括号来包裹变量是非常常用的：
+
+```js
+it('does not try to parse interpolation expr as JSON', function() {
+  var response;
+  $http({
+    method: 'GET',
+    url: 'http://teropa.info'
+  }).then(function(r) {
+    response = r;
+  });
+  requests[0].respond(200, {}, '{{expr}}');
+  
+  expect(response.data).toEqual('{{expr}}');
+});
+```
+
+为了过滤这些特殊情况，我们需要对判断响应数据是否 JSON 的方法进行升级。首先，如果数据是以一个花括号开头的，那么它的结尾也应该是一个花括号，这个规则对于以方括号开头来说也是一样的。而针对花括号开头的情况，我们会使用一个前向正则匹配来判断下一个符号是不是花括号，若是，则跳过判断：
+
+_src/http.js_
+
+```js
+function isJsonLike(data) {
+  if (data.match(/^\{(?!\{)/)) {
+    return data.match(/\}$/);
+  } else if (data.match(/^\[/)) {
+    return data.match(/\]$/);
+  }
+}
+```
