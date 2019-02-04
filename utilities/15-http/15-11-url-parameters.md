@@ -292,3 +292,58 @@ var defaults = this.defaults = {
   paramSerializer: serializeParams
 };
 ```
+
+在构建实际的请求配置对象时，我们会默认加入全局默认配置中的序列化方法，也就是`serializeParams`：
+
+```js
+function $http(requestConfg) {
+  var confg = _.extend({
+    method: 'GET',
+    transformRequest: defaults.transformRequest,
+    transformResponse: defaults.transformResponse,
+    paramSerializer: defaults.paramSerializer
+  }, requestConfg);
+  // ...
+}
+```
+
+实际上，还有一个更便利的方法可以设置我们自定义的序列化方法：我们可以注册一个 Angular 服务，使得它可以被依赖注入到请求配置中去，当注册好了后，我们只需要传入服务的名称即可：
+
+_test/http_spec.js_
+
+```js
+it('allows substituting param serializer through DI', function() {
+  var injector = createInjector(['ng', function($provide) {
+    $provide.factory('mySpecialSerializer', function() {
+      return function(params) {
+        return _.map(params, function(v, k) {
+          return k + '=' + v + 'lol';
+        }).join('&');
+      };
+    });
+  }]);
+  injector.invoke(function($http) {
+    $http({
+      url: 'http://teropa.info',
+      params: {
+        a: 42,
+        b: 43
+      },
+      paramSerializer: 'mySpecialSerializer'
+    });
+    expect(requests[0].url)
+      .toEqual('http://teropa.info?a=42lol&b=43lol');
+  });
+});
+```
+
+要使用依赖注入，也就必须先引入`$inject`服务：
+
+_src/http.js_
+
+```js
+this.$get = ['$httpBackend', '$q', '$rootScope', '$injector',
+              function($httpBackend, $q, $rootScope, $injector) {
+  // ...
+}];
+```
