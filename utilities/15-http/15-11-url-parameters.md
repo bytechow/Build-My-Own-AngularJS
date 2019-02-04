@@ -50,3 +50,61 @@ var url = buildUrl(confg.url, serializeParams(confg.params));
 //   confg.withCredentials
 // );
 ```
+
+让我们来编写这两个函数。`serializeParams`函数会遍历参数对象，并把里面的每一组参数变成字符串，这个字符串以等号（=）分割参数名和参数值。待遍历完毕，最后再把所有参数组字符串都用`&`连接在一起：
+
+```js
+function serializeParams(params) {
+  var parts = [];
+  _.forEach(params, function(value, key) {
+    parts.push(key + '=' + value);
+  });
+  return parts.join('&');
+}
+```
+
+`buildUrl`就单纯是将序列化好的参数字符串拼接在原有的 URL 上即可。要注意的是，它会根据传入的 URL 是否包含`?`，来决定是用`?`还是`&`作为连接的字符：
+
+```js
+function buildUrl(url, serializedParams) {
+  if (serializedParams.length) {
+    url += (url.indexOf('?') === -1) ? '?' : '&';
+    url += serializedParams;
+  }
+  return url;
+}
+```
+
+URL 参数可能会含有一些特殊字符，无法直接拼接到 URL 上。比如`=`和`&`，显然很容易会与参数分隔符产生混淆。因此，我们需要先对特殊字符进行转义：
+
+_test/http_spec.js_
+
+```js
+it('escapes url characters in params', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      '==': '&&'
+    }
+  });
+
+  expect(requests[0].url).toBe('http://teropa.info?%3D%3D=%26%26');
+});
+```
+
+JavaScript 原生支持的`encodeURIComponent`就可以用于转义：
+
+_src/http.js_
+
+```js
+// function serializeParams(params) {
+//   var parts = [];
+//   _.forEach(params, function(value, key) {
+//     parts.push(
+      encodeURIComponent(key) + '=' + encodeURIComponent(value));
+//   });
+//   return parts.join('&');
+// }
+```
+
+> 实际上，AngularJS 并不会直接使用`encodeURIComponent`来进行转码，而是采用内建的工具方法——`encodeUriQuery`。这个方法的转义范围并不会像`encodeURIComponent`那样广，它不会对`@`和`:`进行转义
