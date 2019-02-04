@@ -142,3 +142,43 @@ function serializeParams(params) {
 }
 ```
 
+HTTP 协议支持使用同一个参数名传递多个值。这块可以通过重用同一个参数名来完成，Angular 也支持这种传参方式，我们会使用数组的形式来存储这类同名参数值：
+
+_test/http_spec.js_
+
+```js
+it('attaches multiple params from arrays', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: [42, 43]
+    }
+  });
+
+  expect(requests[0].url).toBe('http://teropa.info?a=42&a=43');
+});
+```
+
+为此，我们需要在每次参数遍历时，在内部也进行一次内部的遍历。为了兼容所有类型的参数，我们把所有非数组类型的参数都包裹在数组里：
+
+_src/http.js_
+
+```js
+// function serializeParams(params) {
+//   var parts = [];
+//   _.forEach(params, function(value, key) {
+//     if (_.isNull(value) || _.isUndefned(value)) {
+//       return;
+//     }
+    if (!_.isArray(value)) {
+      value = [value];
+    }
+    _.forEach(value, function(v) {
+      // parts.push(
+        encodeURIComponent(key) + '=' + encodeURIComponent(v)
+      // );
+    });
+//   });
+//   return parts.join('&');
+// }
+```
