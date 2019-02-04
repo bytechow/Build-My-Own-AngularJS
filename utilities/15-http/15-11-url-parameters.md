@@ -174,9 +174,8 @@ _src/http.js_
       value = [value];
     }
     _.forEach(value, function(v) {
-      // parts.push(
-        encodeURIComponent(key) + '=' + encodeURIComponent(v)
-      // );
+      parts.push(
+        encodeURIComponent(key) + '=' + encodeURIComponent(v));
     });
 //   });
 //   return parts.join('&');
