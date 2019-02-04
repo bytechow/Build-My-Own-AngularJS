@@ -107,4 +107,38 @@ _src/http.js_
 // }
 ```
 
-> 实际上，AngularJS 并不会直接使用`encodeURIComponent`来进行转码，而是采用内建的工具方法——`encodeUriQuery`。这个方法的转义范围并不会像`encodeURIComponent`那样广，它不会对`@`和`:`进行转义
+> 实际上，AngularJS 并不会直接使用`encodeURIComponent`来进行转码，而是采用内建的工具方法——`encodeUriQuery`。这个方法的转义范围并不会像`encodeURIComponent`那样广，它不会对`@`和`:`进行转义。
+
+如果传入请求配置对象的参数值是`null`和`undefined`，这个参数就会被忽略掉：
+
+_test/http_spec.js_
+
+```js
+it('does not attach null or undefned params', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: null,
+      b: undefned
+    }
+  });
+  expect(requests[0].url).toBe('http://teropa.info');
+});
+```
+
+我们可以在便利时加入一个检测，如果值为空则跳过：
+
+```js
+function serializeParams(params) {
+  var parts = [];
+  _.forEach(params, function(value, key) {
+    if (_.isNull(value) || _.isUndefned(value)) {
+      return;
+    }
+    parts.push(
+      encodeURIComponent(key) + '=' + encodeURIComponent(value));
+  });
+  return parts.join('&');
+}
+```
+
