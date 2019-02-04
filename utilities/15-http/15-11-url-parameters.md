@@ -181,3 +181,67 @@ _src/http.js_
 //   return parts.join('&');
 // }
 ```
+
+因此，数组用作参数值时是有特殊用途的。那对象呢？HTTP 协议默认并不支持“嵌套参数”（nested parameter）,那如果我们传入对象作为参数值会发生什么呢（之后需要进行 URL 转义）。事实上，如果服务器已经准备好对 JSON 数据进行解析，我们也可以在 query 参数中传递：
+
+_test/http_spec.js_
+
+```js
+it('serializes objects to json', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: { b: 42 }
+    }
+  });
+
+  expect(requests[0].url).toBe('http://teropa.info?a=%7B%22b%22%3A42%7D');
+});
+```
+
+在我们对参数值进行遍历时，我们需要检测这个值是不是对象类型，若是需要将其转成 JSON 数据：
+
+_src/http.js_
+
+```js
+// function serializeParams(params) {
+//   var parts = [];
+//   _.forEach(params, function(value, key) {
+//     if (_.isNull(value) || _.isUndefned(value)) {
+//       return;
+//     }
+//     if (!_.isArray(value)) {
+//       value = [value];
+//     }
+//     _.forEach(value, function(v) {
+      if (_.isObject(v)) {
+        v = JSON.stringify(v);
+      }
+//       parts.push(
+//         url += encodeURIComponent(key) + '=' + encodeURIComponent(v));
+//     });
+//   });
+//   return parts.join('&');
+// }
+```
+
+要做 JSON 序列化，就需要考虑对日期的处理，在序列化（JSON.stringify）的过程中，Date 类型的值会自动转变为 ISO 8601 格式。为了验证这个事实，我们会多增加一个单元测试：
+
+_test/http_spec.js_
+
+```js
+it(‘serializes dates to ISO strings’, function() {
+  $http({
+    url: ‘http: //teropa.info’,
+      params: {
+        a: new Date(2015, 0, 1, 12, 0, 0)
+      }
+  });
+  $rootScope.$apply();
+  
+  expect(/\d{4}-\d{2}-\d{2}T\d{2}%3A\d{2}%3A\d{2}/
+    .test(requests[0].url)).toBeTruthy();
+});
+```
+
+确实，我们对日期类型的 URL 参数进行序列化，默认的结果就是会输出为 ISO 8601 格式。而对于 Angular 应用开发者来说，你也可以使用其他序列化方法来代替。你可以在请求配置对象或`$http`默认配置中添加一个`paramSerializer`属性，它是一个数组，可以把传入的对象参数转化为字符串
