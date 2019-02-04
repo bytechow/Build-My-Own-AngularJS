@@ -244,4 +244,51 @@ it(‘serializes dates to ISO strings’, function() {
 });
 ```
 
-确实，我们对日期类型的 URL 参数进行序列化，默认的结果就是会输出为 ISO 8601 格式。而对于 Angular 应用开发者来说，你也可以使用其他序列化方法来代替。你可以在请求配置对象或`$http`默认配置中添加一个`paramSerializer`属性，它是一个数组，可以把传入的对象参数转化为字符串
+确实，我们对日期类型的 URL 参数进行序列化，默认的结果就是会输出为 ISO 8601 格式。而对于 Angular 应用开发者来说，你也可以使用其他序列化方法来代替。你可以在请求配置对象或`$http`默认配置中添加一个`paramSerializer`属性，它是一个数组，可以把传入的对象参数转化为字符串。它的作用本质上与我们之前实现的`serializeParams`一致：
+
+```js
+it('allows substituting param serializer', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: 42,
+      b: 43
+    },
+    paramSerializer: function(params) {
+      return _.map(params, function(v, k) {
+        return k + '=' + v + 'lol';
+      }).join('&');
+    }
+  });
+  
+  expect(requests[0].url)
+    .toEqual('http://teropa.info?a=42lol&b=43lol');
+});
+```
+
+因此，当我们构建请求 URL 时，是会调用请求配置中的`paramSerializer`函数，而不是直接调用`serializeParams`函数：
+
+_src/http.js_
+
+```js
+var url = buildUrl(confg.url,
+  confg.paramSerializer(confg.params));
+
+<!-- $httpBackend(
+  confg.method,
+  url,
+  reqData,
+  done,
+  confg.headers,
+  confg.withCredentials
+); -->
+```
+
+而在请求的全局默认配置中，我们会把`serializeParams`作为`paramSerializer`的默认值。没有主动传入自定义的序列化方法是，我们默认还是使用`serializeParams`：
+
+```js
+var defaults = this.defaults = {
+  // ...
+  paramSerializer: serializeParams
+};
+```
