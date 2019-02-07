@@ -347,3 +347,476 @@ this.$get = ['$httpBackend', '$q', '$rootScope', '$injector',
   // ...
 }];
 ```
+
+在`$http`函数中，如果我们检测到参数序列化的参数值为一个字符串，我们就可以使用`$inject`服务来获取对应的参数序列化方法：
+
+```js
+// function $http(requestConfg) {
+//   var confg = _.extend({
+//     method: 'GET',
+//     transformRequest: defaults.transformRequest,
+//     transformResponse: defaults.transformResponse,
+//     paramSerializer: defaults.paramSerializer
+//   }, requestConfg);
+//   confg.headers = mergeHeaders(requestConfg);
+  if (_.isString(confg.paramSerializer)) {
+    confg.paramSerializer = $injector.get(confg.paramSerializer);
+  }
+  // ...
+// }
+```
+
+事实上，默认的参数序列化方法本身就是一个可供依赖注入的服务，名为`$httpParamSerializer`。这就意味着你可以注入它用作他途或者对它进行装饰（decorate）：
+
+_src/angular_public_spec.js_
+
+```js
+it('makes default param serializer available through DI', function() {
+  var injector = createInjector(['ng']);
+  injector.invoke(function($httpParamSerializer) {
+    var result = $httpParamSerializer({
+      a: 42,
+      b: 43
+    });
+    expect(result).toEqual('a=42&b=43');
+  });
+});
+```
+
+在`http.js`中，我们要对`serializeParams`函数进行改变，让它不再是顶层的函数，而是一个 provider 服务的返回值：
+
+_src/http.js_
+
+```js
+function $HttpParamSerializerProvider() {
+  this.$get = function() {
+    return function serializeParams(params) {
+      // var parts = [];
+      // _.forEach(params, function(value, key) {
+      //   if (_.isNull(value) || _.isUndefned(value)) {
+      //     return;
+      //   }
+      //   if (!_.isArray(value)) {
+      //     value = [value];
+      //   }
+      //   _.forEach(value, function(v) {
+      //     if (_.isObject(v)) {
+      //       v = JSON.stringify(v);
+      //     }
+      //     parts.push(
+      //       encodeURIComponent(key) + '=' + encodeURIComponent(v));
+      //   });
+      // });
+      // return parts.join('&');
+    };
+  };
+}
+```
+
+我们还要调整`http.js`文件的输出模块（export），把上面我们加入的参数序列化服务进行对外输出：
+
+```js
+module.exports = {
+  $HttpProvider: $HttpProvider,
+  $HttpParamSerializerProvider: $HttpParamSerializerProvider
+};
+```
+
+接下来，我们会在`ng`模块中注册这个服务：
+
+_src/angular_public.js_
+
+```js
+function publishExternalAPI() {
+  setupModuleLoader(window);
+  
+  var ngModule = angular.module('ng', []);
+  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$parse', require('./parse'));
+  ngModule.provider('$rootScope', require('./scope'));
+  ngModule.provider('$q', require('./q').$QProvider);
+  ngModule.provider('$$q', require('./q').$$QProvider);
+  ngModule.provider('$httpBackend', require('./http_backend'));
+  ngModule.provider('$http', require('./http').$HttpProvider);
+  ngModule.provider('$httpParamSerializer',
+    require('./http').$HttpParamSerializerProvider);
+}
+```
+
+在`$http`默认全局配置中，参数序列化的默认值就要变成`$httpParamSerializer`了，因为已经没有独立的`serializeParams`函数了：
+
+_src/http.js_
+
+```js
+var defaults = this.defaults = {
+  // ...
+  paramSerializer: '$httpParamSerializer'
+};
+```
+
+Angular 默认还提供了一个`$httpParamSerializer`的替代服务——`$httpParamSerializerJQLike`服务，这个服务可以使用 jQuery 的序列化方法。这个方法既适用于与一些使用 jQuery 序列化格式的后台进行通信，或者在无法使用时 JSON 时传送嵌套数据。
+
+之后我们会看到，`$httpParamSerializer`会对集合（collections）进行特殊处理，但对于原始类型来说，该服务与默认服务的处理一致：
+
+_test/http_spec.js_
+
+```js
+describe('JQ-like param serialization', function() {
+
+  it('is possible', function() {
+    $http({
+      url: 'http://teropa.info',
+      params: {
+        a: 42,
+        b: 43
+      },
+      paramSerializer: '$httpParamSerializerJQLike'
+    });
+
+    expect(requests[0].url).toEqual('http://teropa.info?a=42&b=43');
+  });
+});
+```
+
+这个服务将会在`http.js`里被单独放在一个 provider 里：
+
+_src/http.js_
+
+```js
+function $HttpParamSerializerJQLikeProvider() {
+  this.$get = function() {
+    return function(params) {
+      var parts = [];
+      _.forEach(params, function(value, key) {
+        parts.push(
+          encodeURIComponent(key) + '=' + encodeURIComponent(value));
+      });
+      return parts.join('&');
+    };
+  };
+}
+```
+
+接着，我们也要对外提供这个 provider：
+
+```js
+module.exports = {
+  $HttpProvider: $HttpProvider,
+  $HttpParamSerializerProvider: $HttpParamSerializerProvider,
+  $HttpParamSerializerJQLikeProvider: $HttpParamSerializerJQLikeProvider
+};
+```
+
+并需要在`ng`模块注册：
+
+```js
+function publishExternalAPI() {
+  setupModuleLoader(window);
+  var ngModule = angular.module('ng', []);
+  ngModule.provider('$flter', require('./flter'));
+  ngModule.provider('$parse', require('./parse'));
+  ngModule.provider('$rootScope', require('./scope'));
+  ngModule.provider('$q', require('./q').$QProvider);
+  ngModule.provider('$$q', require('./q').$$QProvider);
+  ngModule.provider('$httpBackend', require('./http_backend'));
+  ngModule.provider('$http', require('./http').$HttpProvider);
+  ngModule.provider('$httpParamSerializer',
+    require('./http').$HttpParamSerializerProvider);
+  ngModule.provider('$httpParamSerializerJQLike',
+    require('./http').$HttpParamSerializerJQLikeProvider);
+}
+```
+
+这个服务会跳过`null`和`undefined`这类值：
+
+```js
+function $HttpParamSerializerJQLikeProvider() {
+  this.$get = function() {
+    return function(params) {
+      var parts = [];
+      _.forEach(params, function(value, key) {
+        if (_.isNull(value) || _.isUndefned(value)) {
+          return;
+        }
+        parts.push(
+          encodeURIComponent(key) + '=' + encodeURIComponent(value));
+      });
+      return parts.join('&');
+    };
+  };
+}
+```
+
+这个服务与默认的序列化服务的区别出现在处理数组上。如果我们需要传递数组类型的参数（同名参数），我们会在参数名的后面加入双方括号`[]`后缀：
+
+```js
+it('uses square brackets in arrays', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: [42, 43]
+    },
+    paramSerializer: '$httpParamSerializerJQLike'
+  });
+  
+  expect(requests[0].url).toEqual('http://teropa.info?a%5B%5D=42&a%5B%5D=43');
+});
+```
+
+上面可以看出，开方括号`[`对应的 URL 编码是`%5B`，而`]`对应的 URL 编码是`%5D`。
+
+下面我们就看看怎么处理数组：
+
+_src/http.js_
+
+```js
+// function $HttpParamSerializerJQLikeProvider() {
+//   this.$get = function() {
+//     return function(params) {
+//       var parts = [];
+//       _.forEach(params, function(value, key) {
+//         if (_.isNull(value) || _.isUndefned(value)) {
+//           return;
+//         }
+        if (_.isArray(value)) {
+          _.forEach(value, function(v) {
+            parts.push(
+              encodeURIComponent(key + '[]') + '=' + encodeURIComponent(v));
+          });
+        } else {
+          // parts.push(
+          //   encodeURIComponent(key) + '=' + encodeURIComponent(value));
+        }
+//       });
+//       return parts.join('&');
+//     };
+//   };
+// }
+```
+
+而在序列化对象的时候，我们也会用到方括号。与数组不同的是，我们会用方括号来包裹对象的属性名（key）：
+
+_test/http_spec.js_
+
+```js
+it('uses square brackets in objects', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: {
+        b: 42,
+        c: 43
+      }
+    },
+    paramSerializer: '$httpParamSerializerJQLike'
+  });
+  
+  expect(requests[0].url).toEqual('http://teropa.info?a%5Bb%5D=42&a%5Bc%5D=43');
+});
+```
+
+我们会在`else if`分支中对对象进行处理。要注意的是，Date 类型也算是对象，但我们应该把它们作为原始类型来进行序列化。于是，我们要加上一个额外的判断：
+
+_src/http.js_
+
+```js
+// function $HttpParamSerializerJQLikeProvider() {
+//   this.$get = function() {
+//     return function(params) {
+//       var parts = [];
+//       _.forEach(params, function(value, key) {
+//         if (_.isNull(value) || _.isUndefned(value)) {
+//           return;
+//         }
+//         if (_.isArray(value)) {
+//           _.forEach(value, function(v) {
+//             parts.push(
+//               encodeURIComponent(key + '[]') + '=' + encodeURIComponent(v));
+//           });
+//         } 
+        else if (_.isObject(value) && !_.isDate(value)) {
+          _.forEach(value, function(v, k) {
+            parts.push(
+              encodeURIComponent(key + '[' + k + ']') + '=' +
+              encodeURIComponent(v));
+          });
+//         } else {
+//           parts.push(
+//             encodeURIComponent(key) + '=' + encodeURIComponent(value));
+//         }
+//       });
+//       return parts.join('&');
+//     };
+//   };
+// }
+```
+
+方括号前缀还支持递归，所以我们就可以用这种方式来表示嵌套对象，如`{a: {b: {c: 42}}}`会变成`a[b][c]=42`：
+
+_test/http_spec.js_
+
+```js
+it('supports nesting in objects', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: {
+        b: {
+          c: 42
+        }
+      }
+    },
+    paramSerializer: '$httpParamSerializerJQLike'
+  });
+
+  expect(requests[0].url).toEqual('http://teropa.info?a%5Bb%5D%5Bc%5D=42');
+});
+```
+
+我们需要对代码进行递归化的改造，以支持任何深度的嵌套。我们要对代码进行重新组织，首先要构建一个内部函数`serialize`，这个函数始终会在当前遍历到的属性名（key）前面加上方括号前缀，如果发现还有嵌套的结构，它还没会对自身进行递归调用。直到递归遍历发现叶子节点（既不是对象，也不是数组）层次的值之前，我们都不会把结果加入到`parts`这个结果数组中：
+
+_src/http.js_
+
+```js
+// function $HttpParamSerializerJQLikeProvider() {
+//   this.$get = function() {
+//     return function(params) {
+//       var parts = [];
+
+      function serialize(value, prefx) {
+        if (_.isNull(value) || _.isUndefned(value)) {
+          return;
+        }
+        if (_.isArray(value)) {
+          _.forEach(value, function(v) {
+            serialize(v, prefx + '[]');
+          });
+        } else if (_.isObject(value) && !_.isDate(value)) {
+          _.forEach(value, function(v, k) {
+            serialize(v, prefx + '[' + k + ']');
+          });
+        } else {
+          parts.push(
+            encodeURIComponent(prefx) + '=' + encodeURIComponent(value));
+        }
+      }
+      
+      // _.forEach(params, function(value, key) {
+      //   if (_.isNull(value) || _.isUndefned(value)) {
+      //     return;
+      //   }
+      //   if (_.isArray(value)) {
+      //     _.forEach(value, function(v) {
+            serialize(v, key + '[]');
+        //   });
+        // } else if (_.isObject(value) && !_.isDate(value)) {
+        //   _.forEach(value, function(v, k) {
+            serialize(v, key + '[' + k + ']');
+//           });
+//         } else {
+//           parts.push(
+//             encodeURIComponent(key) + '=' +
+//             encodeURIComponent(value));
+//         }
+//       });
+//       return parts.join('&');
+//     };
+//   };
+// }
+```
+
+目前的代码已经能很好地实现了我们的需求了，但可以发现我们还是重复了一部分的代码。我们在递归的顶层写了一次，又在递归时写了这段逻辑，其实两者的唯一区别就在于递归顶层不需要使用方括号：
+
+```js
+// function $HttpParamSerializerJQLikeProvider() {
+//   this.$get = function() {
+//     return function(params) {
+//       var parts = [];
+
+      function serialize(value, prefx, topLevel) {
+        // if (_.isNull(value) || _.isUndefned(value)) {
+        //   return;
+        // }
+        // if (_.isArray(value)) {
+        //   _.forEach(value, function(v) {
+        //     serialize(v, prefx + '[]');
+        //   });
+        // } else if (_.isObject(value) && !_.isDate(value)) {
+        //   _.forEach(value, function(v, k) {
+            serialize(v, prefx +
+              (topLevel ? '' : '[') +
+              k +
+              (topLevel ? '' : ']'));
+      //     });
+      //   } else {
+      //     parts.push(
+      //       encodeURIComponent(prefx) + '=' + encodeURIComponent(value));
+      //   }
+      // }
+
+      serialize(params, '', true);
+      
+//       return parts.join('&');
+//     };
+//   };
+// }
+```
+
+最后，我们要考虑一种情况，就是数组中包含对象。这时我们会用数组元素的索引代替属性名，比如`{a: [{b: 42}]}`不会变成`a[][b]=42`，而是`a[0][b]=42`：
+
+_test/http_spec.js_
+
+```js
+it('appends array indexes when items are objects', function() {
+  $http({
+    url: 'http://teropa.info',
+    params: {
+      a: [{
+        b: 42
+      }]
+    },
+    paramSerializer: '$httpParamSerializerJQLike'
+  });
+  expect(requests[0].url).toEqual('http://teropa.info?a%5B0%5D%5Bb%5D=42');
+});
+```
+
+我们可以直接利用遍历方法中的遍历索引值替换即可：
+
+_src/http.js_
+
+```js
+// function $HttpParamSerializerJQLikeProvider() {
+//   this.$get = function() {
+//     return function(params) {
+//       var parts = [];
+
+//       function serialize(value, prefx, topLevel) {
+//         if (_.isNull(value) || _.isUndefned(value)) {
+//           return;
+//         }
+//         if (_.isArray(value)) {
+          _.forEach(value, function(v, i) {
+            // serialize(v, prefx +
+            //   '[' +
+              (_.isObject(v) ? i : '') +
+//               ']');
+//           });
+//         } else if (_.isObject(value)) {
+//           _.forEach(value, function(v, k) {
+//             serialize(v, prefx +
+//               (topLevel ? '' : '[') +
+//               k +
+//               (topLevel ? '' : ']'));
+//           });
+//         } else {
+//           parts.push(
+//             encodeURIComponent(prefx) + '=' + encodeURIComponent(value));
+//         }
+//       }
+//       serialize(params, '', true);
+//       return parts.join('&');
+//     };
+//   };
+// }
+```
