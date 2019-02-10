@@ -83,4 +83,5 @@
     * [15-9-response-transforms](utilities/15-http/15-9-response-transforms.md)
     * [15-10-json-serialization-and-parsing](utilities/15-http/15-10-json-serialization-and-parsing.md)
     * [15-11-url-parameters](utilities/15-http/15-11-url-parameters.md)
+    * [15-12-shorthand-methods](utilities/15-http/15-12-shorthand-methods.md)
 
