@@ -15,7 +15,90 @@ it('allows attaching interceptor factories', function() {
     $httpProvider.interceptors.push(interceptorFactorySpy);
   }]);
   $http = injector.get('$http');
-  
+
   expect(interceptorFactorySpy).toHaveBeenCalled();
 });
 ```
+
+我们会在`$HttpProvider`构造函数中加入这个数组，并挂载在`interceptors`属性：
+
+_src/http.js_
+
+```js
+function $HttpProvider() {
+  var interceptorFactories = this.interceptors = [];
+  // ...
+}
+```
+
+当`$http`服务被创建时（也就是`$httpProvider.$get`被调用之时），我们就会调用所有注册进来的工厂函数，这些工厂函数都存放在刚才我们加入的数组中：
+
+```js
+this.$get = ['$httpBackend', '$q', '$rootScope', '$injector'
+  function($httpBackend, $q, $rootScope, $injector) {
+    var interceptors = _.map(interceptorFactories, function(fn) {
+      return fn();
+    });
+    // ...    
+  }
+];
+```
+
+拦截器工厂函数还可以被集成到依赖注入的系统中。如果工厂函数时带有参数的，那这些参数对应的依赖将会被注入。当然我们还可以使用行内式依赖注入的方式，比如`['a', 'b', function(a, b){ }]`。下面我们来测试一下注入`$rootScope`：
+
+_test/http_spec.js_
+
+```js
+it('uses DI to instantiate interceptors', function() {
+  var interceptorFactorySpy = jasmine.createSpy();
+  var injector = createInjector(['ng', function($httpProvider) {
+    $httpProvider.interceptors.push(['$rootScope', interceptorFactorySpy]);
+  }]);
+  $http = injector.get('$http');
+  var $rootScope = injector.get('$rootScope');
+  expect(interceptorFactorySpy).toHaveBeenCalledWith($rootScope);
+});
+```
+
+我们会使用注射器的`invoke`方法来实例化所有拦截器，而非直接调用：
+
+_src/http.js_
+
+```js
+// this.$get = ['$httpBackend', '$q', '$rootScope', '$injector',
+//   function($httpBackend, $q, $rootScope, $injector) {
+//     var interceptors = _.map(interceptorFactories, function(fn) {
+      return $injector.invoke(fn);
+//     });
+//     // ...
+//   }
+// ];
+```
+
+目前，我们通过把拦截器函数加入到`$httpProvider.interceptors`数组来注册拦截器，但其实还有一种方法。我们可以先注册一个普通的 Angular 工厂函数，然后把它的名称加入到`$httpProvider.interceptors`中去。这种方式其实才是在 AngularJS 语境中的最优解法——“拦截器也只是一个工厂函数”：
+
+_test/http_spec.js_
+
+```js
+it('allows referencing existing interceptor factories', function() {
+  var interceptorFactorySpy = jasmine.createSpy().and.returnValue({});
+  var injector = createInjector(['ng', function($provide, $httpProvider) {
+    $provide.factory('myInterceptor', interceptorFactorySpy);
+    $httpProvider.interceptors.push('myInterceptor');
+  }]);
+  $http = injector.get('$http');
+  expect(interceptorFactorySpy).toHaveBeenCalled();
+});
+```
+
+在创建拦截器时，我们必须对传入的拦截器元素进行判断，看它是用函数还是字符串来进行注册的。如果是字符串，我们就要使用`$inject.get`（该方法实际上会调用工厂方法）方法获取对应的拦截器函数；如果是函数，那我们就像之前一样直接调用即可：
+
+_src/http.js_
+
+```js
+var interceptors = _.map(interceptorFactories, function(fn) {
+  return _.isString(fn) ? $injector.get(fn) :
+    $injector.invoke(fn);
+});
+```
+
