@@ -272,3 +272,110 @@ var $http, $rootScope;
 //   });
 // })
 ```
+
+这样对所有的相关测试用例都修改完了后，我们就可以继续拦截器的代码开发了！
+
+拦截器通常是含有`request`、`requestError`、`response`、`responseError`中的最少1个、最多4个属性的对象。这些属性的值，都是在 HTTP 请求过程的某个时间节点会调用的函数。
+
+先来看看第一个属性——`request`。如果拦截器中定义了`request`方法属性，它会在请求发出之前被调用，并且会返回一个被修改过的请求对象。这就意味着这个拦截器可以在请求发送之前，对请求对象进行任意的修改或替换，因此这个拦截器就跟我们之前的转换器十分类似：
+
+```js
+it('allows intercepting requests', function() {
+  var injector = createInjector(['ng', function($httpProvider) {
+    $httpProvider.interceptors.push(function() {
+      return {
+        request: function(confg) {
+          confg.params.intercepted = true;
+          return confg;
+        }
+      };
+    });
+  }]);
+  $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+  
+  $http.get('http://teropa.info', {
+    params: {}
+  });
+  $rootScope.$apply();
+  expect(requests[0].url).toBe('http://teropa.info?intercepted=true');
+});
+```
+
+拦截器函数也可能会返回一个以被修改过的请求对象作为结果值的 Promise，这也意味着拦截器函数里面也支持异步处理。这就是比转换器优胜的地方：
+
+```js
+it('allows returning promises from request intercepts', function() {
+  var injector = createInjector(['ng', function($httpProvider) {
+    $httpProvider.interceptors.push(function($q) {
+      return {
+        request: function(confg) {
+          confg.params.intercepted = true;
+          return $q.when(confg);
+        }
+      };
+    });
+  }]);
+  $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+  
+  $http.get('http://teropa.info', {
+    params: {}
+  });
+  $rootScope.$apply();
+  expect(requests[0].url).toBe('http://teropa.info?intercepted=true');
+});
+```
+
+由于我们之前已经对`$http`中的代码逻辑进行了调整，现在我们要加入请求拦截器就变得很简单了。每个拦截器都可以作为 Promise 处理链的下一个环节，然后把实际的发送请求的方法作为最后一个处理节点的回调函数执行即可：
+
+_src/http.js_
+
+```js
+var promise = $q.when(confg);
+_.forEach(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.request);
+});
+return promise.then(serverRequest);
+```
+
+响应拦截器的运作方式跟请求拦截器非常相似，只不过属性名是`response`，而不是`request`。响应拦截器能够对响应数据进行转换或替换，它们的返回值也会作为下一个拦截器的输入（最终会返回到应用代码中）：
+
+```js
+it('allows intercepting responses', function() {
+  var injector = createInjector(['ng', function($httpProvider) {
+    $httpProvider.interceptors.push(_.constant({
+      response: function(response) {
+        response.intercepted = true;
+        return response;
+      }
+    }));
+  }]);
+  $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+
+  var response;
+  $http.get('http://teropa.info').then(function(r) {
+    response = r;
+  });
+  $rootScope.$apply();
+  
+  requests[0].respond(200, {}, 'Hello');
+  expect(response.intercepted).toBe(true);
+});
+```
+
+我们可以在`serverRequest`的回调函数中加入响应拦截器。响应拦截器还有一个与请求拦截器不同的地方，由于最后注册的拦截器会被最先执行，所以我们会进行反向遍历。如果你能想到整个请求-响应的生命周期（request-response cycle）的话，就不难理解为什么我们要进行这样的处理了。
+
+```js
+_.forEach(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.request);
+});
+promise = promise.then(serverRequest);
+_.forEachRight(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.response);
+});
+return promise;
+```
+
+![](/assets/request-response-cycle.png)
