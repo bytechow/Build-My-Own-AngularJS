@@ -367,6 +367,8 @@ it('allows intercepting responses', function() {
 
 我们可以在`serverRequest`的回调函数中加入响应拦截器。响应拦截器还有一个与请求拦截器不同的地方，由于最后注册的拦截器会被最先执行，所以我们会进行反向遍历。如果你能想到整个请求-响应的生命周期（request-response cycle）的话，就不难理解为什么我们要进行这样的处理了。
 
+_src/http.js_
+
 ```js
 _.forEach(interceptors, function(interceptor) {
   promise = promise.then(interceptor.request);
@@ -379,3 +381,96 @@ return promise;
 ```
 
 ![](/assets/request-response-cycle.png)
+
+另外两个我们要实现的拦截器方法属性是跟异常处理有关的。如果在请求被发送之前，出现了错误，`requestError`方法就会被调用，也就是说前面的拦截器可能发生了错误：
+
+_test/http_spec.js_
+
+```js
+it('allows intercepting request errors', function() {
+  var requestErrorSpy = jasmine.createSpy();
+  var injector = createInjector(['ng', function($httpProvider) {
+    $httpProvider.interceptors.push(_.constant({
+      request: function(confg) {
+        throw 'fail';
+      }
+    }));
+    $httpProvider.interceptors.push(_.constant({
+      requestError: requestErrorSpy
+    }));
+  }]);
+
+  $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+
+  $http.get('http://teropa.info');
+  $rootScope.$apply();
+  
+  expect(requests.length).toBe(0);
+  expect(requestErrorSpy).toHaveBeenCalledWith('fail');
+});
+```
+
+我们可以在加入请求拦截器的同时，加入`resquestError`拦截器。`requestError`函数将会作为失败回调被加入到 Promise 处理链中：
+
+_src/http.js_
+
+```js
+// var promise = $q.when(confg);
+// _.forEach(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.request, interceptor.requestError);
+// });
+// promise = promise.then(serverRequest);
+// _.forEachRight(interceptors, function(interceptor) {
+//   promise = promise.then(interceptor.response);
+// });
+// return promise;
+```
+
+`responseError`拦截器会在我们获取到 HTTP 响应后对错误进行捕捉。跟`response`拦截器一样，响应错误拦截器也会按照倒序调用，因此它接收到的错误，要么是来自于 HTTP 的错误响应，要么是来自于更晚注册的拦截器：
+
+_test/http_spec.js_
+
+```js
+it('allows intercepting response errors', function() {
+  var responseErrorSpy = jasmine.createSpy();
+  var injector = createInjector(['ng', function($httpProvider) {
+    $httpProvider.interceptors.push(_.constant({
+      responseError: responseErrorSpy
+    }));
+    $httpProvider.interceptors.push(_.constant({
+      response: function() {
+        throw 'fail';
+      }
+    }));
+  }]);
+  $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+  
+  $http.get('http://teropa.info');
+  $rootScope.$apply();
+  
+  requests[0].respond(200, {}, 'Hello');
+  $rootScope.$apply();
+
+  expect(responseErrorSpy).toHaveBeenCalledWith('fail');
+});
+```
+
+注册`responseError`拦截器与注册`requestError`是完全对称的：我们会在`response`拦截器注册的同时，加入失败回调：
+
+_src/http.js_
+
+```js
+// var promise = $q.when(confg);
+// _.forEach(interceptors, function(interceptor) {
+//   promise = promise.then(interceptor.request, interceptor.requestError);
+// });
+// promise = promise.then(serverRequest);
+// _.forEachRight(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.response, interceptor.responseError);
+// });
+// return promise;
+```
+
+至此，我们就完成了拦截器的代码开发。拦截器十分强大，但要熟练地使用它们，必须要理解他们是如何通过 Promise 处理机制与`$http`进行整合的。学到现在，我们可以算是理解了。
