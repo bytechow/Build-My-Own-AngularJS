@@ -85,4 +85,5 @@
     * [15-11-url-parameters](utilities/15-http/15-11-url-parameters.md)
     * [15-12-shorthand-methods](utilities/15-http/15-12-shorthand-methods.md)
     * [15-13-interceptors](utilities/15-http/15-13-interceptors.md)
+    * [15-14-promise-extensions](utilities/15-http/15-14-promise-extensions.md)
 
