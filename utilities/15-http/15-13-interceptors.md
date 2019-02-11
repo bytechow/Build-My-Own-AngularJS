@@ -102,3 +102,87 @@ var interceptors = _.map(interceptorFactories, function(fn) {
 });
 ```
 
+现在我们知道了拦截器是如何注册的，我们可以正式来聊聊它们究竟是什么，还有它们是如何被集成到`$http`服务的请求中去。
+
+拦截器十分依赖 Promise。它们会作为一个 Promise 回调函数加入到`$http`的处理流程中，同时它们自身也会返回 Promise。当前的`$http`已经集成了 Promise（因为它会返回一个 Promise），但在我们集成拦截器进去之前，我们需要对代码进行重新组织。
+
+首先，之前存在于`$http`函数体内的代码，其中一部分需要放到拦截器之前执行，而另一部分需要放在拦截器之后执行。而需要在拦截器之后执行的代码自然就需要放到一个 Promise 的回调函数中去执行，我们需要先把这段代码逻辑抽取出来放到一个新的函数中，我们将这个函数命名为`serverRequest`。目前我们不会改动这段代码逻辑，只需要把它们迁移到新函数就好了。我们会把分隔点放到 config 对象变量创建、头部也被加入到 config 变量之后：
+
+```js
+function serverRequest(confg) {
+  if (_.isUndefned(confg.withCredentials) &&
+    !_.isUndefned(defaults.withCredentials)) {
+    confg.withCredentials = defaults.withCredentials;
+  }
+  var reqData = transformData(
+    confg.data,
+    headersGetter(confg.headers),
+    undefned,
+    confg.transformRequest
+  );
+  if (_.isUndefned(reqData)) {
+    _.forEach(confg.headers, function(v, k) {
+      if (k.toLowerCase() === 'content-type') {
+        delete confg.headers[k];
+      }
+    });
+  }
+
+  function transformResponse(response) {
+    if (response.data) {
+      response.data = transformData(
+        response.data,
+        response.headers,
+        response.status,
+        confg.transformResponse
+      );
+    }
+    if (isSuccess(response.status)) {
+      return response;
+    } else {
+      return $q.reject(response);
+    }
+  }
+  return sendReq(confg, reqData)
+    .then(transformResponse, transformResponse);
+}
+
+// function $http(requestConfg) {
+//   var confg = _.extend({
+//     method: 'GET',
+//     transformRequest: defaults.transformRequest,
+//     transformResponse: defaults.transformResponse,
+//     paramSerializer: defaults.paramSerializer
+//   }, requestConfg);
+//   if (_.isString(confg.paramSerializer)) {
+//     confg.paramSerializer = $injector.get(confg.paramSerializer);
+//   }
+//   confg.headers = mergeHeaders(requestConfg);
+  
+  return serverRequest(confg);
+// }
+```
+
+下一步，我们要改变一下创建`$http` Promise 的方式。之前，我们直接把`sendReq`返回的 Promise 作为最终返回值，但现在我们会基于`$http`函数里的`config`对象变量创建一个 Promise，然后把`serverRequest`作为这个 Promise 的回调处理函。此举并不会改变`$http`的处理逻辑，但却能为我们加入拦截器打下基础：
+
+```js
+function $http(requestConfg) {
+  var confg = _.extend({
+    method: 'GET',
+    transformRequest: defaults.transformRequest,
+    transformResponse: defaults.transformResponse,
+    paramSerializer: defaults.paramSerializer
+  }, requestConfg);
+  if (_.isString(confg.paramSerializer)) {
+    confg.paramSerializer = $injector.get(confg.paramSerializer);
+  }
+  confg.headers = mergeHeaders(requestConfg);
+  
+  var promise = $q.when(confg);
+  return promise.then(serverRequest);
+}
+```
+
+虽然我们还没有真正改变`$http`的处理逻辑，但你会发现这个改动已经让很多单元测试都无                            法通过了。这是因为如果我们现在发送请求，这个请求只会在调用`$http`函数后的下一个 digest 循环中才会被实际发送出去。原因是现在`serverRequest`只会在 Promise 回调函数中被调用，而 Promise 回到函数只会在 digest 循环中被实际执行。
+
+这就是 Angular 的特性，我们能做的就是要对这些发生异常的单元测试进行调整。其中最主要的就是我们需要在每个已经存在的`    `
