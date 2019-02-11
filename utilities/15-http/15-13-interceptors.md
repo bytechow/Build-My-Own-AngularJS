@@ -185,4 +185,40 @@ function $http(requestConfg) {
 
 虽然我们还没有真正改变`$http`的处理逻辑，但你会发现这个改动已经让很多单元测试都无                            法通过了。这是因为如果我们现在发送请求，这个请求只会在调用`$http`函数后的下一个 digest 循环中才会被实际发送出去。原因是现在`serverRequest`只会在 Promise 回调函数中被调用，而 Promise 回到函数只会在 digest 循环中被实际执行。
 
-这就是 Angular 的特性，我们能做的就是要对这些发生异常的单元测试进行调整。其中最主要的就是我们需要在每个已经存在的`    `
+这就是 Angular 的特性，我们能做的就是要对这些发生异常的单元测试进行调整。其中最主要的调整就是需要在目前所有的`$http`单元测试中，在调用`$http()`方法后，马上调用`$rootScope.$apply()`，最后才加入对请求对象的相关断言。
+
+为了能使用`$apply`，我们必须在单元测试的安装阶段获取`$rootScope`：
+
+_test/http_spec.js_
+
+```js
+var $http, $rootScope;
+// var xhr, requests;
+
+// beforeEach(function() {
+//   publishExternalAPI();
+//   var injector = createInjector(['ng']);
+//   $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+// });
+```
+
+然后，我们需要在调用`$http`方法后，再调用一次`$rootScope.$apply()`。下面我们以第一个相关的单元测试为例，进行修改：
+
+```js
+// it('makes an XMLHttpRequest to given URL', function() {
+//   $http({
+//     method: 'POST',
+//     url: 'http://teropa.info',
+//     data: 'hello'
+//   });
+  $rootScope.$apply();
+//   expect(requests.length).toBe(1);
+//   expect(requests[0].method).toBe('POST');
+//   expect(requests[0].url).toBe('http://teropa.info');
+//   expect(requests[0].async).toBe(true);
+//   expect(requests[0].requestBody).toBe('hello');
+// });
+```
+
+对于`http_spec.js`中的相关单元测试，我们只需要重复这个步骤就好。注意，有些测试用例会直接使用它们的注射器，所以对于这类单元测试，我们从注射器中获取`$rootScope`即可。否则，我们还是会使用在单元测试时已经获取到的`$rootScope`：
