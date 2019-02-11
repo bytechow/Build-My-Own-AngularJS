@@ -222,3 +222,53 @@ var $http, $rootScope;
 ```
 
 对于`http_spec.js`中的相关单元测试，我们只需要重复这个步骤就好。注意，有些测试用例会直接使用它们的注射器，所以对于这类单元测试，我们从注射器中获取`$rootScope`即可。否则，我们还是会使用在单元测试时已经获取到的`$rootScope`：
+
+```js
+// it('exposes default headers through provider', function() {
+//   var injector = createInjector(['ng', function($httpProvider) {
+//     $httpProvider.defaults.headers.post['Content-Type'] =
+//       'text/plain;charset=utf-8';
+//   }]);
+//   $http = injector.get('$http');
+  $rootScope = injector.get('$rootScope');
+  
+  // $http({
+  //   method: 'POST',
+  //   url: 'http://teropa.info',
+  //   data: '42'
+  // });
+  $rootScope.$apply();
+
+//   expect(requests.length).toBe(1);
+//   expect(requests[0].requestHeaders['Content-Type']).toBe(
+//     'text/plain;charset=utf-8');
+// });
+
+// // ...
+
+// it('allows substituting param serializer through DI', function() {
+//   var injector = createInjector(['ng', function($provide) {
+//     $provide.factory('mySpecialSerializer', function() {
+//       return function(params) {
+//         return _.map(params, function(v, k) {
+//           return k + '=' + v + 'lol';
+//         }).join('&');
+//       };
+//     });
+//   }]);
+  injector.invoke(function($http, $rootScope) {
+    // $http({
+    //   url: 'http://teropa.info',
+    //   params: {
+    //     a: 42,
+    //     b: 43
+    //   },
+    //   paramSerializer: 'mySpecialSerializer'
+    // });
+    $rootScope.$apply();
+
+//     expect(requests[0].url)
+//       .toEqual('http://teropa.info?a=42lol&b=43lol');
+//   });
+// })
+```
