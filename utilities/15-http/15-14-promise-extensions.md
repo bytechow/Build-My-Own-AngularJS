@@ -30,3 +30,54 @@ it('allows attaching success handlers', function() {
 ```
 
 虽然这个不算是极为重要的特性，但能够给我们带来便利。尤其是当你只需要获取响应体数据时，我们就可以使用一个`success`处理函数，这个函数只需要接收一个参数，这个参数就是响应体数据了，我们不需要在乎响应对象的格式。
+
+如果是错误响应，我们有一个同样的扩展，那就是`error`回调方法：
+
+```js
+it('allows attaching error handlers', function() {
+  var data, status, headers, confg;
+  $http.get('http://teropa.info').error(function(d, s, h, c) {
+    data = d;
+    status = s;
+    headers = h;
+    confg = c;
+  });
+  $rootScope.$apply();
+  
+  requests[0].respond(401, {
+    'Cache-Control': 'no-cache'
+  }, 'Fail');
+  $rootScope.$apply();
+
+  expect(data).toBe('Fail');
+  expect(status).toBe(401);
+  expect(headers('Cache-Control')).toBe('no-cache');
+  expect(confg.method).toBe('GET');
+});
+```
+
+在我们把所有的拦截都绑定好了以后，这两个扩展的方法会被加入到`Promise`对象中。在它们内部会使用`then`或`catch`回调，回调中会将拆分开的参数依次传递到要执行的回调函数中，这个回调函数就是上面单元测试中`success`或`error`方法中传入的函数类型的参数：
+
+```js
+var promise = $q.when(confg);
+_.forEach(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.request, interceptor.requestError);
+});
+promise = promise.then(serverRequest);
+_.forEachRight(interceptors, function(interceptor) {
+  promise = promise.then(interceptor.response, interceptor.responseError);
+});
+promise.success = function(fn) {
+  promise.then(function(response) {
+    fn(response.data, response.status, response.headers, confg);
+  });
+  return promise;
+};
+promise.error = function(fn) {
+  promise.catch(function(response) {
+    fn(response.data, response.status, response.headers, confg);
+  });
+  return promise;
+};
+return promise;
+```
