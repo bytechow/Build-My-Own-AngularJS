@@ -88,4 +88,5 @@
     * [15-14-promise-extensions](utilities/15-http/15-14-promise-extensions.md)
     * [15-15-request-timeouts](utilities/15-http/15-15-request-timeouts.md)
     * [15-16-pending-requests](utilities/15-http/15-16-pending-requests.md)
+    * [15-17-integrating-$http-and-$applyAsync](utilities/15-http/15-17-integrating-http-and-applyasync.md)
 
