@@ -8,7 +8,7 @@
 
 这个特性确实非常强大，因为我们可以根据实际需要来控制请求次数。举一个例子，如果用户要跳转到另一个路由，或关闭对话框，这时我们就可以主动告知应用代码，从而不需要等待一个不再会被使用到的响应。
 
-_test/http_spec.js_
+_test/http\_spec.js_
 
 ```js
 it('allows aborting a request with a Promise', function() {
@@ -17,7 +17,7 @@ it('allows aborting a request with a Promise', function() {
     timeout: timeout.promise
   });
   $rootScope.$apply();
-  
+
   timeout.resolve();
   $rootScope.$apply();
 
@@ -42,7 +42,7 @@ var $http, $rootScope, $q;
 
 超时管理的实际工作会在 HTTP 底层完成。在`$http`中我们需要做的，就是把请求配置参数中的`timeout`属性传递进去：
 
-_src/http_backend.js_
+_src/http\_backend.js_
 
 ```js
 // $httpBackend(
@@ -95,7 +95,7 @@ return function(method, url, post, callback, headers, timeout, withCredentials) 
 
 这时，我们需要用到 Jasmine 的 clock API 来模拟 JavaScript 内部的运行时钟（JavaScript's internal clock）。这需要我们在每次单元测试之前先注册 clock，当单元测试测试结束后，我们需要销毁掉这个时钟：
 
-_test/http_spec.js_
+_test/http\_spec.js_
 
 ```js
 beforeEach(function() {
@@ -123,7 +123,7 @@ it('allows aborting a request after a timeout', function() {
 
 在`$httpBackend`里面，我们发现传入了一个数字类型的`timeout`参数，而不是 Promise 类型的参数，我们就会使用原生的`setTimeout` API 来中止请求：
 
-_src/http_backend.js_
+_src/http\_backend.js_
 
 ```js
 if (timeout && timeout.then) {
@@ -182,3 +182,6 @@ if (timeout && timeout.then) {
 //   }
 // };
 ```
+
+
+
