@@ -17,3 +17,7 @@ language and program is drawn and redrawn, until eventually it comes to rest alo
 rivers, the natural frontiers of your problem. In the end your program will look as if the language had been
 designed for it. And when language and program fit one another well, you end up with code which is clear,
 small, and efficient.
+
+如果你已经习惯了编写 Angular 指令，那么你应该不会对上面这段描述感觉陌生。这正正就是我们在 Angular 中会做的：我们会在应用程序中创建 DOM 元素。我们会想：“我希望浏览器拥有像这样那样的元素”。然后我们就会开始尝试创建这个元素。
+
+其实可扩展 DOM 不仅仅是在 Angular 中存在，官方的`Web组件规范（Web Components standard）`现在进入定案和开发阶段。Web 组件很大程度上可以看作是 Angular 指令的进阶版，Web组件在模块化上更进一步，比如，将组件的样式限定为只在组件内部可用。Angular 2将会使用 Web 组件，但 Angular 1.x 版本不会这么做。
