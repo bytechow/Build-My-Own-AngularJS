@@ -100,5 +100,5 @@
 
 ## 五、指令
 
-* [五、指令](wu-3001-zhi-ling/wu-3001-zhi-ling.md)
+* [五、指令](directives/directives.md)
 
