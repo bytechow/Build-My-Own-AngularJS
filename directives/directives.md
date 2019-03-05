@@ -9,10 +9,10 @@
 > Experienced Lisp programmers divide up their programs differently. As well as top-down design, they follow
 a principle which could be called bottom-up design-- changing the language to suit the problem.
 
-In Lisp, you don’t just write your program down toward the language, you also build the language up toward your program. As you’re writing a program you may think “I wish Lisp had such-and-such an operator.” So you go and write it. Afterward you realize that using the new operator would simplify the design of
+> In Lisp, you don’t just write your program down toward the language, you also build the language up toward your program. As you’re writing a program you may think “I wish Lisp had such-and-such an operator.” So you go and write it. Afterward you realize that using the new operator would simplify the design of
 another part of the program, and so on.
 
-Language and program evolve together. Like the border between two warring states, the boundary between
+> Language and program evolve together. Like the border between two warring states, the boundary between
 language and program is drawn and redrawn, until eventually it comes to rest along the mountains and
 rivers, the natural frontiers of your problem. In the end your program will look as if the language had been
 designed for it. And when language and program fit one another well, you end up with code which is clear,
