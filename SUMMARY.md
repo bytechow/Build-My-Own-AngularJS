@@ -1,7 +1,6 @@
 # Summary
 
 * [前言](README.md)
-* [第三部分 模块与依赖注入](modules-and-dependency-injection/modules-and-dependency-injection.md)
 
 ## 三、模块与依赖注入
 
@@ -101,4 +100,5 @@
 ## 五、指令
 
 * [五、指令](directives/directives.md)
+* 16-dom-compilation-and-basic-directives
 
