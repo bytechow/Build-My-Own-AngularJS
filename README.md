@@ -2,7 +2,7 @@
 
 This is a Chinese version of 《Build Your Own AngularJs》.
 
-新建章节的方法：
+## 新建章节的方法
 
 1、在侧边栏空白位置点击右键，选择“Add part”，从而新建“部分”。
 
