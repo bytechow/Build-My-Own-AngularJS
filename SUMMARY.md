@@ -100,5 +100,6 @@
 ## 五、指令
 
 * [五、指令](directives/directives.md)
-* [16-dom-compilation-and-basic-directives](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives.md)
+* [第16章 DOM编译器和基本指令](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives.md)
+* 17-directive-attributes
 
