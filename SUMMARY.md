@@ -107,4 +107,6 @@
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
+* [第23章 组件](directives/23-components/23-components.md)
+* [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
