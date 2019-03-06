@@ -100,5 +100,5 @@
 ## 五、指令
 
 * [五、指令](directives/directives.md)
-* 16-dom-compilation-and-basic-directives
+* [16-dom-compilation-and-basic-directives](directives/16-dom-compilation-and-basic-directives.md)
 
