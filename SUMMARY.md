@@ -104,4 +104,5 @@
 * [第17章 指令属性](directives/di-17-zhang-zhi-ling-shu-xing.md)
 * [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
+* [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 
