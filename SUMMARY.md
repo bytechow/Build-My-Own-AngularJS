@@ -101,5 +101,6 @@
 
 * [五、指令](directives/directives.md)
 * [第16章 DOM编译器和基本指令](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives.md)
-* 第17章 指令属性
+* [第17章 指令属性](directives/di-17-zhang-zhi-ling-shu-xing.md)
+* [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
 
