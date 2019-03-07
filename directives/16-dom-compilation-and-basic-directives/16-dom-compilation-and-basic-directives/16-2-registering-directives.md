@@ -4,7 +4,7 @@
 
 跟 service、factory 和其他组件一样，指令的注册同样通过模块来完成。一个指令可以通过模块对象的`directive`方法进行注册。当注册好一个指令后，这个指令会自动加上`Directive`后缀，因此，如果我们注册了一个指令为`abc`，那注射器就会拥有一个名为`abcDirective`的后缀：
 
-_src/compile_spec.js_
+_src/compile\_spec.js_
 
 ```js
 'use strict';
@@ -26,7 +26,7 @@ describe('$compile', function() {
     var injector = createInjector(['ng', 'myModule']);
     expect(injector.has('testingDirective')).toBe(true);
   });
-  
+
 });
 ```
 
@@ -71,14 +71,14 @@ function $CompileProvider($provide) {
   // this.$get = function() {
 
   // };
-  
+
 }
 $CompileProvider.$inject = ['$provide'];
 ```
 
 可以看到，当我们注册指令时，实际上会在注射器中加入一个 factory 服务。指令 factory 还有一个其他 factory 不具备的特点：可以有多个指令共用同一个名称。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows creating many directives with the same name', function() {
@@ -108,7 +108,7 @@ _src/compile.js_
 
 ```js
 // function $CompileProvider($provide) {
-  
+
   var hasDirectives = {};
 
   // this.directive = function(name, directiveFactory) {
@@ -152,7 +152,7 @@ var _ = require('lodash');
 
 还有一种特殊情况需要我们处理。由于我们使用了`hasOwnProperty`，就如上面章节提及的，我们需要防止用户注册名为`hasOwnProperty`的指令，而意外重写了 `hasDirectives`的`hasOwnProperty`方法，导致程序无法正常运行：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('does not allow a directive called hasOwnProperty', function() {
@@ -186,7 +186,7 @@ _src/compile.js_
 
 我们还得考虑指令注册的另一个特性：我们可以通过快捷方式同时注册多个指令。我们可以通过往`directive`方法传递一个对象作为参数实现。属性名会被指定为指令名称，属性值就是对应的指令 factory：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows creating directives with object notation', function() {
@@ -197,7 +197,7 @@ it('allows creating directives with object notation', function() {
     c: function() {}
   });
   var injector = createInjector(['ng', 'myModule']);
-  
+
   expect(injector.has('aDirective')).toBe(true);
   expect(injector.has('bDirective')).toBe(true);
   expect(injector.has('cDirective')).toBe(true);
@@ -223,7 +223,7 @@ this.directive = function(name, directiveFactory) {
     // }
     // hasDirectives[name].push(directiveFactory);
   } else {
-    
+
   }
 };
 ```
@@ -251,3 +251,6 @@ this.directive = function(name, directiveFactory) {
 //   }
 // };
 ```
+
+
+
