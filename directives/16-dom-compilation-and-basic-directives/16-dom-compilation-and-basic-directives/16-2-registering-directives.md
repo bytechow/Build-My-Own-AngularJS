@@ -4,7 +4,7 @@
 
 跟 service、factory 和其他组件一样，指令的注册同样通过模块来完成。一个指令可以通过模块对象的`directive`方法进行注册。当注册好一个指令后，这个指令会自动加上`Directive`后缀，因此，如果我们注册了一个指令为`abc`，那注射器就会拥有一个名为`abcDirective`的后缀：
 
-_src/compile\_spec.js_
+_src/compile_spec.js_
 
 ```js
 'use strict';
