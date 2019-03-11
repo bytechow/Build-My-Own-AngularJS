@@ -206,3 +206,135 @@ this.$get = function() {
   // return compile;
 };
 ```
+
+注意我们这里用的是`push.apply`。我们希望`$inject`会返回一个指令数组，这是我们之前设置好了。用`apply`我们可以连结指令数组。
+
+我们在`addDirective`中使用了`$inject`，但我们还没有注入这个服务。我们需要在`$get`方法中注入它：
+
+```js
+this.$get = ['$injector', function($injector) {
+  
+  // ...
+
+}];
+```
+
+回到`compileNode`，我们收集了节点对应的指令后，就可以对节点应用上这些指令，我们会使用另一个新函数`applyDirectivesToNode`：
+
+```js
+function compileNodes($compileNodes) {
+  _.forEach($compileNodes, function(node) {
+    var directives = collectDirectives(node);
+    applyDirectivesToNode(directives, node);
+  });
+}
+
+function applyDirectivesToNode(directives, compileNode) {
+  
+}
+```
+
+这个函数会对指令进行遍历，并用 jQuery 封装过后的 DOM 元素为参数调用每个指令的`compile`方法。没错，之前我们在测试用例中设置了的`compile`属性就会在这里被调用：
+
+```js
+function applyDirectivesToNode(directives, compileNode) {
+  var $compileNode = $(compileNode);
+  _.forEach(directives, function(directive) {
+    if (directive.compile) {
+      directive.compile($compileNode);
+    }
+  });
+}
+```
+
+这时候，我们就需要在`compile.js`中引入 jQuery 了：
+
+```js
+'user strict';
+
+var _ = require('lodash');
+
+var $ = require('jquery');
+```
+
+现在我已经成功把一些指令应用到 DOM 节点上了！其实整个过程主要就是遍历每个节点并重复下面两个步骤：
+
+1. 查找所有改节点可以应用到的所有指令
+2. 通过调用指令的`compile`函数将指令应用到 DOM 上
+
+下面展示了目前`compile.js`的所有代码：
+
+```js
+'use strict';
+var _ = require('lodash');
+var $ = require('jquery');
+
+function nodeName(element) {
+  return element.nodeName ? element.nodeName : element[0].nodeName;
+}
+
+function $CompileProvider($provide) {
+  
+  var hasDirectives = {};
+
+  this.directive = function(name, directiveFactory) {
+    if (_.isString(name)) {
+      if (name === 'hasOwnProperty') {
+        throw 'hasOwnProperty is not a valid directive name';
+      }
+      if (!hasDirectives.hasOwnProperty(name)) {
+        hasDirectives[name] = [];
+        $provide.factory(name + 'Directive', ['$injector', function($injector) {
+          var factories = hasDirectives[name];
+          return _.map(factories, $injector.invoke);
+        }]);
+      }
+      hasDirectives[name].push(directiveFactory);
+    } else {
+      _.forEach(name, _.bind(function(directiveFactory, name) {
+        this.directive(name, directiveFactory);
+      }, this));
+    }
+  };
+
+  this.$get = ['$injector', function($injector) {
+    function compile($compileNodes) {
+      return compileNodes($compileNodes);
+    }
+
+    function compileNodes($compileNodes) {
+      _.forEach($compileNodes, function(node) {
+        var directives = collectDirectives(node);
+        applyDirectivesToNode(directives, node);
+      });
+    }
+
+    function collectDirectives(node) {
+      var directives = [];
+      var normalizedNodeName = _.camelCase(nodeName(node).toLowerCase());
+      addDirective(directives, normalizedNodeName);
+      return directives;
+    }
+
+    function addDirective(directives, name) {
+      if (hasDirectives.hasOwnProperty(name)) {
+        directives.push.apply(directives, $injector.get(name + 'Directive'));
+      }
+    }
+
+    function applyDirectivesToNode(directives, compileNode) {
+      var $compileNode = $(compileNode);
+      _.forEach(directives, function(directive) {
+        if (directive.compile) {
+          directive.compile($compileNode);
+        }
+      });
+    }
+
+    return compile;
+  }];
+}
+$CompileProvider.$inject = ['$provide'];
+
+module.exports = $CompileProvider;
+```
