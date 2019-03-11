@@ -150,5 +150,59 @@ this.$get = function() {
 在`compileNodes`中，我们会遍历传入的每一个 jQuery 对象，从而实现对每一个节点进行独立处理。对于每一个节点，我们会查找任何能跟该节点匹配上的节点，这个查找过程我们会用一个新函数`collectDirectives`实现：
 
 ```js
+function compileNodes($compileNodes) {
+  _.forEach($compileNodes, function(node) {
+    var directives = collectDirectives(node);
+  });
+}
 
+function collectDirectives(node) {
+
+}
+```
+
+`collectDirectives`的工作内容是，对于传入的 DOM 节点，找出它对应哪些指令，最终返回找到的所有指令。目前，我们就单纯查找与 DOM 元素名相匹配的指令就可以了：
+
+```js
+function collectDirectives(node) {
+  var directives = [];
+  var normalizedNodeName = _.camelCase(nodeName(node).toLowerCase());
+  addDirective(directives, normalizedNodeName);
+  return directives;
+}
+```
+
+这里我们用到了两个新函数`nodeName`和`addDirective`，但我们还没有实现，所以下面我们先加入这两个函数。
+
+`nodeName`是一个会在`compile.js`文件内全局定义的函数，它会查找并返回 DOM 节点的名称，这个 DOM 节点既可以是原生的，也可以是 jQuery 封装的：
+
+```js
+function nodeName(element) {
+  return element.nodeName ? element.nodeName : element[0].nodeName;
+}
+```
+
+`addDirective`同样是在`compile.js`文件中定义，但我们会放在`$get`方法内部形成的闭包中。它会接收一个指令数组，还有指令的名称。它会检查本地变量`hasDirectives`是否含有同名指令。如果有，我们会从注射器中获取对应的指令函数，并将它加入到数组中。
+
+```js
+this.$get = function() {
+
+  var hasDirectives = {}
+
+  // function compile($compileNodes) {
+  //   return compileNodes($compileNodes);
+  // }
+
+  // function compileNodes($compileNodes) {
+
+  // }
+
+  function addDirective(directives, name) {
+    if (hasDirectives.hasOwnProperty(name)) {
+      directives.push.apply(directives, $injector.get(name + 'Directive'));
+    }
+  }
+
+  // return compile;
+};
 ```
