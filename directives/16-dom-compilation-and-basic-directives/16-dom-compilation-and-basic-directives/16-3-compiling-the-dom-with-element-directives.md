@@ -1,4 +1,4 @@
-### 编译Element指令的DOM（Compiling The DOM with Element Directives）
+### 编译元素式指令（Compiling The DOM with Element Directives）
 
 现在我们可以注册指令了，接下来可以使用它们了。使用的过程称为“DOM 编译”，这也是`$compile`的主要功能。
 
