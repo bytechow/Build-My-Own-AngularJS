@@ -107,6 +107,7 @@
   * [16-2-registering-directives](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives/16-2-registering-directives.md)
   * [16-3-compiling-the-dom-with-element-directives](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives/16-3-compiling-the-dom-with-element-directives.md)
   * [16-4-recursing-to-child-elements](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives/16-4-recursing-to-child-elements.md)
+  * [16-5-using-prefixes-with-element-directives](directives/16-dom-compilation-and-basic-directives/16-dom-compilation-and-basic-directives/16-5-using-prefixes-with-element-directives.md)
 * [第17章 指令属性](directives/di-17-zhang-zhi-ling-shu-xing.md)
 * [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
