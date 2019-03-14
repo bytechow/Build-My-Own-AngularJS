@@ -2,7 +2,7 @@
 
 匹配指令与 DOM 不止匹配元素名这一种方式。下面我们会介绍第二种方法，那就是属性名匹配。这可能算是 Angular 应用中使用指令最便利的方式：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('compiles attribute directives', function() {
@@ -117,7 +117,7 @@ function collectDirectives(node) {
 
 Angular 的属性式指令还支持一种特殊的前缀`ng-attr`：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('compiles attribute directives with ng-attr prefx', function() {
@@ -176,3 +176,6 @@ function collectDirectives(node) {
   return directives;
 }
 ```
+
+
+
