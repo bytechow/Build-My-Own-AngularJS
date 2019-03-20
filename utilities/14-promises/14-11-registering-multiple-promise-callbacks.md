@@ -6,15 +6,15 @@
 it('may have multiple callbacks', function() {
   var d = $q.defer();
 
-  var frstSpy = jasmine.createSpy();
+  var firstSpy = jasmine.createSpy();
   var secondSpy = jasmine.createSpy();
-  d.promise.then(frstSpy);
+  d.promise.then(firstSpy);
   d.promise.then(secondSpy);
 
   d.resolve(42);
   $rootScope.$apply();
 
-  expect(frstSpy).toHaveBeenCalledWith(42);
+  expect(firstSpy).toHaveBeenCalledWith(42);
   expect(secondSpy).toHaveBeenCalledWith(42);
 });
 ```
@@ -25,21 +25,21 @@ it('may have multiple callbacks', function() {
 it('invokes each callback once', function() {
   var d = $q.defer();
 
-  var frstSpy = jasmine.createSpy();
+  var firstSpy = jasmine.createSpy();
   var secondSpy = jasmine.createSpy();
 
-  d.promise.then(frstSpy);
+  d.promise.then(firstSpy);
   d.resolve(42);
   $rootScope.$apply();
-  expect(frstSpy.calls.count()).toBe(1);
+  expect(firstSpy.calls.count()).toBe(1);
   expect(secondSpy.calls.count()).toBe(0);
 
   d.promise.then(secondSpy);
-  expect(frstSpy.calls.count()).toBe(1);
+  expect(firstSpy.calls.count()).toBe(1);
   expect(secondSpy.calls.count()).toBe(0);
 
   $rootScope.$apply();
-  expect(frstSpy.calls.count()).toBe(1);
+  expect(firstSpy.calls.count()).toBe(1);
   expect(secondSpy.calls.count()).toBe(1);
 });
 ```

@@ -9,7 +9,7 @@
 test/injector\_spec.js
 
 ```js
-it('registers constants frst to make them available to providers', function() {
+it('registers constants first to make them available to providers', function() {
   var module = window.angular.module('myModule', []);
   module.provider('a', function AProvider(b) {
     this.$get = function() {

@@ -43,11 +43,11 @@ it('applies in priority order', function() {
 it('applies in name order when priorities are the same', function() {
   var compilations = [];
   var injector = makeInjectorWithDirectives({
-    frstDirective: function() {
+    firstDirective: function() {
       return {
         priority: 1,
         compile: function(element) {
-          compilations.push('frst');
+          compilations.push('first');
         }
       };
     },
@@ -61,9 +61,9 @@ it('applies in name order when priorities are the same', function() {
     }
   });
   injector.invoke(function($compile) {
-    var el = $('<div second-directive frst-directive></div>');
+    var el = $('<div second-directive first-directive></div>');
     $compile(el);
-    expect(compilations).toEqual(['frst', 'second']);
+    expect(compilations).toEqual(['first', 'second']);
   });
 });
 ```
@@ -78,7 +78,7 @@ it('applies in registration order when names are the same', function() {
     return {
       priority: 1,
       compile: function(element) {
-        compilations.push('frst');
+        compilations.push('first');
       }
     };
   });
@@ -94,7 +94,7 @@ it('applies in registration order when names are the same', function() {
   injector.invoke(function($compile) {
     var el = $('<div a-directive></div>');
     $compile(el);
-    expect(compilations).toEqual(['frst', 'second'])
+    expect(compilations).toEqual(['first', 'second'])
   });
 });
 ```
@@ -199,11 +199,11 @@ _test/complie\_spec.js_
 it('uses default priority when one not given', function() {
   var compilations = [];
   var myModule = window.angular.module('myModule', []);
-  myModule.directive('frstDirective', function() {
+  myModule.directive('firstDirective', function() {
     return {
       priority: 1,
       compile: function(element) {
-        compilations.push('frst');
+        compilations.push('first');
       }
     };
   });
@@ -216,9 +216,9 @@ it('uses default priority when one not given', function() {
   });
   var injector = createInjector(['ng', 'myModule']);
   injector.invoke(function($compile) {
-    var el = $('<div second-directive frst-directive></div>');
+    var el = $('<div second-directive first-directive></div>');
     $compile(el);
-    expect(compilations).toEqual(['frst', 'second']);
+    expect(compilations).toEqual(['first', 'second']);
   });
 });
 ```
