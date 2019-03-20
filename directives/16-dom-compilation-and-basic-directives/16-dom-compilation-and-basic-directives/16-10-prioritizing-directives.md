@@ -6,7 +6,7 @@ Angular 并不会把调整指令应用顺序的任务都放到应用开发者身
 
 而呈现在测试用例上，我们会定义两个指定了优先级的指令，然后看看他们是否会按预想的顺序进行编译：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('applies in priority order', function() {
@@ -110,7 +110,7 @@ function collectDirectives(node) {
   var directives = [];
 
   // ...
-  
+
   directives.sort(byPriority);
   return directives;
 }
@@ -193,7 +193,7 @@ $provide.factory(name + 'Directive', ['$injector', function($injector) {
 
 我们编写指令时也不用每次都指定一个优先级。如果没有指定优先级，则优先级的默认值为`0`：
 
-_test/complie_spec.js_
+_test/complie\_spec.js_
 
 ```js
 it('uses default priority when one not given', function() {
@@ -240,3 +240,6 @@ $provide.factory(name + 'Directive', ['$injector', function($injector) {
   // });
 }]);
 ```
+
+
+
