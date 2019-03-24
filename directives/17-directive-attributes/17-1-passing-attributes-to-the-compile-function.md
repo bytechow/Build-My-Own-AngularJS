@@ -2,11 +2,11 @@
 
 上一章我已经实现了指令对 DOM 编译的支持，还有指令的`compile`函数。我们看到这个函数会接受 jQuery（jqLite）包裹的 DOM 元素作为参数。当然，我们也能够通过 DOM 获取元素上的属性。而实际上，我们会有一种更简单的方法来获取属性，也就是利用 compile 函数的第二参数。第二参数将会一个对象，包含了该元素上的属性，属性名将会用驼峰格式：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 describe('attributes', function() {
-  
+
   it('passes the element attributes to the compile function', function() {
     var injector = makeInjectorWithDirectives('myDirective', function() {
       return {
@@ -137,4 +137,6 @@ function collectDirectives(node, attrs) {
   // return directives;
 }
 ```
+
+
 
