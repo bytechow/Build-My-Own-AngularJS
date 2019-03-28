@@ -2,7 +2,7 @@
 
 经过标准化后生成的属性对象是挺有用的，但如果我们能够通过这个属性对象来写入属性就更变得更强大了。为此，我们会通过属性对象的`$set`方法进行设置：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows setting attributes', function() {
@@ -27,7 +27,7 @@ this.$get = ['$injector', function($injector) {
   function Attributes(element) {
     this.$$element = element;
   }
-  
+
   // ...
 }];
 ```
@@ -60,7 +60,7 @@ Attributes.prototype.$set = function(key, value) {
 
 当你设置属性时，自然希望会把关联的 DOM 也一同更新了，而不仅仅是在 JavaScript 对象中变更：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('sets attributes to DOM', function() {
@@ -88,7 +88,7 @@ Attributes.prototype.$set = function(key, value) {
 
 当然，我们也可以通过在调用`$set`时，把`false`第三个参数值，这样就可以禁用掉这个默认行为（必须为 false，而不能传入任何假值）：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('does not set attributes to DOM when fag is false', function() {
@@ -120,7 +120,7 @@ Attributes.prototype.$set = function(key, value, writeAttr) {
 
 由于我们使用构造函数来构建属性对象，我们就可以在同一个元素的所有对象上共享同一个对象：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('shares attributes between directives', function() {
@@ -151,4 +151,5 @@ it('shares attributes between directives', function() {
 
 正因为指令之间共享同一个属性对象，就可以利用这个属性对象来互相传递信息：
 
-由于 DOM 访问比 JavaScript 访问要耗费更多时间和资源，Angular 为`$set`提供了可选的第三个参数用于优化性能。比如，在某些情况下，我们只希望让其他指令知晓属性变更，而不需要更改 DOM。
+由于 DOM 访问比 JavaScript 访问要耗费更多时间和资源，Angular 为`$set`提供了可选的第三个参数用于优化性能。如果我们只希望让其他指令知晓属性变更，而不需要更改 DOM，这个参数将会很有用。
+
