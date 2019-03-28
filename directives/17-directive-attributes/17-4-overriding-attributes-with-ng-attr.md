@@ -2,7 +2,7 @@
 
 我们已经知道可以用`ng-attr-`作为 Angular 指令属性的前缀，而这个前缀会在属性被收集期间去除。但如果我们同时对一个元素加上两个同名属性，一个使用了`ng-attr-`前缀，一个没用，会发生什么事情？对于目前已实现的代码，这种情况产生的结果取决于两者谁先被声明，但 Angular 实际上并不会依赖声明顺序：带上`ng-attr-`前缀的属性将会覆盖没带上的。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('overrides attributes with ng-attr- versions', function() {
@@ -69,3 +69,6 @@ function collectDirectives(node, attrs) {
   // return directives;
 }
 ```
+
+
+

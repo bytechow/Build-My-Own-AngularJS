@@ -121,6 +121,7 @@
   * [17-2-introducing-a-test-helper](directives/17-directive-attributes/17-2-introducing-a-test-helper.md)
   * [17-3-handling-boolean-attributes](directives/17-directive-attributes/17-3-handling-boolean-attributes.md)
   * [17-4-overriding-attributes-with-ng-attr](directives/17-directive-attributes/17-4-overriding-attributes-with-ng-attr.md)
+  * [17-5-setting-attributes](directives/17-directive-attributes/17-5-setting-attributes.md)
 * [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
