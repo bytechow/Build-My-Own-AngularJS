@@ -2,7 +2,7 @@
 
 当你设置一个属性时，Angular会对布尔型属性使用 jQuery 的 prop 方法注册属性：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('sets prop for boolean attributes', function() {
@@ -15,7 +15,8 @@ it('sets prop for boolean attributes', function() {
     }
   );
 });
-````
+`
+```
 
 另外，当我们选择不刷新 DOM 上的属性时，布尔型属性还是可以加入进去。当我们需要更新 DOM 属性（properties，比如`disabled`）不需要更新 DOM 或 HTML 特性时，这会变得很有用：
 
@@ -43,7 +44,7 @@ Attributes.prototype.$set = function(key, value, writeAttr) {
   if (isBooleanAttribute(this.$$element[0], key)) {
     this.$$element.prop(key, value);
   }
-  
+
   // if (writeAttr !== false) {
   //   this.$$element.attr(key, value);
   // }
@@ -51,3 +52,6 @@ Attributes.prototype.$set = function(key, value, writeAttr) {
 ```
 
 > 使用 prop 方法的其中一个原因是，并不是 jQuery 的所有版本都能一致地处理属性（prop）和特性（attr）。这个问题并不会在我们的项目中出现，因为我们已经限制了 jQuery 的版本，但如果要在 Angular 应用中使用 jQuery，你就需要意识到这个问题。
+
+
+
