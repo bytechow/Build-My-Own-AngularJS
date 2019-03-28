@@ -120,7 +120,7 @@ Attributes.prototype.$set = function(key, value, writeAttr) {
 
 由于我们使用构造函数来构建属性对象，我们就可以在同一个元素的所有对象上共享同一个对象：
 
-_test/compile\_spec.js_
+_test/compile_spec.js_
 
 ```js
 it('shares attributes between directives', function() {
