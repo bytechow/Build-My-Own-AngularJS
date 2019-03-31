@@ -4,7 +4,7 @@
 
 如果我们能让一个指令对属性的变更时，另一个指令能够得到通知，这也会变得很有用。这样当属性变更时，我们就可以马上获知到变化。我们可以通过`$watch`对一个属性值进行监视，但 Angular 还提供了一种专门的机制来实现对属性的监视，也就是`$observe`：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('calls observer immediately when attribute is $set', function() {
@@ -19,7 +19,7 @@ it('calls observer immediately when attribute is $set', function() {
       });
 
       attrs.$set('someAttribute', '43');
-      
+
       expect(gotValue).toEqual('43');
     }
   );
@@ -82,7 +82,7 @@ Attributes.prototype.$set = function(key, value, writeAttr, attrName) {
 
 所以我们知道，属性的`$observers`会在每次被`$set`时被调用，而监听器也会在初始注册后执行一次，这会在注册后的第一次`$digest`中发生：
 
-test/compile_spec.js
+test/compile\_spec.js
 
 ```js
 it('calls observer on next $digest after registration', function() {
@@ -97,7 +97,7 @@ it('calls observer on next $digest after registration', function() {
       });
 
       $rootScope.$digest();
-      
+
       expect(gotValue).toEqual('42');
     }
   );
@@ -153,7 +153,7 @@ Attributes.prototype.$observe = function(key, fn) {
 
 最后，就像`watcher`和事件监听器一样，observer 也能被移除：`$observe`方法的返回值就是一个可以让我们撤销 observer 的函数。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('lets observers be deregistered', function() {
@@ -161,7 +161,7 @@ it('lets observers be deregistered', function() {
     'myDirective',
     '<my-directive some-attribute="42"></my-directive>',
     function(element, attrs) {
-      
+
       var gotValue;
       var remove = attrs.$observe('someAttribute', function(value) {
         gotValue = value;
@@ -169,7 +169,7 @@ it('lets observers be deregistered', function() {
 
       attrs.$set('someAttribute', '43');
       expect(gotValue).toEqual('43');
-      
+
       remove();
       attrs.$set('someAttribute', '44');
       expect(gotValue).toEqual('43');
@@ -199,3 +199,6 @@ Attributes.prototype.$observe = function(key, fn) {
   };
 };
 ```
+
+
+
