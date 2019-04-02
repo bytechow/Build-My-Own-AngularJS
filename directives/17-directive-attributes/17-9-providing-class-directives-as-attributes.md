@@ -1,4 +1,4 @@
-### 把样式类式指令也添加到指令属性中（Providing Class Directives As Attributes）
+### 把样式类式指令添加到指令属性中（Providing Class Directives As Attributes）
 
 上面我们讨论了 Angular 可以通过`Attributes`对象访问元素上的属性。但`Attributes`对象中不仅仅可以包含元素属性。样式类式和注释式指令在某些情况下也可能作为指令属性进行保存。
 
