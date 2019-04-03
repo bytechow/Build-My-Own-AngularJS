@@ -127,6 +127,7 @@
   * [17-8-observing-attributes](directives/17-directive-attributes/17-8-observing-attributes.md)
   * [17-9-providing-class-directives-as-attributes](directives/17-directive-attributes/17-9-providing-class-directives-as-attributes.md)
   * [17-10-adding-comment-directives-as-attributes](directives/17-directive-attributes/17-10-adding-comment-directives-as-attributes.md)
+  * [17-11-manipulating-classed](directives/17-directive-attributes/17-11-manipulating-classed.md)
 * [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
