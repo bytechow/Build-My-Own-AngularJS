@@ -6,7 +6,7 @@
 
 你可以使用`Attributes`上的`$addClass`方法用于对元素新增样式类，使用`$removeClass`删除样式类：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows adding classes', function() {
@@ -48,7 +48,7 @@ Attributes.prototype.$removeClass = function(classVal) {
 
 `Attributes`提供的第三个、也是最后一个关于样式类操作的方法比前面两个更有趣。它会接收两个参数：一个要更新的样式类集，另一个是旧的样式类集。它会对这两个样式集进行对比，然后添加第一个集中存在而在第二个不存在的样式类，并且删除在第二个样式集中存在，而在第一个集中不存在的样式类：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows updating classes', function() {
@@ -93,3 +93,6 @@ Attributes.prototype.$updateClass = function(newClassVal, oldClassVal) {
   }
 };
 ```
+
+
+
