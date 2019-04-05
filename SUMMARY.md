@@ -130,6 +130,7 @@
   * [17-11-manipulating-classed](directives/17-directive-attributes/17-11-manipulating-classed.md)
   * [17-12-summary](directives/17-directive-attributes/17-12-summary.md)
 * [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
+  * [18-1-the-public-link-function](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes/18-1-the-public-link-function.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
