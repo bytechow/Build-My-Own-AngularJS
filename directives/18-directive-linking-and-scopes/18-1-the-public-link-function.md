@@ -11,7 +11,7 @@
 
 编译和链接的实现代码虽然都放在一个文件中，但这两个过程实际上是独立开来的。当我们调用`$compile`时，并不会发生链接，但它会返回一个函数，这个函数可以用于在稍后初始化一个链接的过程，这个函数被称为公开的链接函数：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('returns a public link function from compile', function() {
@@ -42,7 +42,7 @@ function compile($compileNodes) {
 
 让我们先创建一个新的`describe`代码块，这个测试模块是专门针对指令链接的：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 describe('linking', function() {
@@ -77,3 +77,6 @@ function compile($compileNodes) {
 ```
 
 > Angular 中对 DOM 节点附加不同的数据属性和样式类的默认功能是可以关闭的，只需要调用`$compileProvider`的`debugInfoEnabled`即可。我们在生产环境中大多时候是不需要这种调试信息，主动禁用掉可以让应用提升一点性能，这是 Angular 允许我们这样设置的原因。由于这个优化过程与我们要讨论的东西并不密切相关，本书将会跳过这部分，不进行讲解。
+
+
+
