@@ -64,4 +64,153 @@ function compile($compileNodes) {
 }
 ```
 
-复合链接函数会接收两个参数：
+复合链接函数会接收两个参数：要链接的作用域，还有要链接的 DOM 元素。后者就是我们要编译的元素节点，但也并不一直这样，下面将会看到。
+
+所以，在`compileNodes`我们会引入复合链接函数，并进行返回：
+
+_src/compile.js_
+
+```js
+function compileNodes($compileNodes) {
+  // _.forEach($compileNodes, function(node) {
+  //   var attrs = new Attributes($(node));
+  //   var directives = collectDirectives(node, attrs);
+  //   var terminal = applyDirectivesToNode(directives, node, attrs);
+  //   if (!terminal && node.childNodes && node.childNodes.length) {
+  //     compileNodes(node.childNodes);
+  //   }
+  // });
+
+  function compositeLinkFn(scope, linkNodes) {
+
+  }
+
+  return compositeLinkFn;
+}
+```
+
+复合链接函数的工作是把对所有节点分别进行链接。对于每个节点来说，还有需要另一个层级的链接函数：每一个节点会拥有它们自己的一个节点链接函数，这个函数是由`applyDirectivesToNode`返回的.
+
+注意，这意味着`applyDirectivesToNode`不能只返回`terminal`变量。我们会把`terminal`变量变成节点链接函数的一个属性：
+
+```js
+function compileNodes($compileNodes) {
+  // _.forEach($compileNodes, function(node) {
+  //   var attrs = new Attributes($(node));
+  //   var directives = collectDirectives(node, attrs);
+    var nodeLinkFn;
+    if (directives.length) {
+      nodeLinkFn = applyDirectivesToNode(directives, node, attrs);
+    }
+    if ((!nodeLinkFn || !nodeLinkFn.terminal) &&
+  //     node.childNodes && node.childNodes.length) {
+  //     compileNodes(node.childNodes);
+  //   }
+  // });
+
+  // function compositeLinkFn(scope, linkNodes) {
+
+  // }
+  
+  // return compositeLinkFn;
+}
+```
+
+我们在各个节点编译时会用一个数组将它们的链接函数保存起来，同时也会保存当前该节点在节点集的索引：
+
+```js
+function compileNodes($compileNodes) {
+  var linkFns = [];
+  _.forEach($compileNodes, function(node, i) {
+    // var attrs = new Attributes($(node));
+    // var directives = collectDirectives(node, attrs);
+    // var nodeLinkFn;
+    // if (directives.length) {
+    //   nodeLinkFn = applyDirectivesToNode(directives, node, attrs);
+    // }
+    // if ((!nodeLinkFn || !nodeLinkFn.terminal) &&
+    //   node.childNodes && node.childNodes.length) {
+    //   compileNodes(node.childNodes);
+    // }
+    if (nodeLinkFn) {
+      linkFns.push({
+        nodeLinkFn: nodeLinkFn,
+        idx: i
+      });
+    }
+  // });
+
+  // function compositeLinkFn(scope, linkNodes) {
+
+  // }
+  
+  // return compositeLinkFn;
+}
+```
+
+这样在遍历节点之后，我们就可以获得一个对象数组，这个数组包含各个节点的链接函数和各自的索引。当然，我们只会对有指令的元素进行收集。
+
+在复合链接函数中，我们现在可以对收集到的节点链接函数进行调用：
+
+```js
+function compileNodes($compileNodes) {
+  // var linkFns = [];
+  // _.forEach($compileNodes, function(node, i) {
+  //   var attrs = new Attributes($(node));
+  //   var directives = collectDirectives(node, attrs);
+  //   var nodeLinkFn;
+  //   if (directives.length) {
+  //     nodeLinkFn = applyDirectivesToNode(directives, node, attrs);
+  //   }
+  //   if ((!nodeLinkFn || !nodeLinkFn.terminal) &&
+  //     node.childNodes && node.childNodes.length) {
+  //     compileNodes(node.childNodes);
+  //   }
+  //   if (nodeLinkFn) {
+  //     linkFns.push({
+  //       nodeLinkFn: nodeLinkFn,
+  //       idx: i
+  //     });
+  //   }
+  // });
+
+  // function compositeLinkFn(scope, linkNodes) {
+    _.forEach(linkFns, function(linkFn) {
+      linkFn.nodeLinkFn(scope, linkNodes[linkFn.idx]);
+    });
+  // }
+  // return compositeLinkFn;
+}
+```
+
+我们希望编译节点和链接节点是一一对应的，因为我们认为它们索引应该是一致的。这个假设开始并不能确保实现，而现在我们已经可以支持。
+
+最后，我们会对单独节点的链接函数进行处理，也就是到了我们可以对指令本身进行链接的阶段了。我们需要收集指令链接函数，这可以通过调用各个指令的`compile`函数获取到：
+
+```js
+function applyDirectivesToNode(directives, compileNode, attrs) {
+  // var $compileNode = $(compileNode);
+  // var terminalPriority = -Number.MAX_VALUE;
+  // var terminal = false;
+  var linkFns = [];
+  // _.forEach(directives, function(directive) {
+  //   if (directive.$$start) {
+  //     $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
+  //   }
+  //   if (directive.priority < terminalPriority) {
+  //     return false;
+  //   }
+  //   if (directive.compile) {
+      var linkFn = directive.compile($compileNode, attrs);
+      if (linkFn) {
+        linkFns.push(linkFn);
+      }
+  //   }
+  //   if (directive.terminal) {
+  //     terminal = true;
+  //     terminalPriority = directive.priority;
+  //   }
+  // });
+  // return terminal;
+}
+```
