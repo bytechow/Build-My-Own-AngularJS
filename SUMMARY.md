@@ -132,6 +132,7 @@
 * [第18章 指令链接和上下文](directives/18-directive-linking-and-scopes/18-directive-linking-and-scopes.md)
   * [18-1-the-public-link-function](directives/18-directive-linking-and-scopes/18-1-the-public-link-function.md)
   * [18-2-directive-link-functions](directives/18-directive-linking-and-scopes/18-2-directive-link-functions.md)
+  * [18-3-plain-directive-link-functions](directives/18-directive-linking-and-scopes/18-3-plain-directive-link-functions.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
