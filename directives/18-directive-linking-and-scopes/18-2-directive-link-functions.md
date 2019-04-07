@@ -214,3 +214,52 @@ function applyDirectivesToNode(directives, compileNode, attrs) {
   // return terminal;
 }
 ```
+
+现在就可以构建节点的链接函数，并进行返回了。这个函数会调用指令的链接函数。我们也需要把`terminal`标识变成节点链接函数的一个属性，这样`compileNodes`函数才能使用这个标识：
+
+```js
+function applyDirectivesToNode(directives, compileNode, attrs) {
+  // var $compileNode = $(compileNode);
+  // var terminalPriority = -Number.MAX_VALUE;
+  // var terminal = false;
+  // var linkFns = [];
+  // _.forEach(directives, function(directive) {
+  //   if (directive.$$start) {
+  //     $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
+  //   }
+  //   if (directive.priority < terminalPriority) {
+  //     return false;
+  //   }
+  //   if (directive.compile) {
+  //     var linkFn = directive.compile($compileNode, attrs);
+  //     if (linkFn) {
+  //       linkFns.push(linkFn);
+  //     }
+  //   }
+  //   if (directive.terminal) {
+  //     terminal = true;
+  //     terminalPriority = directive.priority;
+  //   }
+  // });
+
+  function nodeLinkFn(scope, linkNode) {
+    _.forEach(linkFns, function(linkFn) {
+      var $element = $(linkNode);
+      linkFn(scope, $element, attrs);
+    });
+  }
+  nodeLinkFn.terminal = terminal;
+  return nodeLinkFn;
+}
+```
+
+现在，我们的测试用例终于通过了，也就是我们可以进行一些简单的链接工作了。就如我们看到的那样，这实际上包含几个步骤，而这几个步骤都有各自具体的任务：
+
+- 公共链接函数是用于对我们要编译的整棵 DOM 树进行链接的
+- 复合链接函数会对一个集合中的所有节点进行链接
+- 节点链接函数会对一个节点上的所有指令进行链接
+- 指令链接函数会对单个指令进行链接
+
+应用开发者可以使用的是第一个和最后一个链接方法。而其中的两个步骤都是`compile.js`中会进行的内部过程。
+
+![compile and link](/assets/compile-and-link.png)
