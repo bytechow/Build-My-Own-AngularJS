@@ -2,7 +2,7 @@
 
 其实我们在开发过程中常常不会在`compile`加入处理，而会在`link`函数中放所有的处理逻辑。而 Angular 在指令的定义对象中提供了一个便利的接口，我们可以使用一个`link`属性来直接定义指令的链接函数，跳过`compile`那一步：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('supports link function in directive defnition object', function() {
@@ -47,3 +47,6 @@ $provide.factory(name + 'Directive', ['$injector', function($injector) {
 //   });
 // }]);
 ```
+
+
+
