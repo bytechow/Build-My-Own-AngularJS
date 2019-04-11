@@ -159,3 +159,72 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
 在之前的章节中，我们选择传递子节点的链接函数给节点链接函数而不是直接对其进行调用。现在我们就明白其中的原因了：这能够让我们有机会在调用子节点的链接函数之前调用链接前函数。
 
 ![](/assets/pre-and-post-link.png)
+
+链接前函数和链接后函数还有一个区别，这个跟它们在一个元素中调用的顺序有关：链接前函数是按照指令优先级的顺序进行调用的，但链接后函数实际上会按指令优先级的相反顺序进行调用。这是关于链接后函数的一个通用规则，无论对于跨元素还是单元素来说都一样：它们的调用顺序会与编译顺序正好相反。
+
+我们目前的实现代码仍然会按照优先级顺序对两种链接函数进行调用，这是由于我们是在编译时对它们进行按序的收集。下面这个测试将不会通过：
+
+_test/compile_spec.js_
+
+```js
+it('reverses priority for postlink functions', function() {
+  var linkings = [];
+  var injector = makeInjectorWithDirectives({
+    firstDirective: function() {
+      return {
+        priority: 2,
+        link: {
+          pre: function(scope, element) {
+            linkings.push('first-pre');
+          },
+          post: function(scope, element) {
+            linkings.push('first-post');
+          }
+        }
+      };
+    },
+    secondDirective: function() {
+      return {
+        priority: 1,
+        link: {
+          pre: function(scope, element) {
+            linkings.push('second-pre');
+          },
+          post: function(scope, element) {
+            linkings.push('second-post');
+          }
+        }
+      };
+    },
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div first-directive second-directive></div>');
+    $compile(el)($rootScope);
+    expect(linkings).toEqual([
+      'first-pre',
+      'second-pre',
+      'second-post',
+      'first-post'
+    ]);
+  });
+});
+```
+
+我们可以通过修改对链接后函数的遍历方法，让遍历顺序变成由右向左：
+
+_src/compile.js_
+
+```js
+function nodeLinkFn(childLinkFn, scope, linkNode) {
+  // var $element = $(linkNode);
+  // _.forEach(preLinkFns, function(linkFn) {
+  //   linkFn(scope, $element, attrs);
+  // });
+  // if (childLinkFn) {
+  //   childLinkFn(scope, linkNode.childNodes);
+  // }
+  _.forEachRight(postLinkFns, function(linkFn) {
+  //   linkFn(scope, $element, attrs);
+  // });
+}
+```
