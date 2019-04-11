@@ -59,3 +59,103 @@ function applyDirectivesToNode(directives, compileNode, attrs) {
   
 }
 ```
+
+我们使用对象来指定链接函数就是希望可以同时支持链接前和链接后函数。下面我们会构建一个两层的节点结构，并检查链接函数的执行顺序：
+
+_test/compile_spec.js_
+
+```js
+it('supports prelinking and postlinking', function() {
+  var linkings = [];
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      link: {
+        pre: function(scope, element) {
+          linkings.push(['pre', element[0]]);
+        },
+        post: function(scope, element) {
+          linkings.push(['post', element[0]]);
+        }
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive><div my-directive></div></div>');
+    $compile(el)($rootScope);
+    expect(linkings.length).toBe(4);
+    expect(linkings[0]).toEqual(['pre', el[0]]);
+    expect(linkings[1]).toEqual(['pre', el[0].frstChild]);
+    expect(linkings[2]).toEqual(['post', el[0].frstChild]);
+    expect(linkings[3]).toEqual(['post', el[0]]);
+  });
+});
+```
+
+我们需要确保链接函数是按以下顺序执行的：
+
+1. 父元素的链接前函数
+2. 子元素的链接前函数
+3. 子元素的链接后函数
+4. 父元素的链接后函数
+
+当前单元测试会失败，因为链接前函数根本没有被调用。
+
+我们会对`applyDirectivesToNode`方法进行改变，这样它就可以分别收集链接前函数和链接后函数，分别用`preLinkFns`和`postLinkFns`存储：
+
+_src/compile.js_
+
+```js
+function applyDirectivesToNode(directives, compileNode, attrs) {
+  // var $compileNode = $(compileNode);
+  // var terminalPriority = -Number.MAX_VALUE;
+  // var terminal = false;
+  var preLinkFns = [],
+    postLinkFns = [];
+  // _.forEach(directives, function(directive) {
+  //   if (directive.$$start) {
+  //     $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
+  //   }
+  //   if (directive.priority < terminalPriority) {
+  //     return false;
+  //   }
+  //   if (directive.compile) {
+  //     var linkFn = directive.compile($compileNode, attrs);
+  //     if (_.isFunction(linkFn)) {
+        postLinkFns.push(linkFn);
+      // } else if (linkFn) {
+        if (linkFn.pre) {
+          preLinkFns.push(linkFn.pre);
+        }
+        if (linkFn.post) {
+          postLinkFns.push(linkFn.post);
+        }
+    //   }
+    // }
+    // if (directive.terminal) {
+    //   terminal = true;
+    //   terminalPriority = directive.priority;
+    // }
+  // });
+}
+```
+
+然后我们需要对节点链接函数进行修改，以便对调用顺序进行支持：首先我们需要调用链接前函数，然后调用子节点的链接函数，最后调用链接后函数：
+
+```js
+function nodeLinkFn(childLinkFn, scope, linkNode) {
+  var $element = $(linkNode);
+  _.forEach(preLinkFns, function(linkFn) {
+    linkFn(scope, $element, attrs);
+  });
+  // if (childLinkFn) {
+  //   childLinkFn(scope, linkNode.childNodes);
+  // }
+  _.forEach(postLinkFns, function(linkFn) {
+    // linkFn(scope, $element, attrs);
+  });
+}
+```
+
+在之前的章节中，我们选择传递子节点的链接函数给节点链接函数而不是直接对其进行调用。现在我们就明白其中的原因了：这能够让我们有机会在调用子节点的链接函数之前调用链接前函数。
+
+![](/assets/pre-and-post-link.png)
