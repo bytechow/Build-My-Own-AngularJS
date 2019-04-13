@@ -136,6 +136,7 @@
   * [18-4-linking-child-nodes](directives/18-directive-linking-and-scopes/18-4-linking-child-nodes.md)
   * [18-5-pre-and-post-linking](directives/18-directive-linking-and-scopes/18-5-pre-and-post-linking.md)
   * [18-6-keeping-the-node-list-stable-for-linking](directives/18-directive-linking-and-scopes/18-6-keeping-the-node-list-stable-for-linking.md)
+  * [18-7-linking-directives-across-multiple-nodes](directives/18-directive-linking-and-scopes/18-7-linking-directives-across-multiple-nodes.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)

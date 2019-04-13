@@ -2,7 +2,7 @@
 
 正如我们之前提及的，目前我们设置复合链接函数需要把编译节点和链接节点进行一对一的绑定，但当对 DOM 结构进行改变时，我们就不能保证这个联系的稳定性了。因为 DOM 操作通常就是指令要干的事，那这就可能产生问题了。举例来说，如果我们有一个要对目标元素插入兄弟元素，而这个元素正处于链接过程，这就会打乱我们的链接过程：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('stabilizes node list during linking', function() {
@@ -40,7 +40,7 @@ function compositeLinkFn(scope, linkNodes) {
     var nodeIdx = linkFn.idx;
     stableNodeList[nodeIdx] = linkNodes[nodeIdx];
   });
-  
+
   // _.forEach(linkFns, function(linkFn) {
   //   if (linkFn.nodeLinkFn) {
   //     linkFn.nodeLinkFn(
@@ -57,3 +57,6 @@ function compositeLinkFn(scope, linkNodes) {
   // });
 }
 ```
+
+
+
