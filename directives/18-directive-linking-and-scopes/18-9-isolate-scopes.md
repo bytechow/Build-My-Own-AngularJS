@@ -192,3 +192,155 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
   // });
 }
 ```
+
+然后如果我们发现链接函数带上了`isolateScope`标识，我们就会把独立作用域传递给这个链接函数。这意味着这个链接函数来自一个独立作用域指令，它会接收一个独立作用域，而其它指令会接收默认的上下文作用域。另外，子链接函数永远不会接收到一个独立作用域：
+
+```js
+function nodeLinkFn(childLinkFn, scope, linkNode) {
+  // var $element = $(linkNode);
+  
+  // var isolateScope;
+  // if (newIsolateScopeDirective) {
+  //   isolateScope = scope.$new(true);
+  // }
+
+  // _.forEach(preLinkFns, function(linkFn) {
+    linkFn(linkFn.isolateScope ? isolateScope : scope, $element, attrs);
+  // });
+  // if (childLinkFn) {
+  //   childLinkFn(scope, linkNode.childNodes);
+  // }
+  // _.forEachRight(postLinkFns, function(linkFn) {
+    linkFn(linkFn.isolateScope ? isolateScope : scope, $element, attrs);
+  // });
+}
+```
+
+正如我们看到的，一个指令的独立作用域并不会被同元素上的其它指令或子元素所共享。进一步来说，其实我们只允许一个元素上有一个指令可以拥有独立作用域。如果我们尝试对一个元素注册多个独立作用域指令，那在编译阶段就会抛出错误：
+
+```js
+it('does not allow two isolate scope directives on an element', function() {
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        scope: {}
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        scope: {}
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-other-directive></div>');
+    expect(function() {
+      $compile(el);
+    }).toThrow();
+  });
+})
+```
+
+事实上，如果元素上有一个独立作用域指令，那该元素上的其它指令也不能注册一个非独立的继承作用域：
+
+```js
+it('does not allow both isolate and inherited scopes on an element', function() {
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        scope: {}
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        scope: true
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-other-directive></div>');
+    expect(function() {
+      $compile(el);
+    }).toThrow();
+  });
+});
+```
+
+我们会在`applyDirectivesToNode`来进行条件判断，在这里有两条判断规则：
+
+1. 遇上了一个独立作用域，而之前已经遇到了另一个独立作用域或者继承作用域。
+2. 遇上了一个继承作用域，而之前已经遇到了一个独立作用域了。
+
+对于这两种情况，我们会抛出一个提示信息，而这个信息是很多 Angular 应用开发者之前已经看到过的：
+
+_src/compile.js_
+
+```js
+_.forEach(directives, function(directive) {
+  // if (directive.$$start) {
+  //   $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
+  // }
+  // if (directive.priority < terminalPriority) {
+  //   return false;
+  // }
+  // if (directive.scope) {
+  //   if (_.isObject(directive.scope)) {
+      if (newIsolateScopeDirective || newScopeDirective) {
+        throw 'Multiple directives asking for new/inherited scope';
+      }
+    //   newIsolateScopeDirective = directive;
+    // } else {
+      if (newIsolateScopeDirective) {
+        throw 'Multiple directives asking for new/inherited scope';
+      }
+  //     newScopeDirective = newScopeDirective || directive;
+  //   }
+  // }
+  // ...
+});
+```
+
+最后，如果一个元素应用了独立作用域指令，它会被附加上一个`ng-isolate-scope`的样式类（也就意味着它不会被附加上`ng-scope`样式类），而其作用域对象将会成为一个名为`$isolateScope`的 jQuery 数据：
+
+_test/compile.spec.js_
+
+```js
+it('adds class and data for element with isolated scope', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {},
+      link: function(scope) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+    $compile(el)($rootScope);
+    expect(el.hasClass('ng-isolate-scope')).toBe(true);
+    expect(el.hasClass('ng-scope')).toBe(false);
+    expect(el.data('$isolateScope')).toBe(givenScope);
+  });
+});
+```
+
+这两步会在创建独立作用域后的节点链接函数中完成：
+
+_src/compile.js_
+
+```js
+function nodeLinkFn(childLinkFn, scope, linkNode) {
+  var $element = $(linkNode);
+
+  var isolateScope;
+  if (newIsolateScopeDirective) {
+    isolateScope = scope.$new(true);
+    $element.addClass('ng-isolate-scope');
+    $element.data('$isolateScope', isolateScope);
+  }
+
+  // ...
+  
+}
+```
