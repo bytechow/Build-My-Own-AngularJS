@@ -139,6 +139,7 @@
   * [18-7-linking-directives-across-multiple-nodes](directives/18-directive-linking-and-scopes/18-7-linking-directives-across-multiple-nodes.md)
   * [18-8-linking-and-scope-inheritance](directives/18-directive-linking-and-scopes/18-8-linking-and-scope-inheritance.md)
   * [18-9-isolate-scopes](directives/18-directive-linking-and-scopes/18-9-isolate-scopes.md)
+  * [18-10-isolate-attribute-bindings](directives/18-directive-linking-and-scopes/18-10-isolate-attribute-bindings.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)

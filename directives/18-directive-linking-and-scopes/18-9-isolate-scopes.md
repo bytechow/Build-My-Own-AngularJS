@@ -8,7 +8,7 @@
 
 在开始讲解绑定之前，我们先来做些基础工作。我们会通过用一个对象作为指令定义对象`scope`属性的值来请求生成一个独立作用域。而对应的指令作用域会成为当前作用域上下文的一个子作用域，但并不是通过当前作用域上文的原型链来生成继承关系：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('creates an isolate scope when requested', function() {
@@ -32,7 +32,7 @@ it('creates an isolate scope when requested', function() {
 
 独立作用域指令还有一个重要的特点，也是与普通作用域指令的另一个区别点，当一个指令使用的是独立作用域，这个作用域并不会传递给同元素上的其它指令。也就是说，独立作用域的“独立”是针对指令而不是元素节点：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('does not share isolate scope with other directives', function() {
@@ -63,7 +63,7 @@ it('does not share isolate scope with other directives', function() {
 
 同样的规则，对元素的子节点同样有效。传入子节点的不会是独立作用域：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('does not use isolate scope on child elements', function() {
@@ -110,7 +110,7 @@ function applyDirectivesToNode(directives, compileNode, attrs) {
   function addLinkFns(preLinkFn, postLinkFn, attrStart, attrEnd, isolateScope) {
     // ...
   }
-  
+
   // _.forEach(directives, function(directive) {
   //   if (directive.$$start) {
   //     $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
@@ -174,7 +174,7 @@ _src/compile.js_
 ```js
 function nodeLinkFn(childLinkFn, scope, linkNode) {
   // var $element = $(linkNode);
-  
+
   var isolateScope;
   if (newIsolateScopeDirective) {
     isolateScope = scope.$new(true);
@@ -183,7 +183,7 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
   // _.forEach(preLinkFns, function(linkFn) {
   //   linkFn(scope, $element, attrs);
   // });
-  
+
   // if (childLinkFn) {
   //   childLinkFn(scope, linkNode.childNodes);
   // }
@@ -198,7 +198,7 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
 ```js
 function nodeLinkFn(childLinkFn, scope, linkNode) {
   // var $element = $(linkNode);
-  
+
   // var isolateScope;
   // if (newIsolateScopeDirective) {
   //   isolateScope = scope.$new(true);
@@ -341,6 +341,9 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
   }
 
   // ...
-  
+
 }
 ```
+
+
+
