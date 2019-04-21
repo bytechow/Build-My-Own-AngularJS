@@ -113,7 +113,7 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
 }
 ```
 
-目前，我们只需要检测绑定属性的类型是不是代表属性绑定的`@`，如果是的话，对相应的这个元素属性添加一个观察者。而这个观察者会把属性值添加到作用域对象上。
+目前，我们只需要检测绑定属性的类型是不是代表属性绑定的`@`，如果是的话，对相应的这个元素属性添加一个监视器。而这个观察者会把属性值添加到作用域对象上。
 
 ```js
 // _.forEach(
@@ -128,4 +128,123 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
 //     }
 //   }
 // );
+```
+
+`$observe`只会在下一次属性发生变化时才会被调用，我们希望即使属性即使之后不发生变化也会在作用域上有它的值存在，也就是说我们需要马上把属性的初始值放到作用域上，这样我们就可以在链接函数运行之前准备好属性值：
+
+_test/compile_spec.js_
+
+```js
+it('sets initial value of observed attr to the isolate scope', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        anAttr: '@'
+      },
+      link: function(scope, element, attrs) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive an-attr="42"></div>');
+    $compile(el)($rootScope);
+    expect(givenScope.anAttr).toEqual('42');
+  });
+});
+```
+
+我们可以在注册监视器做这个工作：
+
+_src/compile.js_
+
+```js
+_.forEach(
+  newIsolateScopeDirective.$$isolateBindings,
+  function(definition, scopeName) {
+    // switch (definition.mode) {
+    //   case '@':
+    //     attrs.$observe(scopeName, function(newAttrValue) {
+    //       isolateScope[scopeName] = newAttrValue;
+    //     });
+        if (attrs[scopeName]) {
+          isolateScope[scopeName] = attrs[scopeName];
+        }
+        // break;
+    // }
+  }
+);
+```
+
+目前元素上的属性和独立作用域上的属性是一一对应的关系。但实际上，我们可以对作用域属性指定一个不同的名称。我们可以用作用域属性名作为作用域定义对象的 key，而将元素上对应的属性用`@`前缀加上它的驼峰形式进行指定：
+
+_test/compile_spec.js_
+
+```js
+it('allows aliasing observed attribute', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        aScopeAttr: '@anAttr'
+      },
+      link: function(scope, element, attrs) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive an-attr="42"></div>');
+    $compile(el)($rootScope);
+    expect(givenScope.aScopeAttr).toEqual('42');
+  });
+});
+```
+
+我们需要对作用域定义对象的值进行加入一些解析来获取作用域别名。因为有了依赖注入机制，我们可以很方便滴引入一个正则表达式。我们可以使用下面这个正则表达式，可以匹配一个`@`字符，下面可以有0个或多个字符，这些字符会被捕捉为一组。另外，这个表达式也支持在单词之间有空格存在：
+
+```js
+/\s*@\s*(\w*)\s*/
+```
+
+使用这个正则表达式捕捉到的值会变成绑定对象中的`attrName`属性值。因为这个别称是可选的，所以`attrName`也可以是作用域的属性名称，这也是我们之前处理过的情况：
+
+_src/compile.js_
+
+```js
+function parseIsolateBindings(scope) {
+  // var bindings = {};
+  // _.forEach(scope, function(defnition, scopeName) {
+    var match = defnition.match(/\s*@\s*(\w*)\s*/);
+    // bindings[scopeName] = {
+      mode: '@',
+      attrName: match[1] || scopeName
+  //   };
+  // });
+  // return bindings;
+}
+```
+
+现在在设置独立作用域绑定时，我们必须使用`attrName`这个名称来对元素属性访问：
+
+_src/compile.js_
+
+```js
+_.forEach(
+  newIsolateScopeDirective.$$isolateBindings,
+  function(defnition, scopeName) {
+    var attrName = defnition.attrName;
+    // switch (defnition.mode) {
+    //   case '@':
+        attrs.$observe(attrName, function(newAttrValue) {
+        //   isolateScope[scopeName] = newAttrValue;
+        });
+        if (attrs[attrName]) {
+    //       isolateScope[scopeName] = attrs[attrName];
+        }
+    //     break;
+    // }
+  }
+);
 ```
