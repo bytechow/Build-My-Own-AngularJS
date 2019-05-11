@@ -163,3 +163,127 @@ this.$get = ['$injector', '$parse', '$rootScope',
   
   };
 ```
+
+现在我们已经完成了单向数据绑定的第一组单元测试，下面我们会在此基础上进行扩展。数据绑定的一个重要特性是它不仅仅是把当前的数据进行单向绑定，还会对表达式进行 watch， 如果在之后的 digest 循环中发现独立作用域属性表达式有新的结果值就进行更新。
+
+_test/compile_spec.js_
+
+```js
+it('watches isolated scope expressions', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        myAttr: '<'
+      },
+      link: function(scope) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-attr="parentAttr + 1"></div>');
+    $compile(el)($rootScope);
+    
+    $rootScope.parentAttr = 41;
+    $rootScope.$digest();
+    expect(givenScope.myAttr).toBe(42);
+  });
+});
+```
+
+我们设置一个父作用域属性并主动触发一个 digest，希望这个绑定在属性上的表达式会被 evaluate 并同时在独立作用域上更新对应的结果值。这实际上就是观察者（watcher）机制的用处，所以我们需要对解析后的表达式增加一个观察者：
+
+_src/compile.js_
+
+```js
+// case '<':
+//   var parentGet = $parse(attrs[attrName]);
+//   isolateScope[scopeName] = parentGet(scope);
+  scope.$watch(parentGet, function(newValue) {
+    isolateScope[scopeName] = newValue;
+  });
+  // break;
+```
+
+我们也可以让数据绑定变成可选的，也就是说如果属性没有绑定表达式，那么就不会创建观察者。我们可以通过用`<?`代替`<`来实现：
+
+_test/compile_spec.js_
+
+```js
+it('does not watch optional missing isolate scope expressions', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        myAttr: '<?'
+      },
+      link: function(scope) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+    $compile(el)($rootScope);
+    expect($rootScope.$$watchers.length).toBe(0);
+  });
+});
+```
+
+这里我们可以通过在指令链接后检查`$rootScope`是否存在观察者来进行测试。如果还是按照目前的代码实现，结果就是我们创建了一个表达式`undefined`的观察者，这并没有造成很大的影响，但也让应用程序徒增一些不必要的开销。
+
+为此，我们需要对绑定声明的正则表达式进行扩展。这个正则表达式现在应该要支持在绑定类型标识符后加入一个可选的问号：
+
+```js
+/\s*([@<])(\??)\s*(\w*)\s*/
+```
+
+> 这个`?`后缀其实在属性绑定中也同样适用，但与独立作用域绑定的区别在于在链接期间即使属性并不存在，属性绑定依然会为属性加上监视器（observer）。
+
+应用了这个正则表达式后，我们会在绑定对象上设置一个`optional`标识。注意属性名称的捕获组的索引顺移到`3`：
+
+_src/compile.js_
+
+```js
+function parseIsolateBindings(scope) {
+  // var bindings = {};
+  // _.forEach(scope, function(defnition, scopeName) {
+    var match = defnition.match(/\s*([@<])(\??)\s*(\w*)\s*/);
+    // bindings[scopeName] = {
+    //   mode: match[1],
+      optional: match[2],
+      attrName: match[3] || scopeName
+  //   };
+  // });
+  // return bindings;
+}
+```
+
+现在在链接过程中，如果这个属性绑定表达式指明是可选的且它的是`undefined`，我们就会跳过创建观察者这一步：
+
+```js
+case '<':
+  if (defnition.optional && !attrs[attrName]) {
+    break;
+  }
+  // ...
+```
+
+关于单向数据绑定的最后一项内容是在作用域销毁时进行清理。由于我们之前已经设置了一个观察者，我们需要确保在独立作用域被销毁时，也对观察者进行撤销。否则的话，由于观察者是绑定在父作用域上的，当独立作用域被销毁时，其父作用域依然是存在的，这回导致内存泄漏：
+
+```js
+case '<':
+  // if (defnition.optional && !attrs[attrName]) {
+  //   break;
+  // }
+  // var parentGet = $parse(attrs[attrName]);
+  // isolateScope[scopeName] = parentGet(scope);
+  var unwatch = scope.$watch(parentGet, function(newValue) {
+  //   isolateScope[scopeName] = newValue;
+  // });
+  isolateScope.$on('$destroy', unwatch);
+  // break;
+```
+
+这样我们就实现了单向数据绑定了。
