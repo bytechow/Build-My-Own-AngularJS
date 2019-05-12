@@ -141,6 +141,7 @@
   * [18-9-isolate-scopes](directives/18-directive-linking-and-scopes/18-9-isolate-scopes.md)
   * [18-10-isolate-attribute-bindings](directives/18-directive-linking-and-scopes/18-10-isolate-attribute-bindings.md)
   * [18-11-one-way-data-binding](directives/18-directive-linking-and-scopes/18-11-one-way-data-binding.md)
+  * [18-12-two-way-data-binding](directives/18-directive-linking-and-scopes/18-12-two-way-data-binding.md)
 * [第19章 控制器](directives/19-controllers/19-controllers.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
