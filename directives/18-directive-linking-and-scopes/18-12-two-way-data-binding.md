@@ -325,3 +325,5 @@ case '=':
   // isolateScope.$on(‘$destroy’, unwatch);
   // break;
 ```
+
+注意这里我们不仅调用了`assign`，还更新了本地的`parentValue`变量，也就是`lastValue`也会被赋上这个值。这些都会在下一次 digest 循环中同步。
