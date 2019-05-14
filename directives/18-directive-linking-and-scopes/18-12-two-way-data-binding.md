@@ -327,3 +327,127 @@ case '=':
 ```
 
 注意这里我们不仅调用了`assign`，还更新了本地的`parentValue`变量，也就是`lastValue`也会被赋上这个值。这些都会在下一次 digest 循环中同步。
+
+同时还要注意这里的优先级是怎么处理的：我们是利用了一个 if-else 条件判断，先考虑父作用域属性是否改变了，若没有改变再考虑是否是子作用域属性改变了。当父作用域和子作用域都发生变化，子作用域的变更将会被忽略并重写。
+
+你可能注意到数据绑定使用的是基于引用的监视机制来对值变更进行监测。虽然我们在数据绑定中没法改用基于值的监视机制，但我们还是可以对集合进行“浅监测”（shallow-watch）。我们可以在作用域定义对象中使用一种特殊的语法来告诉框架我们应该用`$watchCollection`代替`$watch`来进行双向数据绑定。这个特性的用处可以在这样一个例子中显现出来：我们需要往属性中绑定一个函数，每次调用函数都会返回一个新数组：
+
+```js
+it('throws when two-way expression returns new arrays', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        myAttr: '='
+      },
+      link: function(scope) {
+        givenScope = scope;
+      }
+    };
+  });
+  
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.parentFunction = function() {
+      return [1, 2, 3];
+    };
+    var el = $('<div my-directive my-attr="parentFunction()"></div>');
+    $compile(el)($rootScope);
+    expect(function() {
+      $rootScope.$digest();
+    }).toThrow();
+  });
+});
+```
+
+正如我们所见，普通的基于引用的监测无法处理这种情况：这个监测每次看到返回的新数组，都会认为是出现了一个新值。这样 digest 会运行超出重试的次数上限，并抛出异常，这也是上面这个单元测试希望发生的事情。
+
+要修复这个问题，我们可以在作用域定义中通过`=*`语法引入基于集合的监测机制：
+
+_test/compile_spec.js_
+
+```js
+it('can watch two-way bindings as collections', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        myAttr: '=*'
+      },
+      link: function(scope) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.parentFunction = function() {
+      return [1, 2, 3];
+    };
+    var el = $('<div my-directive my-attr="parentFunction()"></div>');
+    $compile(el)($rootScope);
+    $rootScope.$digest();
+    expect(givenScope.myAttr).toEqual([1, 2, 3]);
+  });
+});
+```
+
+我们需要再次对解析函数进行扩展，要允许在`=`符号后加入一个可选的星号：
+
+```js
+/\s*([@<]|=(\*?))(\??)\s*(\w*)\s*/
+```
+
+现在这个正则表达式就可以匹配以`@`或`<`或`=(*)`开头的字符串。
+
+使用这个正则表达式后，`parseIsolateBindings`就可以获取一个`collection`标识，这个标识的值取决于我们是否在定义时加入了星号。注意，这里需要再次更改捕获组的索引值：
+
+_src/compile.js_
+
+```js
+function parseIsolateBindings(scope) {
+  // var bindings = {};
+  // _.forEach(scope, function(defnition, scopeName) {
+    var match = defnition.match(/\s*([@<]|=(\*?))(\??)\s*(\w*)\s*/);
+    // bindings[scopeName] = {
+      mode: match[1][0],
+      collection: match[2] === '*',
+      optional: match[3]
+      attrName: match[4] || scopeName
+  //   };
+  // });
+  // return bindings;
+}
+```
+
+现在我就可以根据`collection`这个标识值决定是使用`watch`还是`watchCollection`来进行监测。其余的代码可以保持不变：
+
+```js
+case '=':
+  // if (defnition.optional && !attrs[attrName]) {
+  //   break;
+  // }
+  // parentGet = $parse(attrs[attrName]);
+  // var lastValue = isolateScope[scopeName] = parentGet(scope);
+  // var parentValueWatch = function() {
+  //   var parentValue = parentGet(scope);
+  //   if (isolateScope[scopeName] !== parentValue) {
+  //     if (parentValue !== lastValue) {
+  //       isolateScope[scopeName] = parentValue;
+  //     } else {
+  //       parentValue = isolateScope[scopeName];
+  //       parentGet.assign(scope, parentValue);
+  //     }
+  //   }
+  //   lastValue = parentValue;
+  //   return lastValue;
+  // };
+  if (defnition.collection) {
+    unwatch = scope.$watchCollection(attrs[attrName], parentValueWatch);
+  } else {
+    unwatch = scope.$watch(parentValueWatch);
+  }
+  // break;
+```
+
+注意在`$watchCollection`分支中，我们会把监听函数作为 listen 函数而不是 watch 函数。这主要是因为`$watchCollection`并不像`$watch`一样可以忽略 listen 函数。但这不会有问题，因为只要父作用域属性始终都指向相同的数组或对象，我们就不需要做任何工作：这又是因为我们已经对同一个数组或者对象进行了引用拷贝，它里面发生的变化都会被自动“同步”。仅当父作用域属性指向了一个我们真正需要作出响应的新数组或新对象时，listen 函数才会被调用。
+
+这样，我们就把双向数据绑定也完成了！
