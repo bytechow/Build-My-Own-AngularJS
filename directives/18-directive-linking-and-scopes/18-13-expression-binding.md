@@ -127,7 +127,7 @@ it('allows passing arguments to parent scope expression', function() {
       gotArg = arg;
     };
     var el = $('<div my-directive my-expr="parentFunction(argFromChild)"></div>');
-    
+
     $compile(el)($rootScope);
     givenScope.myExpr({
       argFromChild: 42
@@ -135,4 +135,66 @@ it('allows passing arguments to parent scope expression', function() {
     expect(gotArg).toBe(42);
   });
 });
+```
+
+这里我们设置了一个定义在父作用域上的函数，这个函数会被绑定到独立作用域的`myExpr`表达式调用。在表达式中我们会引用`argFromChild`参数，而这就是我们会从独立作用域传递过去的命名函数。
+
+就让我们来继续实现这个特性。实际上这实现起来是十分简单的，这是因为我们已经有传递命名参数给表达式的解决方案：它就是表达式函数允许接收的第二个参数`locals`。我们的包裹函数会接收一个参数，也就是本地变量，然后把它传递给表达式函数作为第二个参数：
+
+_src/compile.js_
+
+```js
+case '&':
+  // var parentExpr = $parse(attrs[attrName]);
+  isolateScope[scopeName] = function(locals) {
+    return parentExpr(scope, locals);
+  };
+  // break;
+```
+
+所以，当对表达式`parentFunction(argFromChild)`进行 evaluate 时，对`argFromChild`的查找也是 evaluate 的过程之一。如果本地变量对象（对应的是来自独立作用域的“命名参数”对象）中有匹配项，它就会变成`argFromChild`的值。如果在本地变量对象中找不到`argFromChild`这个属性，我们就会从（父）作用域上查找。
+
+最后，我们也允许独立作用域上的表达式式绑定被标记为可选的。如果真的进行标记并且指令使用者没有写上表达式，那就没有函数会在作用域上被调用：
+
+_test/compile_spec.js_
+
+```js
+it('sets missing optional parent scope expression to undefned', function() {
+  var givenScope;
+  var injector = makeInjectorWithDirectives('myDirective', function() {
+    return {
+      scope: {
+        myExpr: '&?'
+      },
+      link: function(scope) {
+        givenScope = scope;
+      }
+    };
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var gotArg;
+    $rootScope.parentFunction = function(arg) {
+      gotArg = arg;
+    };
+    var el = $('<div my-directive></div>');
+    $compile(el)($rootScope);
+    expect(givenScope.myExpr).toBeUndefned();
+  });
+});
+```
+
+回顾之前讲表达式的章节，如果传递一些`$parse`无法进行解析的值（比如`undefined`或`null`），那$parse的结果值就会是一个 LoDash 的空函数。我们可以利用这个事实来处理表达式可选的情况，从而跳过创建绑定的环节：
+
+_src/compile.js_
+
+```js
+case '&':
+  // var parentExpr = $parse(attrs[attrName]);
+  if (parentExpr === _.noop && defnition.optional) {
+    break;
+  }
+  // isolateScope[scopeName] = function(locals) {
+  //   return parentExpr(scope, locals);
+  // };
+  // break;
 ```
