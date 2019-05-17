@@ -4,7 +4,7 @@
 
 绑定的表达式将会以一个函数的形式出现在一个独立作用域上，而这个函数我们是可以通过调用返回的，例如，一个 link 函数：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows binding an invokable expression on the parent scope', function() {
@@ -32,7 +32,7 @@ it('allows binding an invokable expression on the parent scope', function() {
 
 独立作用域上的`myExpr`函数实际上是`parentFunction() + 1`这个表达式的表达式函数，它会调用父作用域上的`parentFunction`并对返回函数调用结果加1。
 
-要达成这个效果，我们需要再次回顾我们在独立作用域定义使用的解析函数。
+要达成这个效果，我们需要再次回顾我们在独立作用域定义使用的解析函数。  
 这里我们需要把`&`符号变成`mode`属性中一个合法项：
 
 _src/compile.js_
@@ -78,7 +78,8 @@ _.forEach(
         break;
     }
   })
-````
+`
+```
 
 现在的代码实现是允许在父作用域上调用函数的，但还不允许传递任何参数，这就显得比较局限了。我们可以通过一些改动来修复这个问题。但这种方法能行得通与直接的函数调用的原理还是有点区别的。我们来看看下面这种在父作用域上表达式：
 
@@ -106,7 +107,7 @@ scope.myExpr({a: 1, b: 2});
 
 如果将我们的想法转变成单元测试，就会是像下面这样的：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows passing arguments to parent scope expression', function() {
@@ -156,7 +157,7 @@ case '&':
 
 最后，我们也允许独立作用域上的表达式式绑定被标记为可选的。如果真的进行标记并且指令使用者没有写上表达式，那就没有函数会在作用域上被调用：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('sets missing optional parent scope expression to undefned', function() {
@@ -198,3 +199,6 @@ case '&':
   // };
   // break;
 ```
+
+
+
