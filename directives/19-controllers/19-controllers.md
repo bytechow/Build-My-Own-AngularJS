@@ -4,5 +4,5 @@
 
 但这不代表控制器就是无趣、无用的。事实恰恰相反，学习到下面我们就会知道了。控制器由三个部分组成，我们会分别对这三个部分进行介绍：`$controller` provider，指令编译器与控制器的整合、`ngController`指令。
 
-下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter18-directive-linking-and-scopes)
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter18-directive-linking-and-scopes)
 
