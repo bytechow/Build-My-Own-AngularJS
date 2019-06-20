@@ -4,7 +4,7 @@
 
 这里我们会在 provider 上使用一个新的方法，名为`register`，这个方法是用于在 config 代码块中注册控制器构造函数的。之后我们会通过名称来请求生成一个控制器的实例。就像之前一样，我们会期望获得控制器构造函数的一个实例：
 
-_test/controller_spec.js_
+_test/controller\_spec.js_
 
 ```js
 it('allows registering controllers at confg time', function() {
@@ -13,7 +13,7 @@ it('allows registering controllers at confg time', function() {
     $controllerProvider.register('MyController', MyController);
   }]);
   var $controller = injector.get('$controller');
-  
+
   var controller = $controller('MyController');
   expect(controller).toBeDefned();
   expect(controller instanceof MyController).toBe(true);
@@ -67,7 +67,7 @@ var _ = require('lodash');
 
 跟指令类似，我们只调用一次`$controllerProvider.register`就可以注册几个控制器，只需要我们用一个对象来包裹我们需要注册的多个控制器，key 是控制器名称，而 value 是控制器的构造函数：
 
-_test/controller_spec.js_
+_test/controller\_spec.js_
 
 ```js
 it('allows registering several controllers in an object', function() {
@@ -105,7 +105,7 @@ this.register = function(name, controller) {
 
 对于 Angular 应用开发者来说，`$controllerProvider`的`register`函数并不算是很熟悉。这是因为使用模块来注册控制器是一种更普遍的方式。模块对象有一个叫`controller`的方法，可以用于在模块上注册控制器：
 
-_test/controller_spec.js_
+_test/controller\_spec.js_
 
 ```js
 it('allows registering controllers through modules', function() {
@@ -147,3 +147,6 @@ var moduleInstance = {
   // _runBlocks: []
 };
 ```
+
+
+
