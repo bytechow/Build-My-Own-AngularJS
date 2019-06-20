@@ -1,4 +1,4 @@
-### 全局控制器查找（Global Controller Lookup）
+### 查找全局控制器（Global Controller Lookup）
 
 刚才那种注册控制器的方法是推荐在 Angular 应用中使用的。但`$controller`服务还提供另一种方法，可以从全局的`window`对象上查找控制器构造函数。然而，默认情况下是不允许这样做的，这时使用这种查找方法会抛出一个异常：
 
