@@ -151,6 +151,7 @@
   * [19-4-global-controller-lookup](directives/19-controllers/19-4-global-controller-lookup.md)
   * [19-5-directive-controllers](directives/19-controllers/19-5-directive-controllers.md)
   * [19-6-locals-in-directive-controllers](directives/19-controllers/19-6-locals-in-directive-controllers.md)
+  * [19-7-attaching-directive-controllers-on-the-scope](directives/19-controllers/19-7-attaching-directive-controllers-on-the-scope.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
