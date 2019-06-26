@@ -6,7 +6,7 @@
 
 当指令定义对象定义了一个`controllerAs`的 key 时，也就指定了添加到作用域的控制器对象的 key：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('can be attached on the scope', function() {
@@ -91,3 +91,6 @@ function addToScope(locals, identifer, instance) {
   }
 }
 ```
+
+
+
