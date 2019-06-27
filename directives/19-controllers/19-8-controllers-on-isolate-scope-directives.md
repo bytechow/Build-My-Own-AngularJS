@@ -196,7 +196,7 @@ _src/controller.js_
 ```js
 this.$get = ['$injector', function($injector) {
 
-  return function(ctrl, locals, later, identifer) {
+  return function(ctrl, locals, later, identifier) {
     // ...
   };
   
@@ -220,4 +220,32 @@ _.forEach(controllerDirectives, function(directive) {
   // }
   $controller(controllerName, locals, false, directive.controllerAs);
 });
+```
+
+> `later`和`identifier`都被设计成只允许内部调用的，而不能被应用开发者直接使用。如果你确实需要使用它们，你得意识到它们可能会在未来改变设置消失，因为它们仅被考虑用在实现细节上。
+
+在`$controller`，我们现在根据这个标识可以决定是做一般的实例化还是其他：
+
+_src/controller.js_
+
+```js
+return function(ctrl, locals, later, identifer) {
+  // if (_.isString(ctrl)) {
+  //   if (controllers.hasOwnProperty(ctrl)) {
+  //     ctrl = controllers[ctrl];
+  //   } else if (globals) {
+  //     ctrl = window[ctrl];
+  //   }
+  // }
+  var instance;
+  if (later) {
+    
+  } else {
+    instance = $injector.instantiate(ctrl, locals);
+    // if (identifer) {
+    //   addToScope(locals, identifer, instance);
+    // }
+    // return instance;
+  }
+};
 ```
