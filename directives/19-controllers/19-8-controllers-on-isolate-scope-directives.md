@@ -161,3 +161,63 @@ it('can bind isolate scope bindings directly to self', function() {
 
 - 它是一个函数，调用时会调用控制器构造函数
 - 它有一个叫`instance`的属性并指向控制器对象。
+
+这种可以延迟调用的构造函数给了`$controller`一个机会在创建控制器对象和调用构造函数之间的时间做一些工作——也就是设置独立作用域绑定。
+
+_test/controller_spec.js_
+
+```js
+it('can return a semi-constructed controller', function() {
+  var injector = createInjector(['ng']);
+  var $controller = injector.get('$controller');
+
+  function MyController() {
+    this.constructed = true;
+    this.myAttrWhenConstructed = this.myAttr;
+  }
+
+  var controller = $controller(MyController, null, true);
+  
+  expect(controller.constructed).toBeUndefned();
+  expect(controller.instance).toBeDefned();
+  
+  controller.instance.myAttr = 42;
+  var actualController = controller();
+  
+  expect(actualController.constructed).toBeDefned();
+  expect(actualController.myAttrWhenConstructed).toBe(42);
+});
+```
+
+由于我们在`$controller`中引入`later`参数，`identifier`参数需要推后到第四个位置：
+
+_src/controller.js_
+
+```js
+this.$get = ['$injector', function($injector) {
+
+  return function(ctrl, locals, later, identifer) {
+    // ...
+  };
+  
+}];
+```
+
+我们希望让目前的测试用例通过，所以在`compile.js`文件中暂时先把`later`的值默认设置为`false`。稍后我们会改过来：
+
+_src/compile.js_
+
+```js
+_.forEach(controllerDirectives, function(directive) {
+  // var locals = {
+  //   $scope: directive === newIsolateScopeDirective ? isolateScope : scope,
+  //   $element: $element,
+  //   $attrs: attrs
+  // };
+  // var controllerName = directive.controller;
+  // if (controllerName === '@') {
+  //   controllerName = attrs[directive.name];
+  // }
+  $controller(controllerName, locals, false, directive.controllerAs);
+});
+```
