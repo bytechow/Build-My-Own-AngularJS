@@ -239,7 +239,7 @@ return function(ctrl, locals, later, identifer) {
   // }
   var instance;
   if (later) {
-    
+
   } else {
     instance = $injector.instantiate(ctrl, locals);
     // if (identifer) {
@@ -248,4 +248,401 @@ return function(ctrl, locals, later, identifer) {
     // return instance;
   }
 };
+```
+
+我们要做的有两个步骤：
+
+1. 创建一个原型基于构造函数的新对象。使用`Object.create`就很合适。
+2. 返回一个“非完全构造”的控制器：是一个能真正能在后面被调用的函数，这个函数有一个`instance`属性存放着对象实例。
+
+当我们最终要调用构造函数时，我们不应该使用`$injector.instantiate`，因为我们在那个时间节点实际上还没有实例化任何东西。我们可以把它们当做是普通的依赖注入函数，使用`$injector.invoke`进行调用。我们只需要把构造函数作为`self`参数传入，那`this`绑定就没有问题了。
+
+_src/controller.js_
+
+```js
+return function(ctrl, locals, later, identifer) {
+  // if (_.isString(ctrl)) {
+  //   if (controllers.hasOwnProperty(ctrl)) {
+  //     ctrl = controllers[ctrl];
+  //   } else if (globals) {
+  //     ctrl = window[ctrl];
+  //   }
+  // }
+  // var instance;
+  // if (later) {
+    instance = Object.create(ctrl);
+    return _.extend(function() {
+      $injector.invoke(ctrl, instance, locals);
+      return instance;
+    }, {
+      instance: instance
+    });
+  // } else {
+  //   instance = $injector.instantiate(ctrl, locals);
+  //   if (identifer) {
+  //     addToScope(locals, identifer, instance);
+  //   }
+  //   return instance;
+  // }
+};
+```
+
+因为`$controller`支持依赖注入，那么就可以使用数组形态的依赖注入来注入第一个参数，而不是一个函数式注入。他应该依然支持`later`标识：
+
+_test/controller_spec.js_
+
+```js
+it('can return a semi-constructed ctrl when using array injection', function() {
+  var injector = createInjector(['ng', function($provide) {
+    $provide.constant('aDep', 42);
+  }]);
+  var $controller = injector.get('$controller');
+
+  function MyController(aDep) {
+    this.aDep = aDep;
+    this.constructed = true;
+  }
+  
+  var controller = $controller(['aDep', MyController], null, true);
+  expect(controller.constructed).toBeUndefned();
+  var actualController = controller();
+  expect(actualController.constructed).toBeDefned();
+  expect(actualController.aDep).toBe(42);
+});
+```
+
+因为我们需要传递控制器原型给`Object.create`，如果注入的是一个数组，我们需要找到注入的控制器：
+
+_src/controller.js_
+
+```js
+var ctrlConstructor = _.isArray(ctrl) ? _.last(ctrl) : ctrl;
+instance = Object.create(ctrlConstructor.prototype);
+// return _.extend(function() {
+//   $injector.invoke(ctrl, instance, locals);
+//   return instance;
+// }, {
+//   instance: instance
+// });
+```
+
+结合第三个参数`later`和第四个参数`identifier`，如果我们要求，可以让`$controller`在作用域上绑定一个“未完成的”控制器对象：
+
+_test/controller_spec.js_
+
+```js
+it('can bind semi-constructed controller to scope', function() {
+  var injector = createInjector(['ng']);
+  var $controller = injector.get('$controller');
+
+  function MyController() {
+  }
+  var scope = {};
+
+  var controller = $controller(MyController, {
+    $scope: scope
+  }, true, 'myCtrl');
+  expect(scope.myCtrl).toBe(controller.instance);
+});
+```
+
+> 这里我们没有用一个真实的作用域对象而只是一个普通对象。因为对于测试目标来说，这两者没有区别。
+
+我们通过调用之前在“渴望的构造函数”（）中已经调用过的`addToScope`帮助函数来完成这一任务：
+
+_src/controller.js_
+
+```js
+if (later) {
+  // var ctrlConstructor = _.isArray(ctrl) ? _.last(ctrl) : ctrl;
+  // instance = Object.create(ctrlConstructor.prototype);
+  if (identifer) {
+    addToScope(locals, identifer, instance);
+  }
+  // return _.extend(function() {
+  //   $injector.invoke(ctrl, instance, locals);
+  //   return instance;
+  // }, {
+  //   instance: instance
+  // });
+} else {
+  // instance = $injector.instantiate(ctrl, locals);
+  // if (identifer) {
+  //   addToScope(locals, identifer, instance);
+  // }
+  // return instance;
+}
+```
+
+现在我们已经有了`$controller`需要有的基础，我们可以在`$compile`中通过做一些调整来把东西都整合在一起。
+
+首先，我们需要引入一个变量来存放“非完全构造”的控制器函数。这个会在`applyDirectivesToNode`函数的顶层进行定义：
+
+_src/compile.js_
+
+```js
+function applyDirectivesToNode(directives, compileNode, attrs) {
+  var $compileNode = $(compileNode);
+  var preLinkFns = [],
+    postLinkFns = [],
+    controllers = {};
+  // ...
+}
+```
+
+当我们构建了控制器，我们会把“非完全构造”的函数放到这个对象中去。还要注意到我们现在对`$controller`函数的第三个参数传递了`true`以触发`later`标识：
+
+```js
+_.forEach(controllerDirectives, function(directive) {
+  // var locals = {
+  //   $scope: directive === newIsolateScopeDirective ? isolateScope : scope,
+  //   $element: $element,
+  //   $attrs: attrs
+  // };
+  // var controllerName = directive.controller;
+  // if (controllerName === '@') {
+  //   controllerName = attrs[directive.name];
+  // }
+  controllers[directive.name] =
+    $controller(controllerName, locals, true, directive.controllerAs);
+});
+````
+
+然后，在我们设置好独立作用域绑定之后、在调用预链接函数之前，我们会调用“非完全构造”的控制器函数，它会调用真正的控制器构造函数：
+
+```js
+// if (newIsolateScopeDirective) {
+//   _.forEach(
+//     newIsolateScopeDirective.$$isolateBindings,
+//     function(defnition, scopeName) {
+//       // ...
+//     }
+//   );
+// }
+
+_.forEach(controllers, function(controller) {
+  controller();
+});
+
+// _.forEach(preLinkFns, function(linkFn) {
+//   linkFn(linkFn.isolateScope ? isolateScope : scope, $element, attrs);
+// });
+```
+
+实际上，我们现在是在控制器是“非完全构造”状态下设置好独立作用域绑定。
+
+这样我们两个“高级”测试用例中的第一个就通过了，但另一个为了`bindToController`的测试用例依旧还没通过。我们要做的是对独立作用域绑定的初始化进行扩展，让它可以处理两种不同的情况：普通的独立作用域绑定和作用域绑定最终会绑定到控制器上（当`bindToController`为`true`）。
+
+要让这做起来简单一点，我们需要对作用域绑定的解析代码进行一点改变。我们现在的做法是当我们初始化时对指令设置一个`$$isolateBindings`属性。我们应该将这个属性统一为一个`$$bindings`的属性，这个属性我们可以控制作用域绑定和控制器绑定。要实例化这个属性，我们会使用一个新的帮助函数叫`parseDirectiveBindings`:
+
+_src/controller.js_
+
+```js
+return _.map(factories, function(factory, i) {
+  // var directive = $injector.invoke(factory);
+  // directive.restrict = directive.restrict || 'EA';
+  // directive.priority = directive.priority || 0;
+  // if (directive.link && !directive.compile) {
+  //   directive.compile = _.constant(directive.link);
+  // }
+  directive.$$bindings = parseDirectiveBindings(directive);
+  // directive.name = directive.name || name;
+  // directive.index = i;
+  // return directive;
+});
+```
+
+第一个版本的`parseDirectiveBindings`仅可以调用已经存在的`parseIsolateBindings`函数，并把返回值放到新绑定对象的`isolateScope`属性：
+
+_src/compile.js_
+
+```js
+function parseDirectiveBindings(directive) {
+  var bindings = {};
+  if (_.isObject(directive.scope)) {
+    bindings.isolateScope = parseIsolateBindings(directive.scope);
+  }
+  return bindings;
+}
+```
+
+现在将目光转到链接期间的绑定初始化，这里我们也需要做一些重构工作。让我们把绑定初始化代码从`nodeLinkFn`中抽离到一个独立的函数中。我们可以将这个函数命名为`initializeDirectiveBindings`。它包含了之前我们写的用于初始化的循环代码，并接收一个它所需的参数来完成它的工作：
+
+```js
+function initializeDirectiveBindings(scope, attrs, bindings, isolateScope) {
+  _.forEach(bindings, function(defnition, scopeName) {
+    var attrName = defnition.attrName;
+    var parentGet, unwatch;
+    switch (defnition.mode) {
+      case '@':
+        attrs.$observe(attrName, function(newAttrValue) {
+          isolateScope[scopeName] = newAttrValue;
+        });
+        if (attrs[attrName]) {
+          isolateScope[scopeName] = attrs[attrName];
+        }
+        break;
+      case '<':
+        if (defnition.optional && !attrs[attrName]) {
+          break;
+        }
+        parentGet = $parse(attrs[attrName]);
+        isolateScope[scopeName] = parentGet(scope);
+        unwatch = scope.$watch(parentGet, function(newValue) {
+          isolateScope[scopeName] = newValue;
+        });
+        isolateScope.$on('$destroy', unwatch);
+        break;
+      case '=':
+        if (defnition.optional && !attrs[attrName]) {
+          break;
+        }
+        parentGet = $parse(attrs[attrName]);
+        var lastValue = isolateScope[scopeName] = parentGet(scope)
+        var parentValueWatch = function() {
+          var parentValue = parentGet(scope);
+          if (isolateScope[scopeName] !== parentValue) {
+            if (parentValue !== lastValue) {
+              isolateScope[scopeName] = parentValue;
+            } else {
+              parentValue = isolateScope[scopeName];
+              parentGet.assign(scope, parentValue);
+            }
+          }
+          lastValue = parentValue;
+          return lastValue;
+        };
+        if (defnition.collection) {
+          unwatch = scope.$watchCollection(attrs[attrName], parentValueWatch);
+        } else {
+          unwatch = scope.$watch(parentValueWatch);
+        }
+        isolateScope.$on('$destroy', unwatch);
+        break;
+      case '&':
+        var parentExpr = $parse(attrs[attrName]);
+        if (parentExpr === _.noop && defnition.optional) {
+          break;
+        }
+        isolateScope[scopeName] = function(locals) {
+          return parentExpr(scope, locals);
+        };
+        break;
+    }
+  });
+}
+```
+
+而`nodeLinkFn`本身，现在只需要做的就是调用这个新函数而无需再加入之前那段长长的循环代码了。对于绑定（bindings）来说，我们会传递在新的`parseDirectiveBindings`函数中创建的独立作用域绑定：
+
+```js
+if (newIsolateScopeDirective) {
+  initializeDirectiveBindings(
+    scope,
+    attrs,
+    newIsolateScopeDirective.$$bindings.isolateScope,
+    isolateScope
+  );
+}
+```
+
+现在我们准备对这个进行扩展，以让其也兼容`bindToController`标识。在`parseDirectiveBindings`中，如果这个标识是`true`，我们会将绑定（bindings）存放到`bindToController`而不是`isolateScope`属性：
+
+```js
+function parseDirectiveBindings(directive) {
+  // var bindings = {};
+  // if (_.isObject(directive.scope)) {
+    if (directive.bindToController) {
+      bindings.bindToController = parseIsolateBindings(directive.scope);
+    } else {
+      // bindings.isolateScope = parseIsolateBindings(directive.scope);
+    }
+  // }
+  // return bindings;
+}
+```
+
+这些新的绑定会在节点链接函数中控制器被实例化之前初始化好。我们只有在有独立作用域指令并且有控制器的情况下才会这样做。我们可以重用之前抽离出来的`initializeDirectiveBindings`函数：
+
+```js
+if (newIsolateScopeDirective && controllers[newIsolateScopeDirective.name]) {
+  initializeDirectiveBindings(
+    scope,
+    attrs,
+    newIsolateScopeDirective.$$bindings.bindToController,
+    isolateScope
+  );
+}
+
+// _.forEach(controllers, function(controller) {
+//   controller();
+// });
+```
+
+剩下来的事情就是这些绑定现在依然附加在独立作用域对象中，但关键是它们应该被附加到控制器上！`initializeDirectiveBindings`函数应该接收多一个参数，我们把它称为`destination`，这个参数会指向一个对象，而所有的数据应该绑定到这个对象上。这个对象会在不同的绑定类型中被用于赋值对象。我们依然会传入 isolateScope，但我们会称它为`newScope`，它只会被用于注册`$destroy`事件，在需要取消注册观察者时：
+
+```js
+function initializeDirectiveBindings(
+  scope, attrs, destination, bindings, newScope) {
+  _.forEach(bindings, function(defnition, scopeName) {
+  //   var attrName = defnition.attrName;
+    switch (defnition.mode) {
+      case '@':
+  //       attrs.$observe(attrName, function(newAttrValue) {
+          destination[scopeName] = newAttrValue;
+        // });
+        // if (attrs[attrName]) {
+          destination[scopeName] = attrs[attrName];
+      //   }
+      //   break;
+      // case '<':
+      //   if (defnition.optional && !attrs[attrName]) {
+      //     break;
+      //   }
+      //   parentGet = $parse(attrs[attrName]);
+        destination[scopeName] = parentGet(scope);
+      //   unwatch = scope.$watch(parentGet, function(newValue) {
+          destination[scopeName] = newValue;
+        // });
+        newScope.$on('$destroy', unwatch);
+        break;
+      case '=':
+        // if (defnition.optional && !attrs[attrName]) {
+        //   break;
+        // }
+        // var parentGet = $parse(attrs[attrName]);
+        var lastValue = destination[scopeName] = parentGet(scope);
+        var parentValueWatch = function() {
+          var parentValue = parentGet(scope);
+          if (destination[scopeName] !== parentValue) {
+            if (parentValue !== lastValue) {
+              destination[scopeName] = parentValue;
+            } else {
+              parentValue = destination[scopeName];
+              // parentGet.assign(scope, parentValue);
+            }
+          }
+          lastValue = parentValue;
+          return lastValue;
+        };
+        // var unwatch;
+        // if (defnition.collection) {
+        //   unwatch = scope.$watchCollection(attrs[attrName], parentValueWatch);
+        // } else {
+        //   unwatch = scope.$watch(parentValueWatch);
+        // }
+        newScope.$on('$destroy', unwatch);
+        break;
+      case '&':
+        // var parentExpr = $parse(attrs[attrName]);
+        // if (parentExpr === _.noop && defnition.optional) {
+        //   break;
+        // }
+        destination[scopeName] = function(locals) {
+          return parentExpr(scope, locals);
+        };
+        break;
+    }
+  });
+}
 ```
