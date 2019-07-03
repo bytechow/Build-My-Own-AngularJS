@@ -646,3 +646,145 @@ function initializeDirectiveBindings(
   });
 }
 ```
+
+在普通的独立作用域绑定中，它的目标（destination）就是独立作用域本身：
+
+_src/compile.js_
+
+```js
+if (newIsolateScopeDirective) {
+  initializeDirectiveBindings(
+    scope,
+    attrs,
+    isolateScope,
+    newIsolateScopeDirective.$$bindings.isolateScope,
+    isolateScope
+  );
+}
+```
+
+而对于`bindToController`为`true`的情况，它的目标是控制器实例对象本身：
+
+```js
+if (newIsolateScopeDirective && controllers[newIsolateScopeDirective.name]) {
+  initializeDirectiveBindings(
+    scope,
+    attrs,
+    controllers[newIsolateScopeDirective.name].instance,
+    newIsolateScopeDirective.$$bindings.bindToController,
+    isolateScope
+  );
+}
+```
+
+这样，我们目前的所有测试用例都可以通过了！
+
+这个代码实现也开放了一些我们可以开放给应用开发者使用的便利模式。首先，人们可能会更喜欢指定指令绑定作为`bindToController`的值，而不是`isolateScope`的值，因为他们一般会选择在控制器解决问题。这种实现方式让 API 变得更为方便：
+
+_test/compile_spec.js_
+
+```js
+it('can bind iso scope bindings through bindToController', function() {
+  var gotMyAttr;
+  function MyController() {
+    gotMyAttr = this.myAttr;
+  }
+  var injector = createInjector(['ng',
+    function($controllerProvider, $compileProvider) {
+      $controllerProvider.register('MyController', MyController);
+      $compileProvider.directive('myDirective', function() {
+        return {
+          scope: {},
+          controller: 'MyController',
+          bindToController: {
+            myAttr: '@myDirective'
+          }
+        };
+      });
+    }
+  ]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive="abc"></div>');
+    $compile(el)($rootScope);
+    expect(gotMyAttr).toEqual('abc');
+  });
+})
+```
+
+我们可以在`parseDirectiveBindings`函数对此进行简单的处理。如果`bindToController`是一个对象，那就对它进行解析，就像对待`scope`属性值一样：
+
+_src/compile.js_
+
+```js
+function parseDirectiveBindings(directive) {
+  // var bindings = {};
+  // if (_.isObject(directive.scope)) {
+  //   if (directive.bindToController) {
+  //     bindings.bindToController = parseIsolateBindings(directive.scope);
+  //   } else {
+  //     bindings.isolateScope = parseIsolateBindings(directive.scope);
+  //   }
+  // }
+  if (_.isObject(directive.bindToController)) {
+    bindings.bindToController =
+      parseIsolateBindings(directive.bindToController);
+  }
+  // return bindings;
+}
+```
+
+另外，我们可以对这个代码实现进行扩展，这样我们甚至不需要为了创建绑定（bindings）而特地加入一个独立作用域！你可以结合使用一个普通作用域和一个值为对象的`bindToController`属性：
+
+_test/compile_spec.js_
+
+```js
+it('can bind through bindToController without iso scope', function() {
+  var gotMyAttr;
+
+  function MyController() {
+    gotMyAttr = this.myAttr;
+  }
+  var injector = createInjector(['ng',
+    function($controllerProvider, $compileProvider) {
+      $controllerProvider.register('MyController', MyController);
+      $compileProvider.directive('myDirective', function() {
+        return {
+          scope: true,
+          controller: 'MyController',
+          bindToController: {
+            myAttr: '@myDirective'
+          }
+        };
+      });
+    }
+  ]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive="abc"></div>');
+    $compile(el)($rootScope);
+    expect(gotMyAttr).toEqual('abc');
+  });
+});
+```
+
+这里我们可以对节点链接函数的代码进行扩展，这样的话，无论当前节点上的是独立作用域指令或新作用域指令，它都可以支持控制器绑定：
+
+_src/compile.js_
+
+```js
+var scopeDirective = newIsolateScopeDirective || newScopeDirective;
+if (scopeDirective && controllers[scopeDirective.name]) {
+  initializeDirectiveBindings(
+  //   scope,
+  //   attrs,
+    controllers[scopeDirective.name].instance,
+    scopeDirective.$$bindings.bindToController,
+    // isolateScope
+  );
+}
+```
+
+现在控制器和独立作用域的代码开发都是完全兼容的了，甚至还可以用一种有趣方式支持另一种绑定方式。
+
+看上去简单的特性却花费了我们很长时间进行基础设置的构建，但我们由此可以启用的应用模式却十分有用：`controllerAs`和`bindToController`的结合，可以让应用开发者即使不使用`$scope`对象都可以写大量的业务代码，而这种模式更受大多数人欢迎。
+
+> 浏览[这篇文章](https://github.com/flipjs/2014/09/09/isolate-scope-controller-as/)，可以了解更多有关该模式的细节。
