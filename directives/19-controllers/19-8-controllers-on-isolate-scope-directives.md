@@ -4,7 +4,7 @@
 
 在我们开始之前，先介绍一些基础知识：当一个指令拥有一个独立作用域，要注入到控制器中的`$scope`参数的就应该是独立作用域，而不是上层的控制器。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('gets isolate scope as injected $scope', function() {
@@ -92,7 +92,7 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
 
 我们先加入两个测试用例来展示我们是怎么解决的。当调用了一个控制器构造函数，所有独立作用域绑定必须已经存在于作用域上：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('has isolate scope bindings available during construction', function() {
@@ -123,7 +123,7 @@ it('has isolate scope bindings available during construction', function() {
 
 另一方面，如果启用了`bindToController`，独立作用域绑定将会附加到控制器实例上，而不是`$scope`上。当调用控制器构造函数时，属性已经存在于`this`上：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('can bind isolate scope bindings directly to self', function() {
@@ -159,12 +159,12 @@ it('can bind isolate scope bindings directly to self', function() {
 
 "非完全构造"的含义是控制器对象已经存在，但这个控制器构造函数尚未调用。具体而言，这种情况下`$controller`的返回值拥有下面的特性：
 
-- 它是一个函数，调用时会调用控制器构造函数
-- 它有一个叫`instance`的属性并指向控制器对象。
+* 它是一个函数，调用时会调用控制器构造函数
+* 它有一个叫`instance`的属性并指向控制器对象。
 
 这种可以延迟调用的构造函数给了`$controller`一个机会在创建控制器对象和调用构造函数之间的时间做一些工作——也就是设置独立作用域绑定。
 
-_test/controller_spec.js_
+_test/controller\_spec.js_
 
 ```js
 it('can return a semi-constructed controller', function() {
@@ -177,13 +177,13 @@ it('can return a semi-constructed controller', function() {
   }
 
   var controller = $controller(MyController, null, true);
-  
+
   expect(controller.constructed).toBeUndefned();
   expect(controller.instance).toBeDefned();
-  
+
   controller.instance.myAttr = 42;
   var actualController = controller();
-  
+
   expect(actualController.constructed).toBeDefned();
   expect(actualController.myAttrWhenConstructed).toBe(42);
 });
@@ -199,7 +199,7 @@ this.$get = ['$injector', function($injector) {
   return function(ctrl, locals, later, identifier) {
     // ...
   };
-  
+
 }];
 ```
 
@@ -289,7 +289,7 @@ return function(ctrl, locals, later, identifer) {
 
 因为`$controller`支持依赖注入，那么就可以使用数组形态的依赖注入来注入第一个参数，而不是一个函数式注入。他应该依然支持`later`标识：
 
-_test/controller_spec.js_
+_test/controller\_spec.js_
 
 ```js
 it('can return a semi-constructed ctrl when using array injection', function() {
@@ -302,7 +302,7 @@ it('can return a semi-constructed ctrl when using array injection', function() {
     this.aDep = aDep;
     this.constructed = true;
   }
-  
+
   var controller = $controller(['aDep', MyController], null, true);
   expect(controller.constructed).toBeUndefned();
   var actualController = controller();
@@ -328,7 +328,7 @@ instance = Object.create(ctrlConstructor.prototype);
 
 结合第三个参数`later`和第四个参数`identifier`，如果我们要求，可以让`$controller`在作用域上绑定一个“未完成的”控制器对象：
 
-_test/controller_spec.js_
+_test/controller\_spec.js_
 
 ```js
 it('can bind semi-constructed controller to scope', function() {
@@ -406,7 +406,8 @@ _.forEach(controllerDirectives, function(directive) {
   controllers[directive.name] =
     $controller(controllerName, locals, true, directive.controllerAs);
 });
-````
+`
+```
 
 然后，在我们设置好独立作用域绑定之后、在调用预链接函数之前，我们会调用“非完全构造”的控制器函数，它会调用真正的控制器构造函数：
 
@@ -681,7 +682,7 @@ if (newIsolateScopeDirective && controllers[newIsolateScopeDirective.name]) {
 
 这个代码实现也开放了一些我们可以开放给应用开发者使用的便利模式。首先，人们可能会更喜欢指定指令绑定作为`bindToController`的值，而不是`isolateScope`的值，因为他们一般会选择在控制器解决问题。这种实现方式让 API 变得更为方便：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('can bind iso scope bindings through bindToController', function() {
@@ -735,7 +736,7 @@ function parseDirectiveBindings(directive) {
 
 另外，我们可以对这个代码实现进行扩展，这样我们甚至不需要为了创建绑定（bindings）而特地加入一个独立作用域！你可以结合使用一个普通作用域和一个值为对象的`bindToController`属性：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('can bind through bindToController without iso scope', function() {
@@ -788,3 +789,6 @@ if (scopeDirective && controllers[scopeDirective.name]) {
 看上去简单的特性却花费了我们很长时间进行基础设置的构建，但我们由此可以启用的应用模式却十分有用：`controllerAs`和`bindToController`的结合，可以让应用开发者即使不使用`$scope`对象都可以写大量的业务代码，而这种模式更受大多数人欢迎。
 
 > 浏览[这篇文章](https://github.com/flipjs/2014/09/09/isolate-scope-controller-as/)，可以了解更多有关该模式的细节。
+
+
+
