@@ -2,7 +2,7 @@
 
 实际上，我们还可以引入不止一个指令控制器到指令中。如果你对`require`的值指定一个字符数组，那么链接函数的第四个参数会变成一个对应的控制器对象数组：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('can be required from multiple sibling directives', function() {
@@ -65,3 +65,6 @@ function getControllers(require) {
   }
 }
 ```
+
+
+
