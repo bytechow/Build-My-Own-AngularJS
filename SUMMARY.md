@@ -158,6 +158,7 @@
   * [19-11-requiring-multiple-controllers-as-an-object](directives/19-controllers/19-11-requiring-multiple-controllers-as-an-object.md)
   * [19-12-self-requiring-directives](directives/19-controllers/19-12-self-requiring-directives.md)
   * [19-13-requiring-controllers-in-multi-element-directives](directives/19-controllers/19-13-requiring-controllers-in-multi-element-directives.md)
+  * [19-14-requiring-controllers-from-parent-elements](directives/19-controllers/19-14-requiring-controllers-from-parent-elements.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
