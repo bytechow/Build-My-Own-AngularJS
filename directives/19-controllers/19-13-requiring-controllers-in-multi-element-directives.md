@@ -2,7 +2,7 @@
 
 注入控制器的操作应该对跨元素指令也同样适用：
 
-_test/compile\_spec.js_
+_test/compile_spec.js_
 
 ```js
 it('is passed through grouped link wrapper', function() {
