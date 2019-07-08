@@ -202,3 +202,183 @@ function getControllers(require, $element) {
   // }
 }
 ```
+
+除了`^`，`require`属性还支持`^^`前缀。它跟`^`的相同之处在于都可以从父元素找到对应的指令控制器：
+
+_test/compile_spec.js_
+
+```js
+it('can be required from a parent directive with ^^', function() {
+  function MyController() {}
+  var gotMyController;
+  var injector = createInjector(['ng', function($compileProvider) {
+    $compileProvider.directive('myDirective', function() {
+      return {
+        scope: {},
+        controller: MyController
+      };
+    });
+    $compileProvider.directive('myOtherDirective', function() {
+      return {
+        require: '^^myDirective',
+        link: function(scope, element, attrs, myController) {
+          gotMyController = myController;
+        }
+      };
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive><div my-other-directive></div></div>');
+    $compile(el)($rootScope);
+    expect(gotMyController).toBeDefned();
+    expect(gotMyController instanceof MyController).toBe(true);
+  });
+});
+```
+
+不同之处在于，`^^`并不会在指令的兄弟元素中进行寻找控制器，而直接是从它的父元素开始查起：
+
+```js
+it('does not find from sibling directive when requiring with ^^', function() {
+  function MyController() {}
+  var injector = createInjector(['ng', function($compileProvider) {
+    $compileProvider.directive('myDirective', function() {
+      return {
+        scope: {},
+        controller: MyController
+      };
+    });
+    $compileProvider.directive('myOtherDirective', function() {
+      return {
+        require: '^^myDirective',
+        link: function(scope, element, attrs, myController) {}
+      };
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-other-directive></div>');
+    expect(function() {
+      $compile(el)($rootScope);
+    }).toThrow();
+  });
+});
+```
+
+在上面的测试用例中，我们希望在链接阶段能够抛出异常，因为我们请求注入一个兄弟指令（应用于同一个元素的指令），但我们使用了`^^`前缀所以我们无法找到它。
+
+`getControllers`上的正则表达式需要对可能出现的第二个`^`符号进行适配，如果发现有两个`^`符号，则需要从当前元素的父元素开始查找指令，而不是当前元素：
+
+_src/compile.js_
+
+```js
+function getControllers(require, $element) {
+  // if (_.isArray(require)) {
+  //   return _.map(require, function(r) {
+  //     return getControllers(r, $element);
+  //   });
+  // } else if (_.isObject(require)) {
+  //   return _.mapValues(require, function(r) {
+  //     return getControllers(r, $element);
+  //   });
+  // } else {
+  //   var value;
+  //   var match = require.match(/^(\^\^?)?/);
+  //   require = require.substring(match[0].length);
+  //   if (match[1]) {
+      if (match[1] === '^^') {
+        $element = $element.parent();
+      }
+  //     while ($element.length) {
+  //       value = $element.data('$' + require + 'Controller');
+  //       if (value) {
+  //         break;
+  //       } else {
+  //         $element = $element.parent();
+  //       }
+  //     }
+  //   } else {
+  //     if (controllers[require]) {
+  //       value = controllers[require].instance;
+  //     }
+  //   }
+  //   if (!value) {
+  //     throw 'Controller ' + require + ' required by directive, cannot be found!';
+  //   }
+  //   return value;
+  // }
+}
+```
+
+当使用对象语法来注入控制器是，我们需要把前缀直接作为属性值，形成下面这样的简写形式：
+
+```js
+require: {
+  myDirective: '^'
+}
+```
+
+下面是一个相关的测试用例：
+
+_test/compile_spec.js_
+
+```js
+it('can be required from parent in object form', function() {
+  function MyController() {}
+  var gotControllers;
+  var injector = createInjector(['ng', function($compileProvider) {
+    $compileProvider.directive('myDirective', function() {
+      return {
+        scope: {},
+        controller: MyController
+      };
+    });
+    $compileProvider.directive('myOtherDirective', function() {
+      return {
+        require: {
+          myDirective: '^'
+        },
+        link: function(scope, element, attrs, controllers) {
+          gotControllers = controllers;
+        }
+      };
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive><div my-other-directive></div></div>');
+    $compile(el)($rootScope);
+    expect(gotControllers.myDirective instanceof MyController).toBe(true);
+  });
+});
+```
+
+我们可以在`getDirectiveRequire`函数的指令实例化期间，把这种注册方式进行标准化。我们需要使用与`getControllers`函数中的同一个正则表达式，所以我们把它拿到外面来定义：
+
+```js
+var REQUIRE_PREFIX_REGEXP = /^(\^\^?)?/;
+```
+
+之后我们在`getControllers`函数的开始部分就使用这个变量：
+
+```js
+var match = require.match(REQUIRE_PREFIX_REGEXP);
+```
+
+在`getDirectiveRequire`中，我们使用这个正则表达式变量来提取对象属性值中的前缀。然后我们会看提取前缀之后还剩些什么。如果没剩下什么，则用 key 来填充。因为`myDirective: '^'`会变成`myDirective: '^myDirective'`，等等。
+
+_src/compile.js_
+
+```js
+function getDirectiveRequire(directive, name) {
+  // var require = directive.require || (directive.controller && name);
+  // if (!_.isArray(require) && _.isObject(require)) {
+  //   _.forEach(require, function(value, key) {
+      var prefx = value.match(REQUIRE_PREFIX_REGEXP);
+      var name = value.substring(prefx[0].length);
+      if (!name) {
+        require[key] = prefx[0] + key;
+      }
+  //   });
+  // }
+  // return require;
+}
+```
