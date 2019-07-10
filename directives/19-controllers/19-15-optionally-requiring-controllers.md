@@ -2,7 +2,7 @@
 
 我们目前的`require`代码遇到找不到所需控制器的情况都会抛出异常。实际上，我们也可以选择问号作为前缀，这样我们就不需要一定要找到对应的控制器了。如果你这样做了，即使找不到控制器，我们也不会抛出异常，而是会把`null`作为控制器的值：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('does not throw on required missing controller when optional', function() {
@@ -77,7 +77,7 @@ function getControllers(require, $element) {
 
 `require`还剩一点需要补充，是跟`^`、`^^`和`?`前缀有关的。实际在 Angular 中把`?`放到`^`（`^^`）的前面或后面都是允许的。也就是说，`?^`和`^?`都是有效的：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('allows optional marker after parent marker', function() {
@@ -177,3 +177,6 @@ function getControllers(require, $element) {
   // }
 }
 ```
+
+
+
