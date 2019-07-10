@@ -63,5 +63,10 @@ _.forEach(controllerDirectives, function(controllerDirective, name) {
 
 _src/compile.js_
 
-```
+```js
+_.forEach(controllerDirectives, function(controllerDirective, name) {
+  var require = controllerDirective.require;
+  if (_.isObject(require) && !_.isArray(require) &&
+    controllerDirective.bindToController) {}
+});
 ```
