@@ -67,6 +67,24 @@ _src/compile.js_
 _.forEach(controllerDirectives, function(controllerDirective, name) {
   var require = controllerDirective.require;
   if (_.isObject(require) && !_.isArray(require) &&
-    controllerDirective.bindToController) {}
+    controllerDirective.bindToController) {
+
+  }
 });
 ```
+
+如果这些基本条件都有了，我们获得了指令控制器对象和注入控制器对象的控制权，也就是我们可以使用到`getControllers`函数。我们可以通过 LoDash 的`assign`方法，很方便地把所有注入的控制器作为属性加入到我们控制器。
+
+```js
+_.forEach(controllerDirectives, function(controllerDirective, name) {
+  // var require = controllerDirective.require;
+  // if (_.isObject(require) && !_.isArray(require) &&
+  //   controllerDirective.bindToController) {
+    var controller = controllers[controllerDirective.name].instance;
+    var requiredControllers = getControllers(require, $element);
+    _.assign(controller, requiredControllers);
+  // }
+});
+```
+
+现在我们把 Angular 指令的`require`机制都实现完毕了！
