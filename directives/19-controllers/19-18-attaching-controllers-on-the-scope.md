@@ -32,3 +32,42 @@ it('allows aliasing controller in expression', function() {
   });
 });
 ```
+
+现在，即使我们已经在`ng_controller_spec.js`有了相关的测试，但代码开发却并不会出现在 ngController 里面，而是在`$controller`服务里。在查找控制器的过程中，`$controller`首先会从给予的字符串中提取出真正的控制器名称和别称：
+
+_src/controller.js_
+
+```js
+return function(ctrl, locals, later, identifer) {
+  // if (_.isString(ctrl)) {
+    var match = ctrl.match(/^(\S+)(\s+as\s+(\w+))?/);
+    ctrl = match[1];
+  //   if (controllers.hasOwnProperty(ctrl)) {
+  //     ctrl = controllers[ctrl];
+  //   } else if (globals) {
+  //     ctrl = window[ctrl];
+  //   }
+  // }
+  // ...
+}
+```
+
+这个正则表达式会匹配到一组不含空白符的字符作为控制器名称，然后是可能会出现的`as`关键词和它周围的空白符，这个关键词后面会有另一组字符表示控制器的别称：
+
+```js
+return function(ctrl, locals, later, identifer) {
+  // if (_.isString(ctrl)) {
+  //   var match = ctrl.match(/^(\S+)(\s+as\s+(\w+))?/);
+  //   ctrl = match[1];
+    identifer = identifer || match[3];
+  //   if (controllers.hasOwnProperty(ctrl)) {
+  //     ctrl = controllers[ctrl];
+  //   } else if (globals) {
+  //     ctrl = window[ctrl];
+  //   }
+  // }
+  // ...
+}
+```
+
+> 注意，虽然“controller as”一般都是与 ngController 结合使用，但并不是必须都这样用。这个功能是由`$controller`服务进行提供的，所以你也可以把它用于指令控制器，直接指定类似`MyCtrl as myCtrl`的值作为（指令定义对象的）`controller`属性值，而不用分别指定`controller`和`controllerAs`。
