@@ -166,6 +166,7 @@
   * [19-19-looking-up-a-controller-construnctor-from-the-scope](directives/19-controllers/19-19-looking-up-a-controller-construnctor-from-the-scope.md)
   * [19-20-summary](directives/19-controllers/19-20-summary.md)
 * [第20章 指令模板](directives/20-directive-templates/20-directive-templates.md)
+  * [20-1-what-we-will-skip](directives/20-directive-templates/20-directive-templates/20-1-what-we-will-skip.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
 * [第23章 组件](directives/23-components/23-components.md)
