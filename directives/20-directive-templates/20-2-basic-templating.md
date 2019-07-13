@@ -74,48 +74,48 @@ _src/compile.js_
 ```js
 s
 _.forEach(directives, function(directive) {
-  if (directive.$$start) {
-    $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
-  }
-  if (directive.priority < terminalPriority) {
-    return false;
-  }
-  if (directive.scope) {
-    if (_.isObject(directive.scope)) {
-      if (newIsolateScopeDirective || newScopeDirective) {
-        throw 'Multiple directives asking for new/inherited scope';
-      }
-      newIsolateScopeDirective = directive;
-    } else {
-      if (newIsolateScopeDirective) {
-        throw 'Multiple directives asking for new/inherited scope';
-      }
-      newScopeDirective = newScopeDirective || directive;
-    }
-  }
-  if (directive.compile) {
-    var linkFn = directive.compile($compileNode, attrs);
-    var isolateScope = (directive === newIsolateScopeDirective);
-    var attrStart = directive.$$start;
-    var attrEnd = directive.$$end;
-    var require = directive.require;
-    if (_.isFunction(linkFn)) {
-      addLinkFns(null, linkFn, attrStart, attrEnd, isolateScope, require);
-    } else if (linkFn) {
-      addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope,
-        require);
-    }
-  }
-  if (directive.controller) {
-    controllerDirectives = controllerDirectives || {};
-    controllerDirectives[directive.name] = directive;
-  }
+  // if (directive.$$start) {
+  //   $compileNode = groupScan(compileNode, directive.$$start, directive.$$end);
+  // }
+  // if (directive.priority < terminalPriority) {
+  //   return false;
+  // }
+  // if (directive.scope) {
+  //   if (_.isObject(directive.scope)) {
+  //     if (newIsolateScopeDirective || newScopeDirective) {
+  //       throw 'Multiple directives asking for new/inherited scope';
+  //     }
+  //     newIsolateScopeDirective = directive;
+  //   } else {
+  //     if (newIsolateScopeDirective) {
+  //       throw 'Multiple directives asking for new/inherited scope';
+  //     }
+  //     newScopeDirective = newScopeDirective || directive;
+  //   }
+  // }
+  // if (directive.compile) {
+  //   var linkFn = directive.compile($compileNode, attrs);
+  //   var isolateScope = (directive === newIsolateScopeDirective);
+  //   var attrStart = directive.$$start;
+  //   var attrEnd = directive.$$end;
+  //   var require = directive.require;
+  //   if (_.isFunction(linkFn)) {
+  //     addLinkFns(null, linkFn, attrStart, attrEnd, isolateScope, require);
+  //   } else if (linkFn) {
+  //     addLinkFns(linkFn.pre, linkFn.post, attrStart, attrEnd, isolateScope,
+  //       require);
+  //   }
+  // }
+  // if (directive.controller) {
+  //   controllerDirectives = controllerDirectives || {};
+  //   controllerDirectives[directive.name] = directive;
+  // }
   if (directive.template) {
     $compileNode.html(directive.template);
   }
-  if (directive.terminal) {
-    terminal = true;
-    terminalPriority = directive.priority;
-  }
+  // if (directive.terminal) {
+  //   terminal = true;
+  //   terminalPriority = directive.priority;
+  // }
 });
 ```
