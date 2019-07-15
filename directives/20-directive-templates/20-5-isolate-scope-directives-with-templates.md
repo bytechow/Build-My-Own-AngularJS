@@ -4,7 +4,7 @@
 
 其实还有一个例外，这个例外跟模板有关：当一个指令既定义了独立作用域，又定义了模板时，模板里面的指令也会接收到这个独立作用域（或独立作用域的一个继承者）。也就是说，模板内容会被视为独立作用域的一个部分。如果你把这种带模板的独立作用域指令视作一个“拥有”属于自己的模板的组件，会好理解一点。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('uses isolate scope for template contents', function() {
@@ -62,3 +62,6 @@ _src/compile.js_
 //   );
 // });
 ```
+
+
+
