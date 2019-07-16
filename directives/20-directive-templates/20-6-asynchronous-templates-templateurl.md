@@ -141,7 +141,7 @@ _.forEach(directives, function(directive) {
 });
 ```
 
-另一个要注意的是，这时当前元素的内容应该被清空了。元素内容会被即将载入的模板内容代替，但我们需要立即清除所有的旧内容，这样旧内容就不会被不必要地编译了：
+另一个要做的是，这时当前元素的内容应该被清空了。元素内容会被即将载入的模板内容代替，但我们需要立即清除所有的旧内容，这样旧内容就不会被不必要地编译了：
 
 _test/compile_spec.js_
 
@@ -160,4 +160,155 @@ it('immediately empties out the element', function() {
     expect(el.is(':empty')).toBe(true);
   });
 });
+```
+
+要达到这个目标，我们需要引入一个新函数`compileTemplateUrl`，它的工作就是处理加入了模板以后的所有异步工作：
+
+_src/compile.js_
+
+```js
+if (directive.templateUrl) {
+  compileTemplateUrl($compileNode);
+  return false;
+}
+````
+
+这个函数（会在`applyTemplatesToNode`函数外加入）目前只需要清空节点内容，就可以让我们的测试通过：
+
+```js
+function compileTemplateUrl($compileNode) {
+  $compileNode.empty();
+}
+```
+
+实际上，我们目前实现的就是，当指令定义了`templateUrl`，就挂起当前 DOM 子树的编译过程。当前指令或指令所在元素上的其他指令都不会被编译，而元素的子节点也会被移除掉。
+
+现在我们可以开始思考我们什么时候应该继续编译过程。首先需要做的事通过 URL 来获取指定的模板。我们可以利用本书上一部分中实现的`$http`服务来完成。
+
+为了测试模板的获取，我们需要引入 Sinon.js 提供的模拟 XMLHttpRequest 的功能，我们在`$http`章节也用到了这个功能。
+
+首先，在`compile_spec.js`中引入 Sinon：
+
+_test/compile_spec.js_
+
+```js
+'use strict';
+
+// var _ = require('lodash');
+// var $ = require('jquery');
+var sinon = require('sinon');
+// var publishExternalAPI = require('../src/angular_public');
+// var createInjector = require('../src/injector');
+```
+
+然后，在`describe('templateUrl')`测试板块中加下以下安装代码：
+
+```js
+describe('templateUrl', function() {
+  var xhr, requests;
+  
+  beforeEach(function() {
+    xhr = sinon.useFakeXMLHttpRequest();
+    requests = [];
+    xhr.onCreate = function(req) {
+      requests.push(req);
+    };
+  });
+
+  afterEach(function() {
+    xhr.restore();
+  });
+  // ...
+});
+```
+
+现在我们可以加入第一个测试，这个测试是与模板加载相关的。它会测试当带有`templateUrl`的指令被编译时，是否生成了一个对指定 URL 的 GET 请求：
+
+```js
+it('fetches the template', function() {
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        templateUrl: '/my_directive.html'
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+
+    $compile(el);
+    $rootScope.$apply();
+    
+    expect(requests.length).toBe(1);
+    expect(requests[0].method).toBe('GET');
+    expect(requests[0].url).toBe('/my_directive.html');
+  });
+});
+```
+
+注意，这里`$apply`是在`$compile`的后面调用的。我们需要在`$http`服务里使用 Promise 链。
+
+我们需要在`compileTemplateUrl`中创建 HTTP 请求。在此之前，它需要能访问到指令对象，所以我们会传入这个参数：
+
+_src/compile.js_
+
+```js
+if (directive.templateUrl) {
+  compileTemplateUrl(directive, $compileNode);
+  // return false;
+} else if (directive.compile) {
+```
+
+我们可以使用`$http`服务的`get`方法去创建一个实际的请求：
+
+```js
+function compileTemplateUrl(directive, $compileNode) {
+  // $compileNode.empty();
+  $http.get(directive.templateUrl);
+}
+```
+
+我们还没有在`$compile`引入`$http`服务，所以我们需要在`CompileProvider.$get`里面注入这个参数：
+
+```js
+this.$get = ['$injector', '$parse', '$controller', '$rootScope', '$http',
+    function($injector, $parse, $controller, $rootScope, $http) {
+```
+
+现在就达成了通过测试的条件了。
+
+当模板被接收到时需要做些什么呢？显然，我们需要将模板转化、生成为元素内容：
+
+```js
+it('populates element with template', function() {
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        templateUrl: '/my_directive.html'
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+
+    $compile(el);
+    $rootScope.$apply();
+    
+    requests[0].respond(200, {}, '<div class="from-template"></div>');
+    expect(el.fnd('> .from-template').length).toBe(1);
+  });
+});
+```
+
+我们可以通过`$http`调用后返回的 Promise 对象的`success`回调函数来处理。这个回调函数的第一个参数就时相应体，也就是模板 HTML 代码：
+
+_src/compile.js_
+
+```js
+function compileTemplateUrl(directive, $compileNode) {
+  // $compileNode.empty();
+  $http.get(directive.templateUrl).success(function(template) {
+    $compileNode.html(template);
+  });
+}
 ```
