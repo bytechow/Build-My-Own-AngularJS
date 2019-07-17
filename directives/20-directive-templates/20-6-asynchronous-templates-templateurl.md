@@ -312,3 +312,59 @@ function compileTemplateUrl(directive, $compileNode) {
   });
 }
 ```
+
+现在我们获取到了处于可以恢复指令编译状态下的 DOM。这意味着当我们接收到了指令模板，我们可以让当前指令的`compile`函数被正常调用：
+
+_test/compile_spec.js_
+
+```js
+it('compiles current directive when template received', function() {
+  var compileSpy = jasmine.createSpy();
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        templateUrl: '/my_directive.html',
+        compile: compileSpy
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+
+    $compile(el);
+    $rootScope.$apply();
+    
+    requests[0].respond(200, {}, '<div class="from-template"></div>');
+    expect(compileSpy).toHaveBeenCalled();
+  });
+});
+```
+
+同样可以继续进行编译过程的还是同一元素上的其他指令，我们在`applyDirectivesToNode`函数中跳过了它们的编译，现在需要继续它们的编译：
+
+```js
+it('resumes compilation when template received', function() {
+  var otherCompileSpy = jasmine.createSpy();
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        templateUrl: '/my_directive.html'
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        compile: otherCompileSpy
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-other-directive></div>');
+
+    $compile(el);
+    $rootScope.$apply();
+    
+    requests[0].respond(200, {}, '<div class="from-template"></div>');
+    expect(otherCompileSpy).toHaveBeenCalled();
+  });
+});
+```
