@@ -368,3 +368,131 @@ it('resumes compilation when template received', function() {
   });
 });
 ```
+
+怎么实现呢？我们需要的是在接收到这个模板时重启`applyDirectivesToNode`的处理逻辑，但只针对还没有进行编译的指令。而这就是我们将要做的事。
+
+首先，`compileTemplateUrl`不仅要可以访问到当前指令，还应该可以访问到所有还没应用上的指令。换句话说，它需要当前所有指令的一个子数组，收集的指令从当前元素的索引开始。此外，我们也会传入当前元素的`Attributes`对象，因为我们之后会用到：
+
+_src/compile.js_
+
+```js
+if (directive.templateUrl) {
+  compileTemplateUrl(_.drop(directives, i), $compileNode, attrs);
+  return false;
+```
+
+这个`i`变量还没有，我们应该在遍历指令的`_.forEach`循环函数中加入这个参数，它指向当前指令的索引：
+
+```js
+_.forEach(directives, function(directive, i) {
+  // ...
+});
+```
+
+现在，`compileTemplateUrl`的第一个参数将变成一个数组，而使用`templateUrl`的指令将会是数组的第一个元素：
+
+```js
+function compileTemplateUrl(directives, $compileNode, attrs) {
+  var origAsyncDirective = directives[0];
+  // $compileNode.empty();
+  $http.get(origAsyncDirective.templateUrl).success(function(template) {
+    // $compileNode.html(template);
+  });
+}
+```
+
+现在我们就有了重新调用`applyDirectivesToNode`的所有基础了：
+
+```js
+function compileTemplateUrl(directives, $compileNode, attrs) {
+  // var origAsyncDirective = directives[0];
+  // $compileNode.empty();
+  // $http.get(origAsyncDirective.templateUrl).success(function(template) {
+  //   $compileNode.html(template);
+    applyDirectivesToNode(directives, $compileNode, attrs);
+  // });
+}
+```
+
+但这里还有一个问题，我们现在遇到`templateUrl`属性的指令就会重启编译。这意味着`applyDirectivesToNode`会马上遇上`templateUrl`并再次停止编译。然后我们就永远陷在不断获取模板的循环里。
+
+我们可以通过先从 directives 数组中移除第一个指令（带异步模板的指令）来解决：
+
+```js
+function compileTemplateUrl(directives, $compileNode, attrs) {
+  var origAsyncDirective = directives.shift();
+  // $compileNode.empty();
+  // $http.get(origAsyncDirective.templateUrl).success(function(template) {
+  //   $compileNode.html(template);
+  //   applyDirectivesToNode(directives, $compileNode, attrs);
+  // });
+}
+```
+
+然后我们就用一个新的指令对象来补充 directives 数组，这个新指令对象的属性都跟第一个指令的属性一样，除了`templateUrl`被设置为`null`：
+
+```js
+function compileTemplateUrl(directives, $compileNode, attrs) {
+  // var origAsyncDirective = directives.shift();
+  var derivedSyncDirective = _.extend({},
+    origAsyncDirective, {
+      templateUrl: null
+    }
+  );
+  // $compileNode.empty();
+  // $http.get(origAsyncDirective.templateUrl).success(function(template) {
+    directives.unshift(derivedSyncDirective);
+  //   $compileNode.html(template);
+  //   applyDirectivesToNode(directives, $compileNode, attrs);
+  // });
+}
+```
+
+我们在重启编译过程中还漏了一步，就是对子节点的编译。`applyDirectivesToNode`并没有完成这步工作。
+
+_test/compile_spec.js_
+
+```js
+it('resumes child compilation after template received', function() {
+  var otherCompileSpy = jasmine.createSpy();
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        templateUrl: '/my_directive.html'
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        compile: otherCompileSpy
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+
+    $compile(el);
+    $rootScope.$apply();
+    
+    requests[0].respond(200, {}, '<div my-other-directive></div>');
+    expect(otherCompileSpy).toHaveBeenCalled();
+  });
+});
+```
+
+我们需要做的仅仅是对当前节点的子节点调用`compileNodes`，这时来自模板的子节点都已经包含在里面了：
+
+```js
+function compileTemplateUrl(directives, $compileNode, attrs) {
+  // var origAsyncDirective = directives.shift();
+  // var derivedSyncDirective = _.extend({}, origAsyncDirective, {
+  //   templateUrl: null
+  // });
+  // $compileNode.empty();
+  // $http.get(origAsyncDirective.templateUrl).success(function(template) {
+  //   directives.unshift(derivedSyncDirective);
+  //   $compileNode.html(template);
+  //   applyDirectivesToNode(directives, $compileNode, attrs);
+    compileNodes($compileNode[0].childNodes);
+  // });
+}
+```
