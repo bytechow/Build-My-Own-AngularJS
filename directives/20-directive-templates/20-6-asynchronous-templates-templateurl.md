@@ -481,6 +481,8 @@ it('resumes child compilation after template received', function() {
 
 我们需要做的仅仅是对当前节点的子节点调用`compileNodes`，这时来自模板的子节点都已经包含在里面了：
 
+_src/compile.js_
+
 ```js
 function compileTemplateUrl(directives, $compileNode, attrs) {
   // var origAsyncDirective = directives.shift();
