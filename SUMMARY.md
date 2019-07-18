@@ -172,6 +172,7 @@
   * [20-4-template-functions](directives/20-directive-templates/20-4-template-functions.md)
   * [20-5-isolate-scope-directives-with-templates](directives/20-directive-templates/20-5-isolate-scope-directives-with-templates.md)
   * [20-6-asynchronous-templates-templateUrl](directives/20-directive-templates/20-6-asynchronous-templates-templateurl.md)
+  * [20-7-template-url-functions](directives/20-directive-templates/20-7-template-url-functions.md)
 * [第21章 指令嵌套](directives/21-directive-transclusion/21-directive-transclusion.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
 * [第23章 组件](directives/23-components/23-components.md)
