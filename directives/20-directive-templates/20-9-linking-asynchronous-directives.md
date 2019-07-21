@@ -146,6 +146,8 @@ function compileTemplateUrl(
       directives, $compileNode, attrs, previousCompileContext);
     afterTemplateChildLinkFn = compileNodes($compileNode[0].childNodes);
   // });
-  // return function delayedNodeLinkFn() {};
+  // return function delayedNodeLinkFn() {
+  // 
+  // };
 }
 ```
