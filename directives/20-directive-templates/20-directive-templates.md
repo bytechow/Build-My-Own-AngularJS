@@ -6,5 +6,5 @@
 
 > 指令模板与独立作用域结合使用时会尤其有用，它能帮助我们用“组件化”的方式构建应用 UI。在这方面，Angular 2 已经走在前头了，但我们还是可以使用 [Angular 1.x 的方式](http://teropa.info/blog/2014/10/24/how-ive-improved-my-angular-apps-by-banning-ng-controller.html)来应用这种模式
 
-> 下载[本章初识代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter19-controllers)
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter19-controllers)
 
