@@ -89,3 +89,131 @@ it('compiles child elements', function() {
   });
 });
 ```
+
+因此我们的确需要编译子节点，但在从原来进行编译的 DOM 树上移除它们之后，应该继续持有子节点。我们可以通过为每个单独的子节点分别调用`compile`服务来同时实现满足这两个条件。实际上，进行 translusion 的内容都会由一个单独的、独立的编译进程进行编译：
+
+_src/compile.js_
+
+```js
+if (directive.transclude) {
+  var $transcludedNodes = $compileNode.clone().contents();
+  compile($transcludedNodes);
+  // $compileNode.empty();
+}
+```
+
+注意，我们在获取要编译的节点的内容之前是先对其进行克隆。这样做的目的是在我们清空节点内容之前，我们依然持有进行了 translusion 的内容的克隆版本。
+
+目前我们是对进行了 translusion 的节点进行编译，但我们在编译之后依然会丢弃它们。它们没有用于任何地方，跟本页介绍的内容毫无关联。而我们想要的其实是允许把这些元素通过 transclusion 转移到其他地方。但在哪呢，又要怎么实现呢？
+
+要明确这些元素会在哪里进行 transclusion 的这个问题，是我们在这个框架中无法解决的问题。因为这个是由应用开发者自行确定的。我们能做的就让这些元素能被应用开发者使用，这样他们就可以把它们放到自己想放的地方去。
+
+要实现这个功能，我们需要对要进行 translusion 的指令链接函数加入新的、第五个参数。这个函数就是 transclusion 函数。这个函数能让指令的创建者访问到已经进行 translusion 的内容。下面的这个测试用例就是用于测试指令到底有没有进行 translusion：它会使用 translusion 函数来获取已经进行 translusion 的内容，并把内容放到模板之中：
+
+_test/compile_spec.js_
+
+```js
+it('makes contents available to directive link function', function() {
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: true,
+        template: '<div in-template></div>',
+        link: function(scope, element, attrs, ctrl, transclude) {
+          element.fnd('[in-template]').append(transclude());
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-transcluder><div in-transcluder></div></div>');
+    $compile(el)($rootScope);
+    expect(el.fnd('> [in-template] > [in-transcluder]').length).toBe(1);
+  });
+});
+```
+
+当指令使用了 translusion，就可以使用指令链接函数的第五个参数——translusion 函数。下面我们来介绍如何创建这个函数并传入它。
+
+在`applyDirectivesToNode`中，我们需要引入一个新的跟踪变量（tracking variable），叫做`childTranscludeFn`：
+
+_src/compile.js_
+
+```js
+function applyDirectivesToNode(
+  directives, compileNode, attrs, previousCompileContext) {
+  // previousCompileContext = previousCompileContext || {};
+  // var $compileNode = $(compileNode);
+  // var terminalPriority = -Number.MAX_VALUE;
+  // var terminal = false;
+  // var preLinkFns = previousCompileContext.preLinkFns || [];
+  // var postLinkFns = previousCompileContext.postLinkFns || [];
+  // var controllers = {};
+  // var newScopeDirective;
+  // var newIsolateScopeDirective = previousCompileContext.newIsolateScopeDirective;
+  // var templateDirective = previousCompileContext.templateDirective;
+  // var controllerDirectives = previousCompileContext.controllerDirectives;
+  var childTranscludeFn;
+  
+  // ...
+}
+```
+
+在这个变量中，我们会保存用于编译被 translusion 的内容而调用`compile`的函数的返回值。也就是说，这将会是这些内容的公共链接函数：
+
+_src/compile.js_
+
+```js
+if (directive.transclude) {
+  // var $transcludedNodes = $compileNode.clone().contents();
+  childTranscludeFn = compile($transcludedNodes);
+  // $compileNode.empty();
+}
+```
+
+为了通过测试用例，现在我们能做的最简单的事就是对这个公共链接函数进行修改，以便这个函数能够返回它链接过的节点：
+
+```js
+return function publicLinkFn(scope) {
+  $compileNodes.data('$scope', scope);
+  compositeLinkFn(scope, $compileNodes);
+  return $compileNodes;
+};
+```
+
+我们这样做的目的就是让属于被 translusion 的内容的公共链接函数能过作为 translusion 函数，传递给指令：
+
+```js
+function nodeLinkFn(childLinkFn, scope, linkNode) {
+  
+  // ...
+  
+  _.forEach(preLinkFns, function(linkFn) {
+    linkFn(
+      // linkFn.isolateScope ? isolateScope : scope,
+      // $element,
+      // attrs,
+      // linkFn.require && getControllers(linkFn.require, $element),
+      childTranscludeFn
+    );
+  });
+  // if (childLinkFn) {
+  //   var scopeToChild = scope;
+  //   if (newIsolateScopeDirective && newIsolateScopeDirective.template) {
+  //     scopeToChild = isolateScope;
+  //   }
+  //   childLinkFn(scopeToChild, linkNode.childNodes);
+  // }
+  _.forEachRight(postLinkFns, function(linkFn) {
+    linkFn(
+      // linkFn.isolateScope ? isolateScope : scope,
+      // $element,
+      // attrs,
+      // linkFn.require && getControllers(linkFn.require, $element),
+      childTranscludeFn
+    );
+  });
+}
+```
+
+> 注意，这个 translusion 函数将会传递到节点上的所有指令里面去，包括含有`transclude: true`属性和不含该属性的指令。
