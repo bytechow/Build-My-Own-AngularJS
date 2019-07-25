@@ -217,3 +217,69 @@ function nodeLinkFn(childLinkFn, scope, linkNode) {
 ```
 
 > 注意，这个 translusion 函数将会传递到节点上的所有指令里面去，包括含有`transclude: true`属性和不含该属性的指令。
+
+我们现在接触到了一个关键点：本质上，transclusion 函数就是一个链接函数。现在，它就是一个原原本本的、用于进行了 translusion 的内容的公共链接函数。但事情并没有这么简单。比如，我们现在就没有考虑到作用域的管理。但 transclusion 函数实际上就是链接函数的这个基本点不会改变。
+
+在我们进行作用域的管理之前，我们会对 transclusion 的使用添加一个限制：就像指令模板一样，我们在一个元素上只能使用一次 transclusion。在（同一个元素上的）两个指令都使用 transclusion 并没有多大意义，因为第一次 transclusion 已经把节点里原本的内容都清空掉了，第二个 transclusion 指令也就没法操作了。因此当（同一个元素上）使用了超过两个 transclusion 指令，我们就会跑出一个明确的错误：
+
+_test/compile_spec.js_
+
+```js
+it('is only allowed once per element', function() {
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: true
+      };
+    },
+    mySecondTranscluder: function() {
+      return {
+        transclude: true
+      };
+    }
+  });
+  injector.invoke(function($compile) {
+    var el = $('<div my-transcluder my-second-transcluder></div>');
+    expect(function() {
+      $compile(el);
+    }).toThrow();
+  });
+});
+```
+
+要跟踪检查这种情况，我们需要在`applyDirectivesToNode`中使用一个新变量，这个变量就是一个标识，记录之前是否在当前元素上出现过 transclusion 指令：
+
+_src/compile.js_
+
+```js
+function applyDirectivesToNode(
+  directives, compileNode, attrs, previousCompileContext) {
+  previousCompileContext = previousCompileContext || {};
+  // var $compileNode = $(compileNode);
+  // var terminalPriority = -Number.MAX_VALUE;
+  // var terminal = false;
+  // var preLinkFns = previousCompileContext.preLinkFns || [];
+  // var postLinkFns = previousCompileContext.postLinkFns || [];
+  // var controllers = {};
+  // var newScopeDirective;
+  // var newIsolateScopeDirective = previousCompileContext.newIsolateScopeDirective;
+  // var templateDirective = previousCompileContext.templateDirective;
+  // var controllerDirectives = previousCompileContext.controllerDirectives;
+  var childTranscludeFn, hasTranscludeDirective;
+  // ...
+}
+````
+
+在 transclusion 指令出现时，我们就会对这个标识进行检查：
+
+```js
+if (directive.transclude) {
+  if (hasTranscludeDirective) {
+    throw 'Multiple directives asking for transclude';
+  }
+  hasTranscludeDirective = true;
+  // var $transcludedNodes = $compileNode.clone().contents();
+  // childTranscludeFn = compile($transcludedNodes);
+  // $compileNode.empty();
+}
+```
