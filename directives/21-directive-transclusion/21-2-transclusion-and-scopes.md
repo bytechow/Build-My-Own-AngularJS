@@ -294,3 +294,69 @@ _.forEachRight(postLinkFns, function(linkFn) {
 当你在指令中接收到一个 transclusion 函数时，实际上接收到的事：被 transclude 内容的原生链接函数，被包裹到两个不同的绑定函数中。
 
 ![](/assets/when-receive-a-transclusion-function.png)
+
+之前，我们“内部”绑定的 transclusion 函数，现在接收的是被称为"containing scope"的作用域：
+
+_src/compile.js_
+
+```js
+var boundTranscludeFn;
+if (linkFn.nodeLinkFn.transcludeOnThisElement) {
+  boundTranscludeFn = function(containingScope) {
+    return linkFn.nodeLinkFn.transclude(scope);
+  };
+}
+```
+
+这样我们用于构建 transclusion 作用域的条件就都具备了，这个 transclusion 作用域也就是我们最终会进行链接的那个作用域：
+
+```js
+var boundTranscludeFn;
+if (linkFn.nodeLinkFn.transcludeOnThisElement) {
+  boundTranscludeFn = function(containingScope) {
+    var transcludedScope = scope.$new(false, containingScope);
+    return linkFn.nodeLinkFn.transclude(transcludedScope);
+  };
+}
+```
+
+也就是说，被 transclude 的作用域将会成为外层的`scope`，而`$parent`将会变成内部的`containingScope`。
+
+> 如果 transclusion 指令不使用作用域继承或独立作用域，那上述的这两个作用域将会是同一个作用域。这是因为组合链接函数只会传递上下文作用域给节点链接函数，而节点链接函数会使用绑定了作用域的 transclusion 函数进行返回。
+
+在继续下一个主题之前，关于 transclusion 作用域，我们需要再多介绍一点：作为指令使用者，我们可以不用管如何创建刚才开发的 transclusion 作用域，而只需要从指令中传递你自己的作用域。我们在调用 transclusion 函数时可以把这个作用域传入：
+
+_test/compile_spec.js_
+
+```js
+it('allows passing another scope to transclusion function', function() {
+  var otherLinkSpy = jasmine.createSpy();
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: true,
+        scope: {},
+        template: '<div></div>',
+        link: function(scope, element, attrs, ctrl, transclude) {
+          var mySpecialScope = scope.$new(true);
+          mySpecialScope.specialAttr = 42;
+          transclude(mySpecialScope);
+        }
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        link: otherLinkSpy
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-transcluder><div my-other-directive></div></div>');
+
+    $compile(el)($rootScope);
+    
+    var transcludedScope = otherLinkSpy.calls.frst().args[0];
+    expect(transcludedScope.specialAttr).toBe(42);
+  });
+});
+```
