@@ -360,3 +360,27 @@ it('allows passing another scope to transclusion function', function() {
   });
 });
 ```
+
+这意味着`scopeBoundTranscludeFn`需要接收一个可选的参数：用于 transclusion 的作用域。我们只需要把这个作用域作为第一个参数，传递给内部的`boundTranscludeFn`即可：
+
+_src/compile.js_
+
+```js
+function scopeBoundTranscludeFn(transcludedScope) {
+  return boundTranscludeFn(transcludedScope, scope);
+}
+```
+
+这个内部的`boundTranscludeFn`会接收这个 transclusion 作用域，如果没有提供这个 transclusion 作用域，我们就创建一个：
+
+```js
+var boundTranscludeFn;
+if (linkFn.nodeLinkFn.transcludeOnThisElement) {
+  boundTranscludeFn = function(transcludedScope, containingScope) {
+    if (!transcludedScope) {
+      transcludedScope = scope.$new(false, containingScope);
+    }
+    return linkFn.nodeLinkFn.transclude(transcludedScope);
+  };
+}
+```
