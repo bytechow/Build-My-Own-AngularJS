@@ -247,3 +247,50 @@ it('stops watching when transcluding directive is destroyed', function() {
   });
 });
 ```
+
+这里我们会在 transclusion 里面注册一个观察者。我们期望它会在 transclusion 指令接收后中止运作，但现在却不是这样的。
+
+从这里，我们也能看到 transclusion 作用域和其他作用域的区别是什么：它们从中获取数据的父作用域跟要决定它们是否要被销毁的父作用域是不同的。也就是说，它们（transclusion 作用域）需要两个父作用域。
+
+回顾第二章，我们确实实现了利用传入的 Scope 对象实现两个父作用域的功能。当我们调用`scope.$new()`时，我们可以传入可选的第二个参数：将会成为新作用域的`$parent`的 Scope 对象。这个作用域将会决定新作用域在什么时候会被销毁，而 JavaScript 原型（也就是所有的数据）会依然设置为调用`$new`方法的 Scope 对象。
+
+现在我们就可以利用这个特性了：我们需要创建一个特殊的 transclusion 作用域，这个作用域的原型是上下文作用域，而`$parent`会被设置为 transclusion 指令的作用域。
+
+后面说的这个作用域会在节点链接函数中使用，它会创建第二层的绑定数据，并被带到 transclusion 函数中，这个函数就是绑定了作用域的 transclusion 函数：
+
+_src/compile.js_
+
+```js
+function scopeBoundTranscludeFn() {
+  return boundTranscludeFn(scope);
+}
+_.forEach(preLinkFns, function(linkFn) {
+  linkFn(
+    // linkFn.isolateScope ? isolateScope : scope,
+    // $element,
+    // attrs,
+    // linkFn.require && getControllers(linkFn.require, $element),
+    scopeBoundTranscludeFn
+  );
+});
+// if (childLinkFn) {
+//   var scopeToChild = scope;
+//   if (newIsolateScopeDirective && newIsolateScopeDirective.template) {
+//     scopeToChild = isolateScope;
+//   }
+//   childLinkFn(scopeToChild, linkNode.childNodes);
+// }
+_.forEachRight(postLinkFns, function(linkFn) {
+  linkFn(
+    // linkFn.isolateScope ? isolateScope : scope,
+    // $element,
+    // attrs,
+    // linkFn.require && getControllers(linkFn.require, $element),
+    scopeBoundTranscludeFn
+  );
+});
+```
+
+当你在指令中接收到一个 transclusion 函数时，实际上接收到的事：被 transclude 内容的原生链接函数，被包裹到两个不同的绑定函数中。
+
+![](/assets/when-receive-a-transclusion-function.png)
