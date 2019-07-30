@@ -1,4 +1,4 @@
-###  clone attach function  （The Clone Attach Function）
+###  克隆 DOM 的 Attach 函数（The Clone Attach Function）
 
 我们之前已经看到我们在指令链接函数（或控制器）中获取的 transclusion 函数是如何运作的：调用它，就会返回一个指向进行了 transclude 的 DOM 的引用，利用这个引用之后就可以在某处插入这个 DOM。而在函数内部，他会把经过 transclude 的内容链接到一个 transclusion 作用域上去。这个作用域的父作用域是什么取决于 transclusion 是在哪里定义和是在哪里调用的。你也可以选择把一个作用域作为参数传递给 transclusion 函数，这样它就会使用这个作用域进行链接，而不需要再构建一个 transclusion 作用域。
 
