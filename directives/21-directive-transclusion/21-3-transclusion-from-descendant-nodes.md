@@ -4,7 +4,7 @@
 
 其实，还有更多的指令可以访问到这个 transclusion 函数：只要当前元素或它的后代元素是有 transclusion 的，都能访问到这第五个参数。这就意味着，我们可以在 transclusion 指令的模板内部元素摆放经过 transclude 的内容，就像我们下面这样：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('makes contents available to child elements', function() {
@@ -97,7 +97,7 @@ if (linkFn.nodeLinkFn.transcludeOnThisElement) {
 
 DOM 上的所有元素并不都拥有指令，我们也要能把 transclusion 函数传递给它们才行。在这个测试中，我们在要进行 transclusion 的指令模板中会有一个不带指令的`div`元素，这会令`in-template`指令无法接收到这个 transclude 函数：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('makes contents available to indirect child elements', function() {
@@ -120,7 +120,7 @@ it('makes contents available to indirect child elements', function() {
     var el = $('<div my-transcluder><div in-transclude></div></div>');
 
     $compile(el)($rootScope);
-    
+
     expect(el.fnd('> div > [in-template] > [in-transclude]').length).toBe(1);
   });
 });
@@ -150,7 +150,7 @@ if (linkFn.nodeLinkFn) {
 
 你也可以让这种指令支持 transclusion，通过对自定义编译过程的节点的公共链接函数传递一个额外的参数。这个参数是一个`options`对象，而这个对象里面支持定义一个 key 为`parentBoundTranscludeFn`的属性。定义了这个属性的话，我们就可以把我们接收到的 transclusion 函数传递其他链接过程中去：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('supports passing transclusion function to public link function', function() {
@@ -179,7 +179,7 @@ it('supports passing transclusion function to public link function', function() 
     var el = $('<div my-transcluder><div in-transclude></div></div>');
 
     $compile(el)($rootScope);
-    
+
     expect(el.fnd('> [in-custom-template] > [in-transclude]').length).toBe(1);
   });
 });
@@ -203,7 +203,7 @@ return function publicLinkFn(scope, options) {
 
 这样的话确实会带来一个有关 scope 生命周期的问题：我们传递过去的是一个绑定了作用域的 transclusion function，因为在链接函数里面有的就是这个。那 transclusion 作用域的`$parent`将会被误绑为当前的作用域，即使我们在这里没有链接过 transclusion。当我们销毁自定义链接的内容，并希望在经过 transclude 的内容里面的观察者都停止工作时，出现这种情况是很正常的（？）。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('destroys scope passed through public link fn at the right time', function() {
@@ -244,13 +244,13 @@ it('destroys scope passed through public link fn at the right time', function() 
     var el = $('<div my-transcluder><div in-transclude></div></div>');
 
     $compile(el)($rootScope);
-    
+
     $rootScope.$apply();
     expect(watchSpy.calls.count()).toBe(2);
-    
+
     $rootScope.$apply();
     expect(watchSpy.calls.count()).toBe(3);
-    
+
     $rootScope.$broadcast('destroyNow');
     $rootScope.$apply();
     expect(watchSpy.calls.count()).toBe(3);
@@ -283,3 +283,6 @@ return function publicLinkFn(scope, options) {
   // return $compileNodes;
 };
 ```
+
+
+
