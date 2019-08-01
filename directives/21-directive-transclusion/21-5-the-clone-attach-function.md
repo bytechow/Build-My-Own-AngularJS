@@ -211,3 +211,96 @@ var boundTranscludeFn;
 有一个解释是跟执行时机有关：当你获取了 transclusion function 的返回值，DOM 其实已经被链接了。但 clone attach function 是在链接之前调用的。这让我们在链接之前还有机会对克隆后的 DOM 进行操作，就在 clone attach function 中进行改变。
 
 但 clone attach function 的存在还有一个更大的原因，是跟 scope 有关的，我们将会在稍后进行介绍。
+
+首先，当你使用 clone attach function 时不一定要提供自己的 transclusion 作用域，像我们在上一个单元测试做的那样。你可以忽略它，并把 clone attach function 作为唯一的参数。（在这种情况下，就会使用创建 transclusion 作用域的默认逻辑。）
+
+_test/compile_spec.js_
+
+```js
+it('can be used as the only transclusion function argument', function() {
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: true,
+        template: '<div in-template></div>',
+        link: function(scope, element, attrs, ctrl, transcludeFn) {
+          transcludeFn(function(transclNode) {
+            element.find('[in-template]').append(transclNode);
+          });
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-transcluder><div in-transclusion></div></div>');
+
+    $compile(el)($rootScope);
+
+    expect(el.find('> [in-template] > [in-transclusion]').length).toBe(1);
+  });
+});
+```
+
+> 这是我们第一次看到 transclusion 函数在“自然环境”中最常被使用的方式：传递 clone attach function 作为唯一的参数。
+
+这也就是说 transclusion 函数可以以三种不同的方式进行调用：
+
+1. 使用一个 transclusion 作用域和一个 clone attach function
+2. 仅使用一个 transclusion 作用域
+3. 仅使用一个 clone attach function
+
+这也意味着我们需要对传递给函数的第一个参数的“类型”进行检查。如果它看上去不像是一个 scope 对象，我们就假设它是一个 clone attach function（或者就是`undefined`）：
+
+_src/compile.js_
+
+```js
+function scopeBoundTranscludeFn(transcludedScope, cloneAttachFn) {
+  if (!transcludedScope || !transcludedScope.$watch ||
+    !transcludedScope.$evalAsync) {
+    cloneAttachFn = transcludedScope;
+    transcludedScope = undefned;
+  }
+  // return boundTranscludeFn(transcludedScope, cloneAttachFn, scope);
+}
+// scopeBoundTranscludeFn.$$boundTransclude = boundTranscludeFn;
+```
+
+这就是 clone attach function 参数需要是一个函数的最大原因。当你没有提供自己的 scope，就会使用一个默认的 transclusion 作用域，那 clone attach function 是我们能访问 transclusion 指令作用域的唯一方式。并且你确实经常需要访问它：如果你在移除 transclusion 指令之前想移除经过 transclude 的 DOM，就像[the documentation states](https://goo.gl/EYzqij)所提出到那样，你有责任销毁这个 transclusion 作用域，你只能在访问到这个作用域的情况下才能销毁这个作用域。
+
+除此以外，clone attach function 让我们可以在 transclude 内容进行链接之前向 transclusion 作用域添加数据。因此你可以通过作用域传递额外数据给 transclude 内容，就像下面单元测试展示出来这样。由于我们已经开发了所有该特性需要的功能，下面的单元测试其实已经通过了，但为了说明我们想要介绍的这个特性，我们还是会加入测试用例：
+
+_test/compile_spec.js_
+
+```js
+it('allows passing data to transclusion', function() {
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: true,
+        template: '<div in-template></div>',
+        link: function(scope, element, attrs, ctrl, transcludeFn) {
+          transcludeFn(function(transclNode, transclScope) {
+            transclScope.dataFromTranscluder = 'Hello from transcluder';
+            element.find('[in-template]').append(transclNode);
+          });
+        }
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        link: function(scope, element) {
+          element.html(scope.dataFromTranscluder);
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-transcluder><div my-other-directive></div></div>');
+
+    $compile(el)($rootScope);
+    
+    expect(el.find('> [in-template] > [my-other-directive]').html())
+      .toEqual('Hello from transcluder');
+  });
+});
+```
