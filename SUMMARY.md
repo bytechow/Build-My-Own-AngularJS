@@ -185,6 +185,7 @@
   * [21-3-transclusion-from-descendant-nodes](directives/21-directive-transclusion/21-3-transclusion-from-descendant-nodes.md)
   * [21-4-transclusion-in-controllers](directives/21-directive-transclusion/21-4-transclusion-in-controllers.md)
   * [21-5-the-clone-attach-function](directives/21-directive-transclusion/21-5-the-clone-attach-function.md)
+  * [21-6-transclusion-with-template-urls](directives/21-directive-transclusion/21-6-transclusion-with-template-urls.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
 * [第23章 组件](directives/23-components/23-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
