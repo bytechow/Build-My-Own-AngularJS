@@ -187,6 +187,7 @@
   * [21-5-the-clone-attach-function](directives/21-directive-transclusion/21-5-the-clone-attach-function.md)
   * [21-6-transclusion-with-template-urls](directives/21-directive-transclusion/21-6-transclusion-with-template-urls.md)
   * [21-7-transclusion-with-multi-element-directives](directives/21-directive-transclusion/21-7-transclusion-with-multi-element-directives.md)
+  * [21-8-the-ngTransclude-directive](directives/21-directive-transclusion/21-8-the-ngtransclude-directive.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
 * [第23章 组件](directives/23-components/23-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)

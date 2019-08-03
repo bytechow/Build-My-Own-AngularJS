@@ -4,7 +4,7 @@
 
 答案并不是显而易见的，而碰巧，Angular 也没有为此做什么特殊逻辑处理——它只是会像 jQuery 或 jqLite 的 DOM 操作函数做的一样对待跨元素指令。然而，Angular 确实有对这种情况有基本的支持。我们需要在`compile_spec.js`的`describe('transclude')`测试模块中加入下面这个测试用例：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('can be used with multi-element directives', function() {
@@ -44,3 +44,6 @@ function groupElementsLinkFnWrapper(linkFn, attrStart, attrEnd) {
   };
 }
 ```
+
+
+
