@@ -131,3 +131,150 @@ it('includes directive attribute value in comment', function() {
   });
 });
 ```
+
+我们可以直接从当前的 Attributes 对象中把对应的属性值拿出来用，这样就能通过测试了：
+
+_src/compile.js_
+
+```js
+if (directive.transclude === 'element') {
+  // $compileNode.replaceWith($(document.createComment(
+    ' ' + directive.name + ': ' + attrs[directive.name] + ' '
+  // )));
+} else {
+  // ...
+}
+```
+
+如果我们将 DOM 里面的元素节点替换为注释节点，那我们到底应该传递什么给指令的编译和链接函数呢？实际上我们传递的是注释节点。所以当我们遇到一个定义了`transclude: 'element'`的指令，它的编译和链接函数接收到的都是一个注释节点，这确实够奇怪的了：
+
+_test/compile_spec.js_
+
+```js
+it('calls directive compile and link with comment', function() {
+  var gotCompiledEl, gotLinkedEl;
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: 'element',
+        compile: function(compiledEl) {
+          gotCompiledEl = compiledEl;
+          return function(scope, linkedEl) {
+            gotLinkedEl = linkedEl;
+          };
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div><div my-transcluder></div></div>');
+
+    $compile(el)($rootScope);
+    
+    expect(gotCompiledEl[0].nodeType).toBe(Node.COMMENT_NODE);
+    expect(gotLinkedEl[0].nodeType).toBe(Node.COMMENT_NODE);
+  });
+});
+```
+
+这里的关键是我们会将`$compileNode`变量替换为一个持有新创建的注释节点的变量，因为这才是我们要传递到编译和链接函数里去的变量。所以，我们需要对`$compileNode`重新赋值，但在此之前，我们需要将它的原始值（原始的元素节点）存放到另一个变量：
+
+_src/compile.js_
+
+```js
+if (directive.transclude === 'element') {
+  var $originalCompileNode = $compileNode;
+  $compileNode = $(document.createComment(
+    ' ' + directive.name + ': ' + attrs[directive.name] + ' '
+  ));
+  $originalCompileNode.replaceWith($compileNode);
+} else {
+  // ...
+}
+```
+
+所以目前`$originalCompileNode`会保存当前指令所在的元素，而`$compileNode`则会保存新创建的注释节点。原始元素节点不会被附加到其他地方，而替代的注释节点将会出现在本来属于元素节点的位置。
+
+有趣的是，如果在同一个元素上有低优先级指令，它们也是需要被编译的，即使我们会从 DOM 中移除这个元素：
+
+_test/compile_spec.js_
+
+```js
+it('calls lower priority compile with original', function() {
+  var gotCompiledEl;
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        priority: 2,
+        transclude: 'element'
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        priority: 1,
+        compile: function(compiledEl) {
+          gotCompiledEl = compiledEl;
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile) {
+    var el = $('<div><div my-transcluder my-other-directive></div></div>');
+
+    $compile(el);
+    
+    expect(gotCompiledEl[0].nodeType).toBe(Node.ELEMENT_NODE);
+  });
+});
+```
+
+当这些指令确实在当前代码实现的条件下进行了编译，它是跟注释节点一起出现的，但有点令人感觉奇怪的是，注释节点上并没有这些指令。上面这个测试会失败，因为它希望编译发生在元素节点上，而不是注释节点。
+
+除此之外，子节点上的指令应该也会被编译：
+
+```js
+it('calls compile on child element directives', function() {
+  var compileSpy = jasmine.createSpy();
+  var injector = makeInjectorWithDirectives({
+    myTranscluder: function() {
+      return {
+        transclude: 'element'
+      };
+    },
+    myOtherDirective: function() {
+      return {
+        compile: compileSpy
+      };
+    }
+  });
+  injector.invoke(function($compile) {
+    var el = $(
+      '<div><div my-transcluder><div my-other-directive></div></div></div>');
+
+    $compile(el);
+    
+    expect(compileSpy).toHaveBeenCalled();
+  });
+});
+```
+
+我们怎么来满足这些需求呢？我们要做的是把编译过程分割成两部分：我们需要在当前指令上停止编译，让它变成当前编译的最后一个指令。然后我们再在刚才被替换了的元素上启动另一个编译。
+
+要停止当前的编译过程，我们可以使用之前开发的 terminal priority，将当前指令的 priority 赋值给 terminal priority：
+
+_src/compile.js_
+
+```js
+if (directive.transclude === 'element') {
+  // var $originalCompileNode = $compileNode;
+  // $compileNode = $(document.createComment(
+  //   ' ' + directive.name + ': ' + attrs[directive.name] + ' '
+  // ));
+  // $originalCompileNode.replaceWith($compileNode);
+  terminalPriority = directive.priority;
+} else {
+  // ...
+}
+```
+
+现在当前元素上的低优先级指令就不会进行编译了，而元素子节点也同样不会进行编译。虽然我们刚才写的最近的一个单元测试依然失败了，但失败原因跟之前不同了。
