@@ -192,7 +192,7 @@
   * [21-10-requiring-controllers-from-transcluded-directives](directives/21-directive-transclusion/21-10-requiring-controllers-from-transcluded-directives.md)
   * [21-11-summary](directives/21-directive-transclusion/21-11-summary.md)
 * [第22章 插值](directives/22-interpolation/22-interpolation.md)
-  * [22-1-the-$interpolate-service](directives/22-interpolation/22-interpolation/22-1-the-interpolate-service.md)
+  * [22-1-the-$interpolate-service](directives/22-interpolation/22-1-the-interpolate-service.md)
 * [第23章 组件](directives/23-components/23-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
