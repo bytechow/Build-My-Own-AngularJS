@@ -7,3 +7,6 @@
 interpolation 是由本书已经开发的功能特性的基础上实现的：Watchers，表达式和指令。本章我们会综合使用这几个特性来实现这个高级功能特性。
 
 > 下载[本章初识代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter21-directive-transclusion)
+
+
+
