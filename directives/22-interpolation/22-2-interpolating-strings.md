@@ -42,3 +42,160 @@ this.$get = function() {
   return $interpolate;
 };
 ````
+
+现在我们可以试着加入插值表达式，这能令事情变得更有趣一点。我们希望能够返回一个返回值是表达式求值结果的函数：
+
+_test/interpolate_spec.js_
+
+```js
+it('evaluates a single expression', function() {
+  var injector = createInjector(['ng']);
+  var $interpolate = injector.get('$interpolate');
+  
+  var interp = $interpolate('{{anAttr}}');
+  expect(interp({
+    anAttr: '42'
+  })).toEqual('42');
+});
+```
+
+在`$interpolate`函数里面，我们需要检查传入的字符串是否包含有`{{`和`}}`的标记。如果有的话，我们就把两个标记之间的字符串截取出来，并放到一个叫`exp`的变量中：
+
+_src/interpolate.js_
+
+```js
+function $interpolate(text) {
+  var startIndex = text.indexOf('{{');
+  var endIndex = text.indexOf('}}');
+  var exp;
+  if (startIndex !== -1 && endIndex !== -1) {
+    exp = text.substring(startIndex + 2, endIndex);
+  }
+
+  // return function interpolationFn() {
+  //   return text;
+  // };
+  
+}
+```
+
+我们会怎么处理这个子字符串呢？它是一个 Angular 表达式，所以我们应该对它进行解析。因为我们需要注入`$parse`服务，然后使用它来生成一个表达式函数：
+
+_src/interpolate.js_
+
+```js
+this.$get = ['$parse', function($parse) {
+
+  function $interpolate(text) {
+  //   var startIndex = text.indexOf('{{');
+  //   var endIndex = text.indexOf('}}');
+    var exp, expFn;
+    // if (startIndex !== -1 && endIndex !== -1) {
+    //   exp = text.substring(startIndex + 2, endIndex);
+      expFn = $parse(exp);
+    // }
+
+    // return function interpolationFn() {
+    //   return text;
+    // };
+
+  }
+  
+  return $interpolate;
+}];
+```
+
+在求值的时候，我们需要检查是否有表达式函数。如果有，我们需要在给定的上下文语境下对其进行求值运算。如果没有求值表达式的话，我们就直接返回字符串本身就可以了。
+
+```js
+return function interpolationFn(context) {
+  if (expFn) {
+    return expFn(context);
+  } else {
+    return text;
+  }
+};
+```
+
+现在虽然已经算是有一点小成果了。但目前的代码实现还是有太多的限制了，毕竟它只能处理只有一个表达式和静态文本两种情况。interpolation 也可以是包含多个表达式，这些表达式之间可能会有一些静态文本，我们也需要支持这种情况。
+
+_test/interpolate_spec.js_
+
+```js
+it('evaluates many expressions', function() {
+  var injector = createInjector(['ng']);
+  var $interpolate = injector.get('$interpolate');
+  
+  var interp = $interpolate('First {{anAttr}}, then {{anotherAttr}}!');
+  expect(interp({
+    anAttr: '42',
+    anotherAttr: '43'
+  })).toEqual('First 42, then 43!');
+});
+```
+
+这意味着我们需要对文本进行遍历查找，并对所有出现的表达式进行收集。我们可以使用`while`循环语句，结束条件是遍历到字符串的最后一个字符。在每一次遍历中，我们会从当前的遍历索引开始，如果再找不到表达式的话，就结束循环：
+
+_src/interpolate.js_
+
+```js
+function $interpolate(text) {
+  var index = 0;
+  var startIndex, endIndex, exp, expFn;
+  while (index < text.length) {
+    startIndex = text.indexOf('{{', index);
+    endIndex = text.indexOf('}}', index);
+    if (startIndex !== -1 && endIndex !== -1) {
+    //   exp = text.substring(startIndex + 2, endIndex);
+    //   expFn = $parse(exp);
+      index = endIndex + 2;
+    } else {
+      break;
+    }
+  }
+
+  // return function interpolationFn(context) {
+  //   if (expFn) {
+  //     return expFn(context);
+  //   } else {
+  //     return text;
+  //   }
+  // };
+  
+}
+```
+
+这个循环能找到所有的表达式，但还没能对它们进行收集。因此我们会新增一个数组来存放经过解析后的字符串的各个部分，这个字符串就命名为`parts`。在每次循环进行时，我们会把在表达式之前的静态文本和表达式函数放到这个数组中来。如果字符串中没有表达式，我们就把剩下的所有字符串都放到数组中去：
+
+```js
+function $interpolate(text) {
+  // var index = 0;
+  var parts = [];
+  // var startIndex, endIndex, exp, expFn;
+  while (index < text.length) {
+    // startIndex = text.indexOf('{{', index);
+    // endIndex = text.indexOf('}}', index);
+    if (startIndex !== -1 && endIndex !== -1) {
+      if (startIndex !== index) {
+        parts.push(text.substring(index, startIndex));
+      }
+      // exp = text.substring(startIndex + 2, endIndex);
+      // expFn = $parse(exp);
+      parts.push(expFn);
+      // index = endIndex + 2;
+    } else {
+      parts.push(text.substring(index));
+      break;
+    }
+  }
+
+  // return function interpolationFn(context) {
+  //   if (expFn) {
+  //     return expFn(context);
+  //   } else {
+  //     return text;
+  //   }
+  // };
+  
+}
+```
