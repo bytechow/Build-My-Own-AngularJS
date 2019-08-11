@@ -199,3 +199,91 @@ function $interpolate(text) {
   
 }
 ```
+
+这样我们就得到了一个保存 interpolation 各部分字符串的数组。它们中有些是静态文本，而有些是表达式函数。我们需要在求值阶段对这个数组进行遍历，以求出最终结果。
+
+我们对这个数值进行 reduce 运算以求得一个字符串，在每次遍历中都会检查当前的元素是函数还是字符串。如果是函数就会以指定上下文求出结果进行拼接，如果是字符串，那就直接拼接上就好：
+
+_src/interpolate.js_
+
+```js
+function $interpolate(text) {
+  // var index = 0;
+  // var parts = [];
+  // var startIndex, endIndex, exp, expFn;
+  // while (index < text.length) {
+  //   startIndex = text.indexOf('{{', index);
+  //   endIndex = text.indexOf('}}', index);
+  //   if (startIndex !== -1 && endIndex !== -1) {
+  //     if (startIndex !== index) {
+  //       parts.push(text.substring(index, startIndex));
+  //     }
+  //     exp = text.substring(startIndex + 2, endIndex);
+  //     expFn = $parse(exp);
+  //     parts.push(expFn);
+  //     index = endIndex + 2;
+  //   } else {
+  //     parts.push(text.substring(index));
+  //     break;
+  //   }
+  // }
+
+  return function interpolationFn(context) {
+    return _.reduce(parts, function(result, part) {
+      if (_.isFunction(part)) {
+        return result + part(context);
+      } else {
+        return result + part;
+      }
+    }, '');
+  };
+  
+}
+```
+
+这样我们就需要在`interpolate.js`中引入 LoDash：
+
+```js
+'use strict';
+
+var _ = require('lodash');
+```
+
+这样，我们就有了一个简单的 interpolation 编译器！
+
+但是还有一个问题。如果我们使用一个结束标志在前，开始标志在后的错误表达式，那结果就不是我们所希望的了：
+
+_test/interpolate_spec.js_
+
+```js
+it('passes through ill-defned interpolations', function() {
+  var injector = createInjector(['ng']);
+  var $interpolate = injector.get('$interpolate');
+
+  var interp = $interpolate('why u no }}work{{');
+  expect(interp({})).toEqual('why u no }}work{{');
+});
+```
+
+我们可以把匹配规则改成是必须找到表达式的结束索引，这样保证一个表达式中的开始标志之后必须有结束标志。否则，我们就不把它们当作表达式进行求值：
+
+```js
+while (index < text.length) {
+  // startIndex = text.indexOf('{{', index);
+  if (startIndex !== -1) {
+    endIndex = text.indexOf('}}', startIndex + 2);
+  }
+  // if (startIndex !== -1 && endIndex !== -1) {
+  //   if (startIndex !== index) {
+  //     parts.push(text.substring(index, startIndex));
+  //   }
+  //   exp = text.substring(startIndex + 2, endIndex);
+  //   expFn = $parse(exp);
+  //   parts.push(expFn);
+  //   index = endIndex + 2;
+  // } else {
+  //   parts.push(text.substring(index));
+  //   break;
+  // }
+}
+```
