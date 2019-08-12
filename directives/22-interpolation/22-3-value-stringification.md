@@ -4,13 +4,13 @@ interpolation 的结果一般都是字符串，但 Angular 表达式可以返回
 
 比如，像`null`和`undefined`这一类值就会变成一个空字符串，而不是`"null"`或者`"undefined"`这种字符串：
 
-_test/interpolate_spec.js_
+_test/interpolate\_spec.js_
 
 ```js
 it('turns nulls into empty strings', function() {
   var injector = createInjector(['ng']);
   var $interpolate = injector.get('$interpolate');
-  
+
   var interp = $interpolate('{{aNull}}');
   expect(interp({
     aNull: null
@@ -53,3 +53,27 @@ function stringify(value) {
   }
 }
 ```
+
+数字和布尔值应该被强制转换为字符串：
+
+_test/interpolate\_spec.js_
+
+```js
+it('turns numbers into strings', function() {
+  var injector = createInjector(['ng']);
+  var $interpolate = injector.get('$interpolate');
+  
+  var interp = $interpolate('{{aNumber}}');
+  expect(interp({aNumber: 42})).toEqual('42');
+});
+it('turns booleans into strings', function() {
+  var injector = createInjector(['ng']);
+  var $interpolate = injector.get('$interpolate');
+  
+  var interp = $interpolate('{{aBoolean}}');
+  expect(interp({aBoolean: true})).toEqual('true');
+});
+```
+
+
+
