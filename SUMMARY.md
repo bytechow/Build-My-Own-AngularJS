@@ -195,6 +195,7 @@
   * [22-1-the-$interpolate-service](directives/22-interpolation/22-1-the-interpolate-service.md)
   * [22-2-interpolating-strings](directives/22-interpolation/22-2-interpolating-strings.md)
   * [22-3-value-stringification](directives/22-interpolation/22-3-value-stringification.md)
+  * [22-4-supporting-escaped-interpolation-symbois](directives/22-interpolation/22-4-supporting-escaped-interpolation-symbois.md)
 * [第23章 组件](directives/23-components/23-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
