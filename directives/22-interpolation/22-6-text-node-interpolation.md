@@ -37,13 +37,13 @@ describe('interpolation', function() {
 
       $rootScope.$apply();
       expect(el.html()).toEqual('My expression: ');
-      
+
       $rootScope.myExpr = 'Hello';
       $rootScope.$apply();
       expect(el.html()).toEqual('My expression: Hello');
     });
   });
-  
+
 });
 ```
 
@@ -134,7 +134,7 @@ function addTextInterpolateDirective(directives, text) {
 
 Angular 还会在这个过程中对文本节点进行一些别的操作。它们的出现主要是为了在开发过程中提供帮助，还能支持一些调试工具如[Batarang](https://github.com/angular/batarang)，因为它可以通过 DOM 提供一些关于 interpolation 的信息。举一个例子，如果文本节点内出现了 interpolation，我们就会对其：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('adds binding class to text node parents', function() {
@@ -160,3 +160,6 @@ return function link(scope, element) {
   // }); 
 };
 ```
+
+
+
