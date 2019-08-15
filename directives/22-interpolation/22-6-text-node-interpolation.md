@@ -177,4 +177,111 @@ it('adds binding data to text node parents', function() {
 });
 ```
 
-我们打算假设这个表达式被用在一个给定的 interpolation 函数中
+我们打算假设这个用在给定的 interpolation 函数中的表达式将会被赋值到该函数的一个叫`expressions`属性上：
+
+_src/compile.js_
+
+```js
+return function link(scope, element) {
+  element.parent().addClass('ng-binding')
+    .data('$binding', interpolateFn.expressions);
+
+    scope.$watch(interpolateFn, function(newValue) {
+    element[0].nodeValue = newValue;
+}); };
+```
+
+这个属性现在还不存在，我们需要新增。首先，我们需要对`$interpolate`函数进行修改，存放表达式数组的`expressions`会替代`hasExpressions`标识的位置：
+
+_src/interpolate.js_
+
+```js
+function $interpolate(text, mustHaveExpressions) {
+  // var index = 0;
+  // var parts = [];
+  var expressions = [];
+  // var startIndex, endIndex, exp, expFn;
+  // while (index < text.length) {
+  //   startIndex = text.indexOf('{{', index);
+  //   if (startIndex !== -1) {
+  //     endIndex = text.indexOf('}}', startIndex + 2);
+  //   }
+  //   if (startIndex !== -1 && endIndex !== -1) {
+  //     if (startIndex !== index) {
+  //       parts.push(unescapeText(text.substring(index, startIndex)));
+  //     }
+  //     exp = text.substring(startIndex + 2, endIndex);
+  //     expFn = $parse(exp);
+  //     parts.push(expFn);
+      expressions.push(exp);
+  //     index = endIndex + 2;
+  //   } else {
+  //     parts.push(unescapeText(text.substring(index)));
+  //     break;
+  //   }
+  // }
+  
+  if (expressions.length || !mustHaveExpressions) {
+    // return function interpolationFn(context) {
+    //   return _.reduce(parts, function(result, part) {
+    //     if (_.isFunction(part)) {
+    //       return result + stringify(part(context));
+    //     } else {
+    //       return result + part;
+    //     }
+    //   }, '');
+    // };
+  }
+}
+```
+
+现在为了要满足在`$compile`的需求，我们需要将`expressions`数组作为属性加入到要返回的函数中去。我们可以借助 LoDash 的`_.extend` API 进行这一步：
+
+```js
+return _.extend(function interpolationFn(context) {
+  return _.reduce(parts, function(result, part) {
+    if (_.isFunction(part)) {
+      return result + stringify(part(context));
+    } else {
+      return result + part;
+    }
+  }, '');
+}, {
+  expressions: expressions
+});
+```
+
+对于`$binding`数据属性，我们还有一个小问题，只要我们在同一个父元素下使用两个文本节点，并且这两个文本节点之间用一个元素节点隔开就能发现这个问题：
+
+_test/compile_spec.js_
+
+```js
+it('adds binding data to parent from multiple text nodes', function() {
+  var injector = makeInjectorWithDirectives({});
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div>{{myExpr}} <span>and</span> {{myOtherExpr}}</div>');
+    $compile(el)($rootScope);
+
+    expect(el.data('$binding')).toEqual(['myExpr', 'myOtherExpr']);
+  });
+});
+```
+
+这个测试中我们就使用了两个分割开的文本节点，而它们都有同一个父元素。我们希望这个父节点的`$binding`数据中包含来自所有子文本节点的所有表达式，但就单元测试的结果来看，目前只包含了后面一个表达式。原因在于，每当我们对一个含有 interpolation 的文本节点指令进行链接时，我们都会清空一次`$binding`数据。解决方式是，我们需要假设这个数据属性已经存在，每次都会保留上一次的内容：
+
+_src/compile.js_
+
+```js
+return function link(scope, element) {
+  var bindings = element.parent().data('$binding') || [];
+  bindings = bindings.concat(interpolateFn.expressions);
+  element.parent().data('$binding', bindings);
+  // element.parent().addClass('ng-binding');
+
+  // scope.$watch(interpolateFn, function(newValue) {
+  //   element[0].nodeValue = newValue;
+  // }); 
+};
+```
+
+> 就像我们之前开发的`ng-scope`样式类和`$scope`数据属性，真正的 AngularJS 框架只会在`debugInfoEnabled`标识没有设置为`false`的时候，才会加上`ng-binding`样式类和`$binding`数据属性。
