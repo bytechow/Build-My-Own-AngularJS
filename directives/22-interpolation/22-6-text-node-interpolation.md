@@ -161,5 +161,20 @@ return function link(scope, element) {
 };
 ```
 
+同时加入到父元素的还有所有需要进行 interpolate 的表达式。它们会通过一个 jQuery data 属性叫做`$binding`进行绑定。它的值是所有在元素的子文本节点上的表达式：
 
+_test/compile_spec.js_
 
+```js
+it('adds binding data to text node parents', function() {
+  var injector = makeInjectorWithDirectives({});
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div>{{myExpr}} and {{myOtherExpr}}</div>');
+    $compile(el)($rootScope);
+
+    expect(el.data('$binding')).toEqual(['myExpr', 'myOtherExpr']);
+  });
+});
+```
+
+我们打算假设这个表达式被用在一个给定的 interpolation 函数中
