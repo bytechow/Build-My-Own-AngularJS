@@ -170,3 +170,141 @@ Attributes.prototype.$observe = function(key, fn) {
   };
 };
 ```
+
+当我们链接含有属性 interpolation 的指令时，我们可以设置这个标识。我们现在有 Attributes 对象，我们就可以把`$inter`标识加入到 Attributes 对象里面的 observer。但我们需要在这样做之前确保`$$observers`存在，毕竟这个数据结构是惰性加载的：
+
+_src/compile.js_
+
+```js
+return function link(scope, element, attrs) {
+  attrs.$$observers = attrs.$$observers || {};
+  attrs.$$observers[name] = attrs.$$observers[name] || [];
+  attrs.$$observers[name].$$inter = true;
+  // scope.$watch(interpolateFn, function(newValue) {
+  //     attrs.$set(name, newValue);
+  // }); 
+};
+```
+
+对于同一元素上的其他指令来说，我们还有一个问题要解决，就是我们需要在这些指令进行链接前处理好 interpolation。通常，当要访问一个指令上的属性时，应用开发者并不一定非得考虑它们是否经过了 interpolate。这是 Angular 框架需要解决的问题。目前，我们还没有很好地解决这个问题：
+
+_test/compile_spec.js_
+
+```js
+it('is done for attributes by the time other directive is linked', function() {
+  var gotMyAttr;
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        link: function(scope, element, attrs) {
+          gotMyAttr = attrs.myAttr;
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-attr="{{myExpr}}"></div>');
+    $rootScope.myExpr = 'Hello';
+    $compile(el)($rootScope);
+
+    expect(gotMyAttr).toEqual('Hello');
+  });
+});
+```
+
+在这个单元测试中，我们希望访问`myDirective`上的属性值时结果为`Hello`，但目前的结果是`{{myExpr}}`。我们需要修正这个问题。
+
+造成这个问题的原因有几个。原因之一是 interpolation 是会在链接后的第一个 digest 循环中进行，因为我们是在 watcher 的 listener 函数中进行 interpolation 过程的。实际上，我们应该在设置 watcher 之前就要进行一次 interpolation，这样，我们就能在（链接后的）任何一个 digest 之前已经获得经过 interpolate 的内容。
+
+_src/compile.js_
+
+```js
+compile: function() {
+  return function link(scope, element, attrs) {
+    // attrs.$$observers = attrs.$$observers || {};
+    // attrs.$$observers[name] = attrs.$$observers[name] || [];
+    // attrs.$$observers[name].$$inter = true;
+    attrs[name] = interpolateFn(scope);
+    // scope.$watch(interpolateFn, function(newValue) {
+    //   attrs.$set(name, newValue);
+    // });
+  };
+}
+```
+
+但我们的单元测试仅凭这个处理还是没法通过。造成测试未通过的第二个原因出现在指令的应用顺序上。含有属性 interpolation 的指令的 priority 是`100`，这意味着它会在采用默认优先级的“普通”指令之前进行编译。然而，我们是在指令的 post-link 函数设置 interpolation 的，如果你回忆起跟 post-link 有关的章节，post-link 函数是以与注册顺序相反的顺序执行的。这就导致“普通”指令是在含 interpolation 的指令之前执行的。
+
+要是我们换成_pre-link函数_，那么事情就会像我们预想的那样进行：
+
+```js
+compile: function() {
+  return {
+    pre: function link(scope, element, attrs) {
+      // attrs.$$observers = attrs.$$observers || {};
+      // attrs.$$observers[name] = attrs.$$observers[name] || [];
+      // attrs.$$observers[name].$$inter = true;
+      // attrs[name] = interpolateFn(scope);
+      // scope.$watch(interpolateFn, function(newValue) {
+      //   attrs.$set(name, newValue);
+      // });
+    }
+  };
+}
+```
+
+现在，关于属性的独立作用域绑定问题又该如何呢？前面我们已经介绍过`@`属性绑定是借助 observer 实现的，而我们已经考虑过 observer 了吗？（？）
+
+一般来说，bindings 会起作用，但关于 bindings 的初始值还存在一个问题。在一个独立作用域指令进行链接时，它的属性 bindings 现在指向的是在 interpolate 之前的属性值，这跟我们之前在普通属性中遇到的问题非常类似：
+
+_test/compile_spec.js_
+
+```js
+it('is done for attributes by the time bound to iso scope', function() {
+  var gotMyAttr;
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        scope: {myAttr: '@'},
+        link: function(scope, element, attrs) {
+          gotMyAttr = scope.myAttr;
+        }
+      }; 
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-attr="{{myExpr}}"></div>');
+    $rootScope.myExpr = 'Hello';
+    $compile(el)($rootScope);
+
+    expect(gotMyAttr).toEqual('Hello');
+  });
+});
+```
+
+问题出自对属性进行的 isolate binding 的设置过程。我们是在`initializeDirectiveBindings`中设置 binding 指向的初始值的。这个函数是在任何指令进行链接之前调用的，包括含有属性 interpolation 的指令：
+
+_src/compile.js_
+
+```js
+case '@':
+  attrs.$observe(attrName, function(newAttrValue) {
+    destination[scopeName] = newAttrValue;
+  });
+  if (attrs[attrName]) {
+    destination[scopeName] = attrs[attrName];
+  }
+  break;
+```
+
+如果我们在设置初始值的时候就进行一次 interpolation，就可以解决这个问题了：
+
+```js
+case '@':
+  attrs.$observe(attrName, function(newAttrValue) {
+    destination[scopeName] = newAttrValue;
+  });
+  if (attrs[attrName]) {
+    destination[scopeName] = $interpolate(attrs[attrName])(scope);
+  } 
+  break;
+```
