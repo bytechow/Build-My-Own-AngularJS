@@ -4,7 +4,7 @@
 
 属性 interpolation 的基本行为跟文本节点 interpolation 是完全一样的。属性中的 interpolation 会在链接期间被替换，并会持续对变化进行检测：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('is done for attributes', function() {
@@ -15,7 +15,7 @@ it('is done for attributes', function() {
 
     $rootScope.$apply();
     expect(el.attr('alt')).toEqual('');
-    
+
     $rootScope.myAltText = 'My favourite photo';
     $rootScope.$apply();
     expect(el.attr('alt')).toEqual('My favourite photo');
@@ -35,17 +35,17 @@ function collectDirectives(node, attrs, maxPriority) {
   //   var normalizedNodeName = directiveNormalize(nodeName(node).toLowerCase());
   //   addDirective(directives, normalizedNodeName, 'E', maxPriority);
   //   _.forEach(node.attributes, function(attr) {
-  
+
       // ...
-  
+
       addAttrInterpolateDirective(directives, attr.value, normalizedAttrName);
   //     addDirective(directives, normalizedAttrName, 'A', maxPriority,
   //       attrStartName, attrEndName);
-  
+
   //     // ...
-  
+
   //   });
-  
+
   //   // ...
   // }
 
@@ -79,7 +79,7 @@ function addAttrInterpolateDirective(directives, value, name) {
 
 首先，其他属性可能正在通过`Attributes.$observe` observe 元素上的属性。原因可能是它们的独立作用域使用了`@`绑定的方法，也可能是它们显式地注册了 observer。当因 interpolation 出现了属性值的变更，我们希望这些 observer 都能被触发：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('fires observers on attribute expression changes', function() {
@@ -121,7 +121,7 @@ return function link(scope, element, attrs) {
 
 当上一个单元测试失败时，我们能发现第二个问题。这个 observer 会在对`'{{myAltText}}'`进行 interpolation 之前进行调用。从应用开发者的视角来看，像这样获取值的方式并没有什么道理。我们希望 observer 只会在 interpolation 进行之后再被触发：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('fires observers just once upon registration', function() {
@@ -188,7 +188,7 @@ return function link(scope, element, attrs) {
 
 对于同一元素上的其他指令来说，我们还有一个问题要解决，就是我们需要在这些指令进行链接前处理好 interpolation。通常，当要访问一个指令上的属性时，应用开发者并不一定非得考虑它们是否经过了 interpolate。这是 Angular 框架需要解决的问题。目前，我们还没有很好地解决这个问题：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('is done for attributes by the time other directive is linked', function() {
@@ -256,7 +256,7 @@ compile: function() {
 
 一般来说，bindings 会起作用，但关于 bindings 的初始值还存在一个问题。在一个独立作用域指令进行链接时，它的属性 bindings 现在指向的是在 interpolate 之前的属性值，这跟我们之前在普通属性中遇到的问题非常类似：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('is done for attributes by the time bound to iso scope', function() {
@@ -313,7 +313,7 @@ case '@':
 
 带有指令的元素上还会发生另一件事，就是指令会在编译期间操作元素属性。下面这个单元测试演示了这样一种情况：一个指令会在它的`compile`函数中对一个属性的值进行更改。问题是目前属性的 interpolation 函数并未能兼顾这种情况，仍是在值进行替换之前就使用了属性值，这是我们不希望发生的情况：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('is done for attributes so that compile-time changes apply', function() {
@@ -338,7 +338,7 @@ it('is done for attributes so that compile-time changes apply', function() {
 });
 ```
 
-这里的问题在于属性 interpolation 函数是在编译期间生成的，而指令替换属性值发生在编译后期。(?)
+这里的问题在于属性 interpolation 函数是在编译期间生成的，而指令替换属性值发生在编译后期。\(?\)
 
 我们需要对带属性 interpolation 的指令链接函数增加一个检验语句，如果属性值在编译期间发生了改变，就再次生成 interpolation 函数：
 
@@ -364,7 +364,7 @@ pre: function link(scope, element, attrs) {
 
 在编译期间，指令也可能会完全移除某个属性。如果这个属性是有 interpolation 正在执行，我们不应该让它进行执行了：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('is done for attributes so that compile-time removals apply', function() {
@@ -382,7 +382,7 @@ it('is done for attributes so that compile-time removals apply', function() {
     $rootScope.myExpr = 'Hello';
     $compile(el)($rootScope);
     $rootScope.$apply();
-    
+
     expect(el.attr('my-attr')).toBeFalsy();
   });
 });
@@ -407,7 +407,7 @@ pre: function link(scope, element, attrs) {
   // attrs.$$observers = attrs.$$observers || {};
   // attrs.$$observers[name] = attrs.$$observers[name] || [];
   // attrs.$$observers[name].$$inter = true;
-  
+
   // attrs[name] = interpolateFn(scope);
   // scope.$watch(interpolateFn, function(newValue) {
   //   attrs.$set(name, newValue);
@@ -415,9 +415,9 @@ pre: function link(scope, element, attrs) {
 }
 ```
 
-最后，我们需要加入一个预防措施来禁止开发者在诸如`onclick`之类的事件处理函数使用 interpolation。即使开发者这样做了，interpolation 也不会生效，因为原生的事件处理器是在 Angular digest 循环之外触发的，它们也没有访问任何 scope 的权限。由于这个注意事项并没有对开发者进行明确说明，尤其是对框架的初学者。如果你尝试这样做，Angular 会进行禁止并抛出一个异常。如果真的要在事件处理器上使用，我们应该使用`ng-` 开头的事件处理器指令。
+最后，我们需要加入一个预防措施来禁止开发者在诸如`onclick`之类的事件处理函数使用 interpolation。即使开发者这样做了，interpolation 也不会生效，因为原生的事件处理器是在 Angular digest 循环之外触发的，它们也没有访问任何 scope 的权限。由于这个注意事项并没有对开发者进行明确说明，尤其是对框架的初学者。如果你尝试这样做，Angular 会进行禁止并抛出一个异常。如果真的要在事件处理器上使用，我们应该使用`ng-` 开头的事件处理器指令。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('cannot be done for event handler attributes', function() {
@@ -444,3 +444,6 @@ pre: function link(scope, element, attrs) {
   // ...
 }
 ```
+
+
+
