@@ -308,3 +308,139 @@ case '@':
   } 
   break;
 ```
+
+这里我们使用了`$interpolate`，但并没有传入`mustHaveExpressions`标识，这样就可以调用 interpolation 函数而不管到底字符串里面是否有 interpolation。
+
+带有指令的元素上还会发生另一件事，就是指令会在编译期间操作元素属性。下面这个单元测试演示了这样一种情况：一个指令会在它的`compile`函数中对一个属性的值进行更改。问题是目前属性的 interpolation 函数并未能兼顾这种情况，仍是在值进行替换之前就使用了属性值，这是我们不希望发生的情况：
+
+_test/compile_spec.js_
+
+```js
+it('is done for attributes so that compile-time changes apply', function() {
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        compile: function(element, attrs) {
+          attrs.$set('myAttr', '{{myDifferentExpr}}');
+        }
+      }; 
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-attr="{{myExpr}}"></div>');
+    $rootScope.myExpr = 'Hello';
+    $rootScope.myDifferentExpr = 'Other Hello';
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+
+    expect(el.attr('my-attr')).toEqual('Other Hello');
+  });
+});
+```
+
+这里的问题在于属性 interpolation 函数是在编译期间生成的，而指令替换属性值发生在编译后期。(?)
+
+我们需要对带属性 interpolation 的指令链接函数增加一个检验语句，如果属性值在编译期间发生了改变，就再次生成 interpolation 函数：
+
+_src/compile.js_
+
+```js
+pre: function link(scope, element, attrs) {
+  var newValue = attrs[name];
+  if (newValue !== value) {
+    interpolateFn = $interpolate(newValue, true);
+  }
+
+  // attrs.$$observers = attrs.$$observers || {};
+  // attrs.$$observers[name] = attrs.$$observers[name] || [];
+  // attrs.$$observers[name].$$inter = true;
+
+  // attrs[name] = interpolateFn(scope);
+  // scope.$watch(interpolateFn, function(newValue) {
+  //   attrs.$set(name, newValue);
+  // });
+}
+```
+
+在编译期间，指令也可能会完全移除某个属性。如果这个属性是有 interpolation 正在执行，我们不应该让它进行执行了：
+
+_test/compile_spec.js_
+
+```js
+it('is done for attributes so that compile-time removals apply', function() {
+  var injector = makeInjectorWithDirectives({
+    myDirective: function() {
+      return {
+        compile: function(element, attrs) {
+          attrs.$set('myAttr', null);
+        }
+      };
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive my-attr="{{myExpr}}"></div>');
+    $rootScope.myExpr = 'Hello';
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    
+    expect(el.attr('my-attr')).toBeFalsy();
+  });
+});
+```
+
+目前在这个测试中，不仅仅是 interpolation 无法正常运作，目前会在链接阶段就抛出一个一场。我们不希望这种情况发生。
+
+我们需要再加上一层检验，如果属性没有没有更新值，我们就不需要重新生成 intepolation 函数。而且，在这种情况下，我们也要提前退出当前链接函数的执行，以免再设置多余的 watcher：
+
+_src/compile.js_
+
+```js
+pre: function link(scope, element, attrs) {
+  // var newValue = attrs[name];
+  if (newValue !== value) {
+    interpolateFn = newValue && $interpolate(newValue, true);
+  }
+  if (!interpolateFn) {
+    return;
+  }
+
+  // attrs.$$observers = attrs.$$observers || {};
+  // attrs.$$observers[name] = attrs.$$observers[name] || [];
+  // attrs.$$observers[name].$$inter = true;
+  
+  // attrs[name] = interpolateFn(scope);
+  // scope.$watch(interpolateFn, function(newValue) {
+  //   attrs.$set(name, newValue);
+  // });
+}
+```
+
+最后，我们需要加入一个预防措施来禁止开发者在诸如`onclick`之类的事件处理函数使用 interpolation。即使开发者这样做了，interpolation 也不会生效，因为原生的事件处理器是在 Angular digest 循环之外触发的，它们也没有访问任何 scope 的权限。由于这个注意事项并没有对开发者进行明确说明，尤其是对框架的初学者。如果你尝试这样做，Angular 会进行禁止并抛出一个异常。如果真的要在事件处理器上使用，我们应该使用`ng-` 开头的事件处理器指令。
+
+_test/compile_spec.js_
+
+```js
+it('cannot be done for event handler attributes', function() {
+  var injector = makeInjectorWithDirectives({});
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.myFunction = function() { };
+    var el = $('<button onclick="{{myFunction()}}"></button>');
+    expect(function() {
+      $compile(el)($rootScope);
+    }).toThrow();
+  }); 
+});
+```
+
+我们在属性 interpolation 指令的`pre-link`函数之前会加上一个检查，看属性名称是否以`on`开头或就是`formaction`。这就能涵盖目前，乃至于以后的事件属性标准：
+
+_src/compile.js_
+
+```js
+pre: function link(scope, element, attrs) {
+  if (/^(on[a-z]+|formaction)$/.test(name)) {
+    throw 'Interpolations for HTML DOM event attributes not allowed';
+  }
+  // ...
+}
+```
