@@ -197,3 +197,97 @@ $$watchDelegate: function(scope, listener) {
   });
 }
 ```
+
+这里我们还可以使用一个额外的优化手段。我们现在是从我们的 watch group 中获取`newValues`数组，而那个数组包含所有在 interpolation 中表达式的最新计算值，但我们实际上并没有使用这个值。而在 listener 函数中我们要再对这些表达式的值重新计算一次，为了生成经过 interpolate 字符串。我们需要找一个方法可以利用这个值，而不是重复计算。这需要我们进行一些重构的工作。
+
+现在`parts`数组是由静态文本和表达式函数组成的混合型数组。我们要在 watch 委托上做的事是使用在`newValues`中已经计算好的表达式的值，而不再调用`parts`数组中的表达式函数。
+
+在我们开始之前，我们需要知道数组中的哪些位置是存放表达式函数的，我们需要把这些位置上的函数替换为之前已经计算好的值。我们会使用一个数组来存放`parts`数组中收集到的表达式函数的位置信息：
+
+```js
+function $interpolate(text, mustHaveExpressions) {
+  // var index = 0;
+  // var parts = [];
+  // var expressions = [];
+  var expressionFns = [];
+  // var expressionPositions = [];
+  // var startIndex, endIndex, exp, expFn;
+  // while (index < text.length) {
+  //   startIndex = text.indexOf('{{', index);
+  //   if (startIndex !== -1) {
+  //     endIndex = text.indexOf('}}', startIndex + 2);
+  //   }
+  //   if (startIndex !== -1 && endIndex !== -1) {
+  //     if (startIndex !== index) {
+  //       parts.push(unescapeText(text.substring(index, startIndex)));
+  //     }
+  //     exp = text.substring(startIndex + 2, endIndex);
+  //     expFn = $parse(exp);
+  //     expressions.push(exp);
+  //     expressionFns.push(expFn);
+      expressionPositions.push(parts.length);
+  //     parts.push(expFn);
+  //     index = endIndex + 2;
+  //   } else {
+  //     parts.push(unescapeText(text.substring(index)));
+  //     break;
+  //   }
+  // }
+
+  // ...
+
+}
+```
+
+注意，我们需要在表达式函数加入到`parts`函数之前，把函数先加入到`expressionPositions`数组中，这样我们才能获得正确排列的索引值。
+
+现在，我们可以修改`compute`函数，让它接收的是提前计算好的数组，而不是直接调用表达式函数。它会对传入的数组进行遍历，并在`expressionPositions`记录的位置替换掉原来的表达式函数。这样它的结果就是一个只有字符串的数组了，其中一部分的字符串是原始的静态文本，另一部分则是表达式的最后一次计算结果。然后，我们就可以直接用数组的`join`方法把所有子字符串串连在一起：
+
+```js
+function compute(values) {
+  _.forEach(values, function(value, i) {
+    parts[expressionPositions[i]] = stringify(value);
+  });
+  return parts.join('');
+}
+```
+
+既然现在`compute`的约定已经改变了，那在 interpolation 函数中，我们就先需要调用所有的表达式函数生成结果，并把这些结果传入给`compute`函数：
+
+```js
+return _.extend(function interpolationFn(context) {
+  var values = _.map(expressionFns, function(expressionFn) {
+    return expressionFn(context);
+  });
+  return compute(values);
+  }, {
+  // ..
+});
+```
+
+由于这次重构，我们在 watch 委托函数中也要进行修改，我们只需要直接把从 watch group 计算获取`newValues`函数传入给`compute`函数即可，这样就省却了重复的运算：
+
+```js
+return _.extend(function interpolationFn(context) {
+  var values = _.map(expressionFns, function(expressionFn) {
+    return expressionFn(context);
+  });
+  return compute(values);
+}, {
+  expressions: expressions,
+  $$watchDelegate: function(scope, listener) {
+    var lastValue;
+    return scope.$watchGroup(expressionFns, function(newValues, oldValues) {
+      var newValue = compute(newValues);
+      listener(
+        newValue,
+        (newValues === oldValues ? newValue : lastValue),
+        scope
+      );
+      lastValue = newValue;
+    });
+  } 
+});
+```
+
+这就是 watch 委托的最终优化版了！
