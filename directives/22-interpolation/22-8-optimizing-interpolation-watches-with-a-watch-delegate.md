@@ -138,3 +138,62 @@ return _.extend(function interpolationFn(context) {
   }
 });
 ```
+
+这个 watch 委托目前还是比较随意的，因为它还没有满足 listener 函数调用的约定：listener 函数调用时需要同时传入新值和旧值（还有 scope 对象）。我们现在只是传入了新值，这不足够：
+
+_test/interpolate_spec.js_
+
+```js
+it('correctly returns new and old value when watched', function() {
+  var injector = createInjector(['ng']);
+  var $interpolate = injector.get('$interpolate');
+  var $rootScope = injector.get('$rootScope');
+
+  var interp = $interpolate('{{expr}}');
+  var listenerSpy = jasmine.createSpy();
+  
+  $rootScope.$watch(interp, listenerSpy);
+  $rootScope.expr = 42;
+  
+  $rootScope.$apply();
+  expect(listenerSpy.calls.mostRecent().args[0]).toEqual('42');
+  expect(listenerSpy.calls.mostRecent().args[1]).toEqual('42');
+  
+  $rootScope.expr++;
+  $rootScope.$apply();
+  expect(listenerSpy.calls.mostRecent().args[0]).toEqual('43');
+  expect(listenerSpy.calls.mostRecent().args[1]).toEqual('42');
+});
+```
+
+在 watch 委托中，我们需要保存上一次的计算值，并把它作为旧值传入给 listener 函数进行调用。同时，我们也把 scope 也传递过去，这样就完整地满足约定了：
+
+_src/interpolate.js_
+
+```js
+$$watchDelegate: function(scope, listener) {
+  var lastValue;
+  return scope.$watchGroup(expressionFns, function() {
+    var newValue = compute(scope);
+    listener(newValue, lastValue, scope);
+    lastValue = newValue;
+  });
+}
+```
+
+listener 函数的约定还包括要求在 watch 第一次运行时，新值和旧值要保持一致。这条约定我们也需要遵守。如果 watch group 的新值和旧值是一样的话，传入 listener 函数的也会是相同的：
+
+```js
+$$watchDelegate: function(scope, listener) {
+  var lastValue;
+	return scope.$watchGroup(expressionFns, function(newValues, oldValues) {
+		var newValue = compute(scope);
+		listener(
+			newValue,
+			(newValues === oldValues ? newValue : lastValue),
+			scope 
+		);
+    lastValue = newValue;
+  });
+}
+```
