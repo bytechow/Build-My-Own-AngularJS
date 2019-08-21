@@ -200,6 +200,7 @@
   * [22-6-text-node-interpolation](directives/22-interpolation/22-6-text-node-interpolation.md)
   * [22-7-attribute-interpolation](directives/22-interpolation/22-7-attribute-interpolation.md)
   * [22-8-optimizing-interpolation-watches-with-a-watch-delegate](directives/22-interpolation/22-8-optimizing-interpolation-watches-with-a-watch-delegate.md)
+  * [22-9-making-interpolation-symbols-configurable](directives/22-interpolation/22-9-making-interpolation-symbols-configurable.md)
 * [第23章 组件](directives/23-components/23-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
