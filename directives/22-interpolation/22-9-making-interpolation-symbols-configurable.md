@@ -159,3 +159,131 @@ this.$get = ['$parse', function($parse) {
 }];
 ```
 
+`escapeChar`函数会在字符之前加入三个反斜杠，而不是一、两个。我们需要在字符串中每一个反斜杠进行转义，所以最后就变成要六个反斜杠。
+
+前两个反斜杠在正则表达式中会作为反斜杠符号本身的匹配器（`/\\/`）。而第三个反斜杠也是用于对原始字符进行转义。默认的开始和结束标识使用的花括号在正则表达式是有特殊含义，所以我们也需要对它们进行转义。
+
+这样，最终生成出来的针对开始标识的正则表达式会是下面这样的：
+
+```js
+/\\\{\\\{/g
+```
+
+如果是我们在单元测试中自定义的开始标识，就是下面这样的：
+
+```js
+/\\\F\\\O\\\O/g
+```
+
+现在我们就可以对`unescapeText`函数进行修改，让它使用生成出来的正则表达式，而不是之前硬编码的表达式：
+
+_src/interpolate.js_
+
+```js
+this.$get = ['$parse', function($parse) {
+  // var escapedStartMatcher =
+  //   new RegExp(startSymbol.replace(/./g, escapeChar), 'g');
+  // var escapedEndMatcher =
+  //   new RegExp(endSymbol.replace(/./g, escapeChar), 'g');
+
+  function unescapeText(text) {
+    return text.replace(escapedStartMatcher, startSymbol)
+      .replace(escapedEndMatcher, endSymbol);
+  }
+  // ...
+}];
+```
+
+上面的内容展示了我们怎么自定义表达式的开始和结束标识。但如果我们自定义了这两个标识，同时也使用了来自其他项目或开源库的第三方的代码会发生什么呢？会因为使用了跟第三方库不同的 interpolation 而导致程序异常吗？
+
+答案是这种情况下不会使程序发生异常，我们依然可以正常使用第三方代码。那是因为在`$compile`中，我们会对所有指令模板进行“非统一化”，这意味着我们会把指令模板中所有的`{{`和`}}`标识换成我们自定义的。任何没有按照我们规范来的模板都会按照它们原来的处理方法进行处理。
+
+下面就是一个例子：应用的开始和结束标志分别被自定义为`[[`和`]]`。它又使用了一个仍然使用`{{`和`}}`的指令。模板中的 interpolation 应该能够正常工作：
+
+_test/compile_spec.js_
+
+```js
+it('denormalizes directive templates', function() {
+  var injector = createInjector(['ng',
+      function($interpolateProvider, $compileProvider) {
+    $interpolateProvider.startSymbol('[[').endSymbol(']]');
+    $compileProvider.directive('myDirective', function() {
+      return {
+        template: 'Value is {{myExpr}}'
+      };
+    }); 
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<div my-directive></div>');
+    $rootScope.myExpr = 42;
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+
+    expect(el.html()).toEqual('Value is 42');
+  });
+});
+```
+
+你需要做的是必须通过一个函数`denormalizeTemplate`来处理所有的指令模板。在我们获取到这些模板时，我们就马上调用这个函数对模板进行处理。对于`applyDirectivesToNode`函数里出现的`template`属性来说，我们就这样调用：
+
+_src/compile.js_
+
+```js
+if (directive.template) {
+  // if (templateDirective) {
+  //   throw 'Multiple directives asking for template';
+  // }
+  // templateDirective = directive;
+  var template = _.isFunction(directive.template) ?
+                    directive.template($compileNode, attrs) :
+                    directive.template;
+  template = denormalizeTemplate(template);
+  $compileNode.html(template);
+}
+```
+
+对于从`$http`获取到模板后调用的`compileTemplateUrl`中的`templateUrl`属性来说，就这样调用：
+
+```js
+function compileTemplateUrl(
+    directives, $compileNode, attrs, previousCompileContext) {
+    
+  // ...
+  
+  $http.get(templateUrl).success(function(template) {
+    template = denormalizeTemplate(template);
+    
+    // ...
+  
+  });
+
+// ...
+
+}
+```
+
+对于这个`denormalizeTemplate`函数，我们就定义在`$compile`服务中的`$get`方法中。
+
+我们首先会从`$interpolate`服务中获取到当前的开始和结束标识，并与默认的标识进行对比。如果应用没有自定义表达式的标识，我们就把`denormalizeTemplate`函数定义为一个直接返回参数的函数，也就是对原内容不进行修改。如果应用用了自定义的标识，我们就通过正则表达式的替换功能把模板中的所有的默认标识都换成自定义的：
+
+_src/compile.js_
+
+```js
+this.$get = ['$injector', '$parse', '$controller', '$rootScope',
+  '$http', '$interpolate',
+  function($injector, $parse, $controller, $rootScope, $http, $interpolate) {
+
+    var startSymbol = $interpolate.startSymbol();
+    var endSymbol = $interpolate.endSymbol();
+    var denormalizeTemplate = (startSymbol === '{{' && endSymbol === '}}') ?
+      _.identity :
+      function(template) {
+        return template.replace(/\{\{/g, startSymbol)
+          .replace(/\}\}/g, endSymbol);
+      };
+
+    // ...
+  
+  }
+];
+```
