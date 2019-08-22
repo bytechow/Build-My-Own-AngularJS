@@ -9,6 +9,8 @@
 ## 一、作用域
 
 * [一、作用域](scopes/scopes.md)
+* [1-scopes-and-dirty-checking](scopes/1-scopes-and-dirty-checking.md)
+* [2-scope-methods](scopes/2-scope-methods.md)
 
 ## 二、表达式和过滤器
 
