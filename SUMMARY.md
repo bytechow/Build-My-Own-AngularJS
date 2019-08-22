@@ -8,7 +8,7 @@
 
 ## 一、作用域
 
-* [一、作用域](yi-3001-zuo-yong-yu/yi-3001-zuo-yong-yu.md)
+* [一、作用域](scopes/scopes.md)
 
 ## 二、表达式和过滤器
 
