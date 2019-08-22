@@ -10,7 +10,7 @@
 
 * [一、作用域](scopes/scopes.md)
 * [第一章 作用域与脏值检测](scopes/1-scopes-and-dirty-checking.md)
-* [2-scope-methods](scopes/2-scope-methods.md)
+* [第二章 作用域方法](scopes/2-scope-methods.md)
 
 ## 二、表达式和过滤器
 
