@@ -4,6 +4,14 @@
 
 * [前言](README.md)
 
+## 如何阅读本书？
+
+## 一、作用域
+
+* [一、作用域](yi-3001-zuo-yong-yu/yi-3001-zuo-yong-yu.md)
+
+## 二、表达式和过滤器
+
 ## 三、模块与依赖注入
 
 * [三、模块与依赖注入](modules-and-dependency-injection/11-modules-and-the-injector/san-3001-mo-kuai-yu-yi-lai-zhu-ru.md)
