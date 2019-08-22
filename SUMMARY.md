@@ -12,7 +12,7 @@
 * [第一章 作用域与脏值检测](scopes/1-scopes-and-dirty-checking/1-scopes-and-dirty-checking.md)
 * [第二章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
 * [第三章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
-* [4-watching-collections](scopes/4-watching-collections.md)
+* [4-watching-collections](scopes/4-watching-collections/4-watching-collections.md)
 
 ## 二、表达式和过滤器
 
