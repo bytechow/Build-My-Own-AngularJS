@@ -215,6 +215,6 @@
   * [22-9-making-interpolation-symbols-configurable](directives/22-interpolation/22-9-making-interpolation-symbols-configurable.md)
   * [22-10-summary](directives/22-interpolation/22-10-summary.md)
 * [第23章 组件](directives/23-components/23-components.md)
-  * [23-1-registering-components](directives/23-components/23-components/23-1-registering-components.md)
+  * [23-1-registering-components](directives/23-components/23-1-registering-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
