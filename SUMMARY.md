@@ -19,6 +19,8 @@
 
 * [二、表达式和过滤器](expressions-and-filters/expressions-and-filters.md)
 * [一种全新的语言](expressions-and-filters/a-whoie-new-language.md)
+* [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
+
 
 ## 三、模块与依赖注入
 
