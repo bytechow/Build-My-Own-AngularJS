@@ -20,6 +20,9 @@
 * [二、表达式和过滤器](expressions-and-filters/expressions-and-filters.md)
 * [一种全新的语言](expressions-and-filters/a-whoie-new-language.md)
 * [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
+* [第7章 属性查找和函数调用表达式](expressions-and-filters/7-lookup-and-function-call-expressions/7-lookup-and-function-call-expressions.md)
+* [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
+* [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
 
 
 ## 三、模块与依赖注入
