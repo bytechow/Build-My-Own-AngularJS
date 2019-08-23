@@ -17,3 +17,5 @@
 由于上述背景，Angular 1.5 版本明确地推出了组件模式，并把它作为一个基于指令系统的 API。它通过制定规则、简化一些 API，最终允许应用开发者构建组件式的应用。
 
 本章将实现这个应用层，它基于指令编译系统。组件的的开发内容包括组件本身的_定义 API_，同时还有一些控制器的生命周期方法，这些方法能让组件编写者可以对组件的各个生命周期绑定一些逻辑，包括：`$onInit`、`$postLink`、`$onChanges`和`$onDestroy`。
+
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter22-interpolation)
