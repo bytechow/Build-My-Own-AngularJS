@@ -17,7 +17,7 @@
 
 ## 二、表达式和过滤器
 
-* [expressions-and-filters](er-3001-biao-da-shi-he-guo-lv-qi/expressions-and-filters.md)
+* [expressions-and-filters](expressions-and-filters/expressions-and-filters.md)
 
 ## 三、模块与依赖注入
 
