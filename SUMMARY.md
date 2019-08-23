@@ -9,11 +9,11 @@
 ## 一、作用域
 
 * [一、作用域](scopes/scopes.md)
-* [第一章 作用域与脏值检测](scopes/1-scopes-and-dirty-checking/1-scopes-and-dirty-checking.md)
-* [第二章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
-* [第三章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
-* [第四章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
-* [第五章 作用域事件](scopes/5-scope-events/5-scope-events.md)
+* [第1章 作用域与脏值检测](scopes/1-scopes-and-dirty-checking/1-scopes-and-dirty-checking.md)
+* [第2章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
+* [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
+* [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
+* [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
 ## 二、表达式和过滤器
 
