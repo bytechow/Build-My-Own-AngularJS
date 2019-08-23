@@ -18,7 +18,7 @@
 ## 二、表达式和过滤器
 
 * [二、表达式和过滤器](expressions-and-filters/expressions-and-filters.md)
-* [a-whoie-new-language](expressions-and-filters/a-whoie-new-language.md)
+* [一种全新的语言](expressions-and-filters/a-whoie-new-language.md)
 
 ## 三、模块与依赖注入
 
