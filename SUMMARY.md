@@ -223,5 +223,6 @@
 * [第23章 组件](directives/23-components/23-components.md)
   * [23-1-registering-components](directives/23-components/23-1-registering-components.md)
   * [23-2-basic-components](directives/23-components/23-2-basic-components.md)
+  * [23-3-component-scopes-and-bindings](directives/23-components/23-3-component-scopes-and-bindings.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
