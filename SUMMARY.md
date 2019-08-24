@@ -22,7 +22,6 @@
 * [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
 * [第7章 属性查找和函数调用表达式](expressions-and-filters/7-lookup-and-function-call-expressions/7-lookup-and-function-call-expressions.md)
 
-
 ## 三、模块与依赖注入
 
 * [三、模块与依赖注入](modules-and-dependency-injection/11-modules-and-the-injector/san-3001-mo-kuai-yu-yi-lai-zhu-ru.md)
@@ -223,5 +222,6 @@
   * [22-10-summary](directives/22-interpolation/22-10-summary.md)
 * [第23章 组件](directives/23-components/23-components.md)
   * [23-1-registering-components](directives/23-components/23-1-registering-components.md)
+  * [23-2-basic-components](directives/23-components/23-2-basic-components.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
