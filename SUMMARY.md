@@ -2,7 +2,6 @@
 
 ## 前言
 
-* [Introduction](README.md)
 * [前言](introduction.md)
 
 ## 如何阅读本书
