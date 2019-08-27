@@ -4,9 +4,9 @@
 
 * [前言](README.md)
 
-## 如何阅读本书？
+## 如何阅读本书
 
-* [how-to-read-this-book](how-to-read-this-book/source-code/how-to-read-this-book.md)
+* [如何阅读本书](how-to-read-this-book/how-to-read-this-book.md)
 * [有关源代码](how-to-read-this-book/source-code/source-code.md)
 * [前期准备](how-to-read-this-book/setting-up/setting-up.md)
 
