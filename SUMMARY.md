@@ -1,7 +1,5 @@
 # Summary
 
-## 前言
-
 * [前言](introduction.md)
 
 ## 如何阅读本书
