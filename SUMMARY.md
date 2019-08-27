@@ -6,7 +6,7 @@
 
 ## 如何阅读本书？
 
-* [source-code](ru-he-yue-du-ben-shu-ff1f/source-code.md)
+* [source-code](how-to-read-this-book/source-code/source-code.md)
 
 ## 一、作用域
 
