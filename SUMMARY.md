@@ -7,7 +7,7 @@
 ## 如何阅读本书？
 
 * [有关源代码](how-to-read-this-book/source-code/source-code.md)
-* [setting-up](how-to-read-this-book/setting-up/setting-up.md)
+* [前期准备](how-to-read-this-book/setting-up/setting-up.md)
 
 ## 一、作用域
 
