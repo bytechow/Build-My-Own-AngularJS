@@ -22,6 +22,7 @@
 * [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
 * [第7章 属性查找和函数调用表达式](expressions-and-filters/7-lookup-and-function-call-expressions/7-lookup-and-function-call-expressions.md)
 * [第8章 运算符表达式](expressions-and-filters/8-operator-expressions/8-operator-expressions.md)
+* [第9章 过滤器](expressions-and-filters/di-9-zhang-guo-lv-qi.md)
 
 ## 三、模块与依赖注入
 
