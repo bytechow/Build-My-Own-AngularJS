@@ -147,3 +147,153 @@ it('may have a template function with array-wrapped DI', function() {
   });
 });
 ```
+
+我们会把`template`属性值传递给一个新的帮助函数`makeinjectable`作为这个功能开发的第一步。在这个帮助函数中我们会做一血必要的预处理。
+
+_src/compile.js_
+
+```js
+function factory() {
+  return {
+    // restrict: 'E',
+    // controller: options.controller,
+    // controllerAs: options.controllerAs ||
+    //   identifierForController(options.controller) ||
+    //   '$ctrl',
+    // scope: {},
+    // bindToController: options.bindings || {},
+    template: makeInjectable(options.template),
+    // templateUrl: options.templateUrl
+  };
+}
+```
+
+在这个函数里（我们会在`compile.js`文件的顶层作用域定义这个函数），我们会对模板进行检查，看它是不是函数或数组，如果是我们就对这个值进行处理：
+
+_src/compile.js_
+
+```js
+function makeInjectable(template) {
+  if (_.isFunction(template) || _.isArray(template)) {
+  
+  } else {
+    return template;
+  }
+}
+```
+
+那我们可以做些什么呢？嗯，你可以回忆一下我们在依赖注入章节中介绍的`$injector`服务，里面有一个函数叫`invoke`，可以用来在调用任意函数时加入依赖注入的支持。这也就是我们现在需要的了。但首先我们需要先获取到`$injector`服务本身，因为在`component`方法中并没有提供这个服务。但因为我们是在定义一个指令工厂函数，这个函数支持依赖注入，我们可以直接在指令工厂函数中注入`$injector`，并把它传递给`makeInjectable`即可。
+
+```js
+function factory($injector) {
+  return {
+    // restrict: 'E',
+    // controller: options.controller,
+    // controllerAs: options.controllerAs ||
+    //               identifierForController(options.controller) ||
+    //               '$ctrl',
+    // scope: {},
+    // bindToController: options.bindings || {},
+    template: makeInjectable(options.template, $injector),
+    // templateUrl: options.templateUrl
+  };
+}
+factory.$inject = ['$injector'];
+```
+
+然后，我们会动态创建一个指令模板函数。它会使用`$injector.invoke`对原始的组件模板函数进行调用：
+
+```js
+function makeInjectable(template, $injector) {
+  if (_.isFunction(template) || _.isArray(template)) {
+    return function() {
+      return $injector.invoke(template, this);
+    };
+  } else {
+    return template;
+  }
+}
+```
+
+但我们还缺漏了一些东西。一般指令模板函数都会传入指令元素和属性作为参数，因为它们可能包含让我们进行动态构建模板的信息。我们的组件模板函数目前还不能访问到这两个参数，因为它们是不能通过`$injector`服务进行注入的。如果我们试着去使用它们，结果会是报出依赖注入失败的信息：
+
+_test/compile_spec.js_
+
+```js
+it('may inject $element and $attrs to template function', function() {
+  var injector = createInjector(['ng', function($provide, $compileProvider) {
+    $compileProvider.component('myComponent', {
+      template: function($element, $attrs) {
+        return $element.attr('copiedAttr', $attrs.myAttr);
+      }
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<my-component my-attr="42"></my-component>');
+    $compile(el)($rootScope);
+    expect(el.attr('copiedAttr')).toEqual('42');
+  });
+});
+```
+
+要修复这个问题也很简单，多亏了我们在`$injector.invoke`函数中对本地变量进行了支持。我们可以通过包裹指令模板函数的函数对这两个参数进行获取，然后把它们作为要注入到组件模板函数的本地函数，就实现了我们想要的效果了。
+
+_src/compile.js_
+
+```js
+function makeInjectable(template, $injector) {
+  if (_.isFunction(template) || _.isArray(template)) {
+    return function(element, attrs) {
+      return $injector.invoke(template, this, {
+        $element: element,
+        $attrs: attrs
+      });
+    };
+  } else {
+    return template;
+  }
+}
+```
+
+最后，由于对`templateUrl`与`template`的处理情况并无差别，我们可以使用相同方法来对`templateUrl`加入依赖注入的支持：
+
+_test/compile_spec.js_
+
+```js
+it('may have a template function with DI support', function() {
+  var injector = createInjector(['ng', function($provide, $compileProvider) {
+    $provide.constant('myConstant', 42);
+    $compileProvider.component('myComponent', {
+      templateUrl: function(myConstant) {
+        return '/template' + myConstant + ".html";
+      }
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<my-component></my-component>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    expect(requests[0].url).toBe('/template42.html');
+  });
+});
+```
+
+我们可以同样把这个`templateUrl`属性值传递给`makeInjectable`函数，这样就能起效了。
+
+_src/compile.js_
+
+```js
+function factory($injector) {
+  return {
+    // restrict: 'E',
+    // controller: options.controller,
+    // controllerAs: options.controllerAs ||
+    //   identifierForController(options.controller) ||
+    //   '$ctrl',
+    // scope: {},
+    // bindToController: options.bindings || {},
+    // template: makeInjectable(options.template, $injector),
+    templateUrl: makeInjectable(options.templateUrl, $injector)
+  };
+}
+```
