@@ -6,6 +6,8 @@
 
 ## 如何阅读本书？
 
+* [source-code](ru-he-yue-du-ben-shu-ff1f/source-code.md)
+
 ## 一、作用域
 
 * [一、作用域](scopes/scopes.md)
