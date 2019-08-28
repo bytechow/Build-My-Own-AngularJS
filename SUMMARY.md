@@ -2,6 +2,7 @@
 
 ## 前言
 
+* [Introduction](README.md)
 * [前言](introduction.md)
 
 ## 如何阅读本书
@@ -232,5 +233,6 @@
   * [23-2-basic-components](directives/23-components/23-2-basic-components.md)
   * [23-3-component-scopes-and-bindings](directives/23-components/23-3-component-scopes-and-bindings.md)
   * [23-4-component-templates](directives/23-components/23-4-component-templates.md)
+  * [23-5-component-transclusion](directives/23-components/23-5-component-transclusion.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
