@@ -235,5 +235,6 @@
   * [23-4-component-templates](directives/23-components/23-4-component-templates.md)
   * [23-5-component-transclusion](directives/23-components/23-5-component-transclusion.md)
   * [23-6-requiring-from-components](directives/23-components/23-6-requiring-from-components.md)
+  * [23-7-the-$onInit-lifecycle-hook](directives/23-components/23-7-the-oninit-lifecycle-hook.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
