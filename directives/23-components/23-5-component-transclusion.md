@@ -19,3 +19,22 @@ it('may use transclusion', function() {
   }); 
 });
 ```
+
+开发起来也非常直接，我们只需要传递`transclude`属性给指令工厂即可。组件 transclusion 实际上就只是一个指令的 transclusion 而已，直白而简单。
+
+```js
+function factory($injector) {
+  return {
+    // restrict: 'E',
+    // controller: options.controller,
+    // controllerAs: options.controllerAs ||
+    //               identifierForController(options.controller) ||
+    //               '$ctrl',
+    // scope: {},
+    // bindToController: options.bindings || {},
+    // template: makeInjectable(options.template, $injector),
+    // templateUrl: makeInjectable(options.templateUrl, $injector),
+    transclude: options.transclude
+  }; 
+}
+```
