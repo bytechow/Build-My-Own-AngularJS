@@ -60,3 +60,31 @@ describe('lifecycle', function() {
 
 });
 ```
+
+要开发这个功能，我们要做的是在节点链接函数中对元素包含的所有控制器进行遍历。我们会在元素上所有指令都完成了对`require`的处理后再做这个处理。如果控制器中有`$onInit`方法的话，我们会调用它：
+
+```js
+// _.forEach(controllerDirectives, function(controllerDirective, name) {
+//   var require = controllerDirective.require;
+//   if (_.isObject(require) && !_.isArray(require) &&
+//         controllerDirective.bindToController) {
+//     var controller = controllers[controllerDirective.name].instance;
+//     var requiredControllers = getControllers(require, $element);
+//     _.assign(controller, requiredControllers);
+//   } 
+// });
+
+_.forEach(controllers, function(controller) {
+  var controllerInstance = controller.instance;
+  if (controllerInstance.$onInit) {
+    controllerInstance.$onInit();
+  }
+});
+```
+
+这就实现`$onInit`了！它虽然非常简单，但却有着令人意外的用处。
+
+> 你可能这里实现的`$onInit`钩子函数，其实与组件本身没半点关系。不是组件的指令也能使用这个钩子函数。
+
+这对于所有生命周期钩子函数来说都是一样的。钩子函数是指令的一个特性，而不仅仅属于组件。只是生命周期钩子函数跟组件是在差不多的时间加入到框架中，而它们也常常与组件 API 一起使用，这也是我们把钩子函数放到本章介绍的原因。
+
