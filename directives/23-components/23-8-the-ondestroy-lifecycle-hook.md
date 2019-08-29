@@ -6,7 +6,7 @@
 
 但之前实现的特性并没有提供一个良好的 API。而新的`$onDestroy`钩子函数会更加方便，因为我们不再需要考虑作用域了。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('calls $onDestroy when the scope is destroyed', function() {
@@ -40,3 +40,6 @@ _.forEach(controllers, function(controller) {
   }
 });
 ```
+
+
+
