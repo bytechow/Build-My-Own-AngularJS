@@ -4,7 +4,7 @@
 
 对于指令来说，我们可以利用 postlink 函数完成这个需求，这是最简单直接的。但对于无法定义链接函数的组件来说，这种方式就行不通了。代替链接函数在组件中实现这一功能的是`$postLink`钩子函数，这也是唯一可以接触到组件的这个生命周期的方法。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('calls $postLink after all linking is done', function() {
@@ -42,7 +42,7 @@ it('calls $postLink after all linking is done', function() {
 
 这里我们可以发现`$postLink`钩子函数会在 postlink 函数之后调用，同时这些钩子函数也是从 DOM 树的下层元素逐级往上冒泡的。这就是我们在链接后希望发生的事情。
 
-我们需要在另一个对控制器的遍历中进行这个钩子函数的调用。这个遍历过程会放在节点链接函数的最后，在对 postlink 函数的反向遍历之后。 
+我们需要在另一个对控制器的遍历中进行这个钩子函数的调用。这个遍历过程会放在节点链接函数的最后，在对 postlink 函数的反向遍历之后。
 
 _src/compile.js_
 
@@ -64,3 +64,6 @@ _.forEach(controllers, function(controller) {
   }
 });
 ```
+
+
+
