@@ -43,4 +43,101 @@ it('calls $onChanges with all bindings during init', function() {
 });
 ```
 
-注意，传递给`$onChange`的变化值参数的结构是这样的：它会包含与绑定数据相匹配的 key。对每一个绑定数据来说，它都包含一个`currentValue`的 key，还有一个会返回`true`结果值的`isFirstValue`函数。
+注意，传递给`$onChange`的变化值参数的结构是这样的：它会包含与绑定数据相匹配的 key。对每一个绑定数据来说，它都包含一个`currentValue`的 key，还有一个会返回`true`结果值的`isFirstValue()`函数。
+
+关于`$onChanges`，还有一样东西需要注意：双向绑定数据的变化是无法捕捉到的。要使用`$onChanges`，应用开发者就需要习惯使用单项数据绑定：
+
+_test/compile_spec.js_
+
+```js
+it('does not call $onChanges for two-way bindings', function() {
+  var changesSpy = jasmine.createSpy();
+  var injector = makeInjectorWithComponent('myComponent', {
+  bindings: {
+      myBinding: '=',
+    },
+    controller: function() {
+      this.$onChanges = changesSpy;
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<my-component my-binding="42"></my-component>');
+    $compile(el)($rootScope);
+    expect(changesSpy).toHaveBeenCalled();
+    expect(changesSpy.calls.mostRecent().args[0].myBinding).toBeUndefined();
+  }); 
+});
+```
+
+我们会将在`initializeDirectiveBindings`函数中的初始变化值进行收集，最后返回它们：
+
+_src/compile.js_
+
+```js
+function initializeDirectiveBindings(scope, attrs, destination, bindings, newScope)
+{
+  var initialChanges = {};
+  _.forEach(bindings, function(definition, scopeName) {
+    // ...
+  });
+  return initialChanges;
+}
+```
+
+但我们需要收集哪些值呢？其实，我们已经能在测试用例中看到 change 对象的大致轮廓：里面会有当前值、变化前的值和一个`isFirstChange()`方法。它们实际上是在`compile.js`中的一个小小的构造函数中构造出来的，这个构造函数叫做`SimpleChange`。我们会在这个文件的顶层作用域定义这个构造函数：
+
+_src/compile.js_
+
+```js
+function SimpleChange(previous, current) {
+  this.previousValue = previous;
+  this.currentValue = current;
+}
+```
+
+这个构造函数会对`isFirstChange()`方法进行定义，这个方法会将变化前的值与一个叫`_UNINITIANLIZED_VALUE`的常量进行对比。
+
+```js
+// function SimpleChange(previous, current) {
+//   this.previousValue = previous;
+//   this.currentValue = current;
+// }
+SimpleChange.prototype.isFirstChange = function() {
+  return this.previousValue === _UNINITIALIZED_VALUE;
+};
+```
+
+这个常量也会在顶层作用域中进行定义。它具体的值倒不是非常重要，因为这个值只是用于检查这次改变是不是首次改变。我们要注意的是，这个值只能与自身相等。
+
+```js
+function UNINITIALIZED_VALUE() { }
+var _UNINITIALIZED_VALUE = new UNINITIALIZED_VALUE();
+```
+
+现在，我们可以在`initializeDirectiveBindings`函数中生成初始的变化值。注意，我们只会对属性绑定和单向数据绑定进行初始化，不包括双向数据绑定：
+
+```js
+case '@':
+  // attrs.$observe(attrName, function(newAttrValue) {
+  //   destination[scopeName] = newAttrValue;
+  // });
+  // if (attrs[attrName]) {
+  //   destination[scopeName] = $interpolate(attrs[attrName])(scope);
+  // }
+  initialChanges[scopeName] =
+    new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
+  break;
+case '<':
+  // if (definition.optional && !attrs[attrName]) {
+  //   break; 
+  // }
+  // parentGet = $parse(attrs[attrName]);
+  // destination[scopeName] = parentGet(scope);
+  // unwatch = scope.$watch(parentGet, function(newValue) {
+  //   destination[scopeName] = newValue;
+  // });
+  // newScope.$on('$destroy', unwatch);
+  initialChanges[scopeName] =
+    new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
+  break;
+```
