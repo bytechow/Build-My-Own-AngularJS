@@ -141,3 +141,167 @@ case '<':
     new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
   break;
 ```
+
+由于我们对每一个控制器都调用了`initializeDirectiveBindings`，我们需要把抓取到的返回值存放在`initialChanges`中，这个`initialChanges`将会被添加为内部的控制器对象的属性，以便稍后使用。
+
+_src/compile.js_
+
+```js
+// var scopeDirective = newIsolateScopeDirective || newScopeDirective;
+if (scopeDirective && controllers[scopeDirective.name]) {
+  controllers[scopeDirective.name].initialChanges = initializeDirectiveBindings(
+      scope,
+      attrs,
+      controllers[scopeDirective.name].instance,
+      scopeDirective.$$bindings.bindToController,
+      isolateScope
+  ); 
+}
+```
+
+我们会在调用`$onInit`之后使用这些初始变化值。如果在这个时间点控制器中注册了`$onChanges`钩子，我们就会利用`initialChanges`对这个钩子函数进行第一次调用：
+
+_src/compile.js_
+
+```js
+_.forEach(controllers, function(controller) {
+  // var controllerInstance = controller.instance;
+  // if (controllerInstance.$onInit) {
+  //   controllerInstance.$onInit();
+  // }
+  if (controllerInstance.$onChanges) {
+    controllerInstance.$onChanges(controller.initialChanges);
+  }
+  // if (controllerInstance.$onDestroy) {
+  //   (newIsolateScopeDirective ? isolateScope : scope).$on('$destroy', function() {
+  //     controllerInstance.$onDestroy();
+  //   });
+  // }
+});
+```
+
+接下来，我们就要实现`$onChanges`的实际用途——在发生变化时进行调用，而不仅仅是在组件初始化时调用。假设有一个组件包含了一个单向数据绑定的输入框，我们对输入框的值进行改变的时候，我们会希望这个组件的`$onChanges()`会在下一个 digest 中调用。
+
+_test/compile_spec.js_
+
+```js
+it('calls $onChanges when binding changes', function() {
+  var changesSpy = jasmine.createSpy();
+  var injector = makeInjectorWithComponent('myComponent', {
+    bindings: {
+      myBinding: '<'
+    },
+    controller: function() {
+      this.$onChanges = changesSpy;
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.aValue = 42;
+    var el = $('<my-component my-binding="aValue"></my-component>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+
+    expect(changesSpy.calls.count()).toBe(1);
+    
+    $rootScope.aValue = 43;
+    $rootScope.$apply();
+    expect(changesSpy.calls.count()).toBe(2);
+    
+    var lastChanges = changesSpy.calls.mostRecent().args[0];
+    expect(lastChanges.myBinding.currentValue).toBe(43);
+    expect(lastChanges.myBinding.previousValue).toBe(42);
+    expect(lastChanges.myBinding.isFirstChange()).toBe(false);
+  });
+});
+```
+
+注意这次变化记录中我们也已经有一个旧值和当前值，而且这次的变化我们就不能认为是第一次变化了，也就是说调用`isFirstChange()`函数的返回值会是`false`。
+
+在`initalizeDirectiveBindings`中，我们会对单向数据绑定设置一个 watcher。这就是我们能够获知到变化发生的关键。这里我们会调用一个叫`recordChanges`的帮助函数。我们会向这个函数传入绑定数据的名称，还有绑定数据的旧值和新值。有了这些信息，我们就能构建出`$onChanges`所需要的东西了。
+
+_src/compile.js_
+
+```js
+case '<':
+  // if (definition.optional && !attrs[attrName]) {
+  //   break;
+  // }
+  // parentGet = $parse(attrs[attrName]);
+  // destination[scopeName] = parentGet(scope);
+  unwatch = scope.$watch(parentGet, function(newValue) {
+    var oldValue = destination[scopeName];
+    // destination[scopeName] = newValue;
+    recordChanges(scopeName, destination[scopeName], oldValue);
+  });
+  // newScope.$on('$destroy', unwatch);
+  // initialChanges[scopeName] =
+  //   new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
+  // break;
+```
+
+我们会在`initializeDirectiveBindings`的内部中定义`recordChanges`函数，形成闭包：
+
+```js
+function initializeDirectiveBindings(scope, attrs, destination, bindings, newScope) {
+  // var initialChanges = {};
+
+  function recordChanges(key, currentValue, previousValue) {
+
+  }
+  
+  // _.forEach(bindings, function(definition, scopeName) {
+  //   var attrName = definition.attrName;
+  //   var parentGet, unwatch;
+  //   switch (definition.mode) {
+  //     // ...
+  //   }
+  // });
+  // return initialChanges;
+}
+```
+
+这个函数中我们可以做的最简单、合理的一件事就是检查控制器（通过`destination`变量能访问到）是否有`$onChanges`方法，并且这个值是否真的改变了。如果这两个条件都成立，我们就会创建一个变化对象，并以它作为参数直接调用`$onChanges`。这就满足我们单元测试的需要了：
+
+```js
+function recordChanges(key, currentValue, previousValue) {
+  if (destination.$onChanges && currentValue !== previousValue) {
+     var changes = {};
+     changes[key] = new SimpleChange(previousValue, currentValue);
+     destination.$onChanges(changes);
+  }
+}
+```
+
+我们来看看这种方式怎么对属性绑定也生效。当我们对一个已经进行了绑定的属性进行`$set`时，我们希望`$onChanges`会在下一次 digest 中调用。
+
+```js
+it('calls $onChanges when attribute changes', function() {
+  var changesSpy = jasmine.createSpy();
+  var attrs;
+  var injector = makeInjectorWithComponent('myComponent', {
+    bindings: {
+      myAttr: '@'
+    },
+    controller: function($attrs) {
+      this.$onChanges = changesSpy;
+      attrs = $attrs;
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    var el = $('<my-component my-attr="42"></my-component>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    
+    expect(changesSpy.calls.count()).toBe(1);
+    
+    attrs.$set('myAttr', '43');
+    $rootScope.$apply();
+    expect(changesSpy.calls.count()).toBe(2);
+    
+    var lastChanges = changesSpy.calls.mostRecent().args[0];
+    expect(lastChanges.myAttr.currentValue).toBe('43');
+    expect(lastChanges.myAttr.previousValue).toBe('42');
+    expect(lastChanges.myAttr.isFirstChange()).toBe(false);
+  });
+});
+```
