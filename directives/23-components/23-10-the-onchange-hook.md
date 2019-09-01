@@ -274,6 +274,8 @@ function recordChanges(key, currentValue, previousValue) {
 
 我们来看看这种方式怎么对属性绑定也生效。当我们对一个已经进行了绑定的属性进行`$set`时，我们希望`$onChanges`会在下一次 digest 中调用。
 
+test/compile_spec.js
+
 ```js
 it('calls $onChanges when attribute changes', function() {
   var changesSpy = jasmine.createSpy();
@@ -304,4 +306,145 @@ it('calls $onChanges when attribute changes', function() {
     expect(lastChanges.myAttr.isFirstChange()).toBe(false);
   });
 });
+```
+
+如果我们从`initializeDirectiveBindings`里的属性 observer 调用`recordChanges`，就能满足这个单元测试了：
+
+```js
+case '@':
+  attrs.$observe(attrName, function(newAttrValue) {
+    var oldValue = destination[scopeName];
+    destination[scopeName] = newAttrValue;
+    recordChanges(scopeName, destination[scopeName], oldValue);
+  });
+  if (attrs[attrName]) {
+    destination[scopeName] = $interpolate(attrs[attrName])(scope);
+  }
+  initialChanges[scopeName] =
+    new SimpleChange(_UNINITIALIZED_VALUE, destination[scopeName]);
+  break;
+```
+
+但如果我们在同一个组件上有两个绑定数据，一个是单向绑定数据，另一个是属性绑定，那又会怎么样呢？我们希望在这种情况下，组件的`$onChanges`钩子函数调用时能用一个包含两个绑定数据变化值的对象作为参数：
+
+test/compile_spec.js
+
+```js
+it('calls $onChanges once with multiple changes', function() {
+  var changesSpy = jasmine.createSpy();
+  var attrs;
+  var injector = makeInjectorWithComponent('myComponent', {
+    bindings: {
+      myBinding: '<',
+      myAttr: '@'
+    },
+    controller: function($attrs) {
+      this.$onChanges = changesSpy;
+      attrs = $attrs;
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.aValue = 42;
+    var el = $(
+      '<my-component my-binding="aValue" my-attr="fourtyTwo"></my-component>'
+    );
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    expect(changesSpy.calls.count()).toBe(1);
+
+    $rootScope.aValue = 43;
+    attrs.$set('myAttr', 'fourtyThree');
+    $rootScope.$apply();
+    expect(changesSpy.calls.count()).toBe(2);
+    
+    var lastChanges = changesSpy.calls.mostRecent().args[0];
+    expect(lastChanges.myBinding.currentValue).toBe(43);
+    expect(lastChanges.myBinding.previousValue).toBe(42);
+    expect(lastChanges.myAttr.currentValue).toBe('fourtyThree');
+    expect(lastChanges.myAttr.previousValue).toBe('fourtyTwo');
+  });
+});
+```
+
+这样是行不通的。原因是我们实际上调用了两次`$onChange`，每次只处理一个变化值。这又是因为我们在`recordChanges`中直接调用`$onChanges`，而没有等到所有变化值都打包好了再调用。我们希望的是，等到本次 digest 循环的所有变化都发生后，再一次性调用`$onChanges`函数。
+
+我们先把`changes`对象从`recordChanges`函数中拿出来（放到`initializeDirectiveBindings`作用域中），这样即使`recordChanges`函数调用之后，`changes`对象还存在。
+
+_src/compile.js_
+
+```js
+function initializeDirectiveBindings(scope, attrs, destination, bindings, newScope) {
+  // var initialChanges = {};
+  var changes;
+
+  function recordChanges(key, currentValue, previousValue) {
+    if (destination.$onChanges && currentValue !== previousValue) {
+      changes = changes || {};
+      // changes[key] = new SimpleChange(previousValue, currentValue);
+      // destination.$onChanges(changes);
+    }
+  }
+
+  // ...
+
+}
+```
+
+然后，我们会加入一个新的辅助函数叫`flushOnChanges`，它会把收集到的变化值作为调用`$onChanges`的参数，然后把`changes`对象进行清空。
+
+```js
+function flushOnChanges() {
+  try {
+    destination.$onChanges(changes);
+  } finally {
+    changes = null;
+  }
+}
+```
+
+我们会让`flushOnChanges`进行定时延迟执行。无论我们何时记录到变化值都会这样做，但如果当前已经在定时执行了，我们就不再重复调用了。我们可以利用一个辅助变量`willflushOnChanges`来进行跟踪。对于具体用什么进行定时任务，我们可以使用`$rootScope.$$postDigest`。这意味着`$onChanges`会在下一个（或当前的）digest 中调用。
+
+_src/compile.js_
+
+```js
+function initializeDirectiveBindings(scope, attrs, destination, bindings, newScope) {
+  var initialChanges = {};
+  var changes;
+  var willFlushOnChanges = false;
+
+  function recordChanges(key, currentValue, previousValue) {
+    if (destination.$onChanges && currentValue !== previousValue) {
+      changes = changes || {};
+      changes[key] = new SimpleChange(previousValue, currentValue);
+      if (!willFlushOnChanges) {
+        $rootScope.$$postDigest(flushOnChanges);
+        willFlushOnChanges = true;
+      }
+    }
+  }
+
+  function flushOnChanges() {
+    try {
+      destination.$onChanges(changes);
+    } finally {
+      changes = null;
+    }
+  }
+
+  // ...
+
+}
+```
+
+我们需要在`flushOnChanges`函数中把`willFlushChanges`进行重置，这样我们之后才能再次设置定时任务。
+
+```js
+function flushOnChanges() {
+  try {
+    destination.$onChanges(changes);
+  } finally {
+    changes = null;
+    willFlushOnChanges = false;
+  } 
+}
 ```
