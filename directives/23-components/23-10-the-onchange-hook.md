@@ -448,3 +448,154 @@ function flushOnChanges() {
   } 
 }
 ```
+
+这样就能让目前的测试集正常工作了，但还是有一些问题。首先，如果我们在控制器的`$onChanges`方法中有代码会修改绑定了的属性，这些改变并没有被接收到。我们可以看到在这个单元测试中，组件模板并没有包含我们希望有的内容：
+
+_test/compile_spec.js_
+
+```js
+it('runs $onChanges in a digest', function() {
+  var changesSpy = jasmine.createSpy();
+  var injector = makeInjectorWithComponent('myComponent', {
+    bindings: {
+      myBinding: '<'
+    },
+    controller: function() {
+      this.$onChanges = function() {
+        this.innerValue = 'myBinding is ' + this.myBinding;
+      };
+    },
+    template: '{{ $ctrl.innerValue }}'
+  });
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.aValue = 42;
+    var el = $('<my-component my-binding="aValue"></my-component>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    
+    $rootScope.aValue = 43;
+    $rootScope.$apply();
+
+    expect(el.text()).toEqual('myBinding is 43');
+  });
+});
+```
+
+出现这种情况是由于我们使用了`$$postDigest`，而`$$postDigest`实际上是在 digest 以外执行的。我们在这里产生的变化不会马上生效直到下一个 digest 发生，但我们不知道究竟是在什么时候。作为应用开发者，我们希望所有的控制器代码，包括`$onChanges`，会在一个 digest 中全部执行，这样我们就不用再调用一次`$scope.$apply`。所以，我们要做的是在调用`$onChanges`时启动另一个 digest。
+
+_src/compile.js_
+
+```js
+function flushOnChanges() {
+  try {
+    $rootScope.$apply(function() {
+      destination.$onChanges(changes);
+    });
+  } finally {
+    changes = null;
+    willFlushOnChanges = false;
+  }
+}
+```
+
+另一个问题发生在一次 digest 中同一个绑定数据被修改多次的情况。变化值确实能被记录，但我们就无法跟踪到 digest 之前发生的旧值是什么了，因为每次值的改变都会覆写上一个值。
+
+_test/compile_spec.js_
+
+```js
+it('keeps first value as previous for $onChanges when multiple changes', function() {
+  var changesSpy = jasmine.createSpy();
+  var injector = makeInjectorWithComponent('myComponent', {
+    bindings: {
+      myBinding: '<'
+    },
+    controller: function() {
+      this.$onChanges = changesSpy;
+    }
+  });
+  injector.invoke(function($compile, $rootScope) {
+    $rootScope.aValue = 42;
+    var el = $('<my-component my-binding="aValue"></my-component>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    
+    $rootScope.aValue = 43;
+    $rootScope.$watch('aValue', function() {
+      if ($rootScope.aValue !== 44) {
+        $rootScope.aValue = 44;
+      }
+    });
+    $rootScope.$apply();
+    expect(changesSpy.calls.count()).toBe(2);
+
+    var lastChanges = changesSpy.calls.mostRecent().args[0];
+    expect(lastChanges.myBinding.currentValue).toBe(44);
+    expect(lastChanges.myBinding.previousValue).toBe(42);
+  });
+});
+```
+
+在`recordChanges`函数中，我们需要检查是否已经有对当前 key 的 change object。如果有，我们就把它的旧值抓取下来作为我们新的改变记录，并丢弃中间的变化值。在`$onChanges`中，无论在 digest 中绑定数据改变了多少次，我们将看到第一个旧值和最后一个新值。
+
+_src/compile.js_
+
+```js
+function recordChanges(key, currentValue, previousValue) {
+  // if (destination.$onChanges && currentValue !== previousValue) {
+  //   changes = changes || {};
+    if (changes[key]) {
+      previousValue = changes[key].previousValue;
+    }
+  //   changes[key] = new SimpleChange(previousValue, currentValue);
+  //   if (!willFlushOnChanges) {
+  //     $rootScope.$$postDigest(flushOnChanges);
+  //     willFlushOnChanges = true;
+  //   }
+  // }
+}
+```
+
+下一个要解决的问题，可能也是最严重的一个问题，因为它会影响到性能。留意每当我们 flush 改变的队列时，我们调用`$scope.$apply()`的方式。这在每个跟踪`$onChanges`中的变化的组件中都调用了一次。想一想，如果一个应用在视图上有 50 个这样的组件，这种情况在真实的应用发生也是挺正常。那么，在这个应用中，我们就需要在一次 digest 中额外启动多达 50 个 digest。还有，按照我们之前学到的，每个`$apply`将会把应用中所有的变化侦测代码都运行一遍。这就是现在我们面临的严重的性能问题。
+
+我们想要实现的效果是，无论有多少个组件存在，我们也只会启动一个 digest。我们可以在同一个 digest 中同时为所有组件调用`$onChanges`。
+
+_test/compile_spec.js_
+
+```js
+it('runs $onChanges for all components in the same digest', function() {
+  var injector = createInjector(['ng', function($compileProvider) {
+    $compileProvider.component('first', {
+      bindings: { myBinding: '<' },
+      controller: function() {
+        this.$onChanges = function() {};
+      }
+    });
+    $compileProvider.component('second', {
+      bindings: { myBinding: '<' },
+      controller: function() {
+        this.$onChanges = function() {};
+      }
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var watchSpy = jasmine.createSpy();
+    $rootScope.$watch(watchSpy);
+
+    $rootScope.aValue = 42;
+    var el = $('<div>' +
+      '<first my-binding="aValue"></first>' +
+      '<second my-binding="aValue"></second>' +
+      '</div>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    // Dirty watches always cause a second digest, hence 2
+    expect(watchSpy.calls.count()).toBe(2);
+    
+    $rootScope.aValue = 43;
+    $rootScope.$apply();
+    // Two more because of dirty watches,
+    // plus *one* more for onchanges
+    expect(watchSpy.calls.count()).toBe(5);
+  });
+});
+```
