@@ -602,6 +602,8 @@ it('runs $onChanges for all components in the same digest', function() {
 
 我们下一步要做的是把一些用于对变化进行检测的代码拿到外面，这样我们就可以一次性把所有变化都清理掉。但首先，让我们先将`flushOnChanges`中对`$onChanges`的调用放到一个独立的函数中，这个函数叫`triggerOnChanges`。
 
+_src/compile.js_
+
 ```js
 function triggerOnChanges() {
   try {
@@ -644,4 +646,106 @@ function initializeDirectiveBindings(scope, attrs, destination, bindings, newSco
   // ...
 
 }
+```
+
+然后我们会逐个将变化的触发函数加入到队列中：
+
+```js
+function recordChanges(key, currentValue, previousValue) {
+  if (destination.$onChanges && currentValue !== previousValue) {
+    // if (!onChangesQueue) {
+    //   onChangesQueue = [];
+    //   $rootScope.$$postDigest(flushOnChanges);
+    // }
+    if (!changes) {
+      changes = {};
+      onChangesQueue.push(triggerOnChanges);
+    }
+    // if (changes[key]) {
+    //   previousValue = changes[key].previousValue;
+    // }
+    // changes[key] = new SimpleChange(previousValue, currentValue);
+  }
+}
+```
+
+也就是说，最后`onChangesQueue`会变成一个待调用函数的集合。这也是我们在`flushOnChanges`要做的事情：
+
+```js
+function flushOnChanges() {
+  $rootScope.$apply(function() {
+    _.forEach(onChangesQueue, function(onChangesHook) {
+      onChangesHook();
+    });
+    onChangesQueue = null;
+  }); 
+}
+```
+
+要做的最后一件事是把`onChangeQueue`变量和`flushOnChanges`函数放到`initializeDirectiveBindings`函数之外，就放在`$CompileProvider`的`$get`方法里，这样它们会被整个应用分享：
+
+```js
+this.$get = ['$injector', '$parse', '$controller', '$rootScope', '$http',
+  '$interpolate',
+  function($injector, $parse, $controller, $rootScope, $http, $interpolate) {
+    
+    var onChangesQueue;
+
+    function flushOnChanges() {
+      $rootScope.$apply(function() {
+        _.forEach(onChangesQueue, function(onChangesHook) {
+          onChangesHook();
+        });
+        onChangesQueue = null;
+      });
+    }
+
+    // ...
+  
+  }
+];
+```
+
+而`changes`对象和`triggerOnChanges`会待在它们原来的地方，因为这两个变量特定于每一个组件的。
+
+因此，目前将会发生的情况是应用中的任何一个组件在何时何处需要调用`$onChanges`，程序会初始化`onChangesQueue`队列，并将组件自己的`triggerOnChanges`函数放到里面去。然后，所有其他同样要调用`$onChanges`的组件会把各自的`triggerOnChanges`放到这个队列中。当 digest 结束后，当要处理队列是，就会把所有触发器会进行一个批量执行。
+
+但还有一件事情。如果我们有一个`$onChanges`方法会引起其他组件的绑定数据发生改变该怎么办呢？单个组件这么做是没有问题，但如果我们要把两个组件放到一起，而且两个组件形成了相互改变关联属性的情况，就会产生循环问题。像下面的这个测试用例会产生一个无限循环。
+
+_test/compile_spec.js_
+
+```js
+it('has a TTL for $onChanges', function() {
+  var injector = createInjector(['ng', function($compileProvider) {
+    $compileProvider.component('myComponent', {
+      bindings: {
+        input: '<',
+        increment: '='
+      },
+      controller: function() {
+        this.$onChanges = function() {
+          if (this.increment) {
+            this.increment = this.increment + 1;
+          }
+        };
+      }
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var watchSpy = jasmine.createSpy();
+    $rootScope.$watch(watchSpy);
+
+    var el = $('<div>' +
+      '<my-component input="valueOne" increment="valueTwo"></my-component>' +
+      '<my-component input="valueTwo" increment="valueOne"></my-component>' +
+      '</div>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    $rootScope.valueOne = 42;
+    $rootScope.valueTwo = 42;
+    $rootScope.$apply();
+    expect($rootScope.valueOne).toBe(51);
+    expect($rootScope.valueTwo).toBe(51);
+  });
+});
 ```
