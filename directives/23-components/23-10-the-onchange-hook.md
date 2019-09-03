@@ -599,3 +599,49 @@ it('runs $onChanges for all components in the same digest', function() {
   });
 });
 ```
+
+我们下一步要做的是把一些用于对变化进行检测的代码拿到外面，这样我们就可以一次性把所有变化都清理掉。但首先，让我们先将`flushOnChanges`中对`$onChanges`的调用放到一个独立的函数中，这个函数叫`triggerOnChanges`。
+
+```js
+function triggerOnChanges() {
+  try {
+    destination.$onChanges(changes);
+  } finally {
+    changes = null;
+  }
+}
+
+function flushOnChanges() {
+  $rootScope.$apply(function() {
+    triggerOnChanges();
+    willFlushOnChanges = false;
+  });
+}
+```
+
+然后，我们要将`willFlushOnChanges`布尔值标识放到一个叫`onChangesQueue`的数组中。我们主要是想把多个`$onChanges`触发器放到一个调用队列里面去。每当我们记录了一个变化，如果这个数组形式的队列还没被初始化，我们会把它初始化为一个空数组。同时，我们会执行一个定时任务，约定在之后某个时间统一对变化进行处理。
+
+```js
+function initializeDirectiveBindings(scope, attrs, destination, bindings, newScope) {
+  var initialChanges = {};
+  var changes;
+  var onChangesQueue;
+
+  function recordChanges(key, currentValue, previousValue) {
+    if (destination.$onChanges && currentValue !== previousValue) {
+      if (!onChangesQueue) {
+        onChangesQueue = [];
+        $rootScope.$$postDigest(flushOnChanges);
+      }
+      changes = changes || {};
+      if (changes[key]) {
+        previousValue = changes[key].previousValue;
+      }
+      changes[key] = new SimpleChange(previousValue, currentValue);
+    }
+  }
+
+  // ...
+
+}
+```
