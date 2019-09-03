@@ -16,7 +16,7 @@ $scope.$watch('ctrl.someInput', function(newValue) {
 
 `$onChanges`第一次调用是发生在组件被初始化后。它会提供组件所有属性和单向绑定数据的初始值。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('calls $onChanges with all bindings during init', function() {
@@ -47,7 +47,7 @@ it('calls $onChanges with all bindings during init', function() {
 
 关于`$onChanges`，还有一样东西需要注意：双向绑定数据的变化是无法捕捉到的。要使用`$onChanges`，应用开发者就需要习惯使用单项数据绑定：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('does not call $onChanges for two-way bindings', function() {
@@ -182,7 +182,7 @@ _.forEach(controllers, function(controller) {
 
 接下来，我们就要实现`$onChanges`的实际用途——在发生变化时进行调用，而不仅仅是在组件初始化时调用。假设有一个组件包含了一个单向数据绑定的输入框，我们对输入框的值进行改变的时候，我们会希望这个组件的`$onChanges()`会在下一个 digest 中调用。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('calls $onChanges when binding changes', function() {
@@ -202,11 +202,11 @@ it('calls $onChanges when binding changes', function() {
     $rootScope.$apply();
 
     expect(changesSpy.calls.count()).toBe(1);
-    
+
     $rootScope.aValue = 43;
     $rootScope.$apply();
     expect(changesSpy.calls.count()).toBe(2);
-    
+
     var lastChanges = changesSpy.calls.mostRecent().args[0];
     expect(lastChanges.myBinding.currentValue).toBe(43);
     expect(lastChanges.myBinding.previousValue).toBe(42);
@@ -248,7 +248,7 @@ function initializeDirectiveBindings(scope, attrs, destination, bindings, newSco
   function recordChanges(key, currentValue, previousValue) {
 
   }
-  
+
   // _.forEach(bindings, function(definition, scopeName) {
   //   var attrName = definition.attrName;
   //   var parentGet, unwatch;
@@ -274,7 +274,7 @@ function recordChanges(key, currentValue, previousValue) {
 
 我们来看看这种方式怎么对属性绑定也生效。当我们对一个已经进行了绑定的属性进行`$set`时，我们希望`$onChanges`会在下一次 digest 中调用。
 
-test/compile_spec.js
+test/compile\_spec.js
 
 ```js
 it('calls $onChanges when attribute changes', function() {
@@ -293,13 +293,13 @@ it('calls $onChanges when attribute changes', function() {
     var el = $('<my-component my-attr="42"></my-component>');
     $compile(el)($rootScope);
     $rootScope.$apply();
-    
+
     expect(changesSpy.calls.count()).toBe(1);
-    
+
     attrs.$set('myAttr', '43');
     $rootScope.$apply();
     expect(changesSpy.calls.count()).toBe(2);
-    
+
     var lastChanges = changesSpy.calls.mostRecent().args[0];
     expect(lastChanges.myAttr.currentValue).toBe('43');
     expect(lastChanges.myAttr.previousValue).toBe('42');
@@ -327,7 +327,7 @@ case '@':
 
 但如果我们在同一个组件上有两个绑定数据，一个是单向绑定数据，另一个是属性绑定，那又会怎么样呢？我们希望在这种情况下，组件的`$onChanges`钩子函数调用时能用一个包含两个绑定数据变化值的对象作为参数：
 
-test/compile_spec.js
+test/compile\_spec.js
 
 ```js
 it('calls $onChanges once with multiple changes', function() {
@@ -356,7 +356,7 @@ it('calls $onChanges once with multiple changes', function() {
     attrs.$set('myAttr', 'fourtyThree');
     $rootScope.$apply();
     expect(changesSpy.calls.count()).toBe(2);
-    
+
     var lastChanges = changesSpy.calls.mostRecent().args[0];
     expect(lastChanges.myBinding.currentValue).toBe(43);
     expect(lastChanges.myBinding.previousValue).toBe(42);
@@ -451,7 +451,7 @@ function flushOnChanges() {
 
 这样就能让目前的测试集正常工作了，但还是有一些问题。首先，如果我们在控制器的`$onChanges`方法中有代码会修改绑定了的属性，这些改变并没有被接收到。我们可以看到在这个单元测试中，组件模板并没有包含我们希望有的内容：
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('runs $onChanges in a digest', function() {
@@ -472,7 +472,7 @@ it('runs $onChanges in a digest', function() {
     var el = $('<my-component my-binding="aValue"></my-component>');
     $compile(el)($rootScope);
     $rootScope.$apply();
-    
+
     $rootScope.aValue = 43;
     $rootScope.$apply();
 
@@ -500,7 +500,7 @@ function flushOnChanges() {
 
 另一个问题发生在一次 digest 中同一个绑定数据被修改多次的情况。变化值确实能被记录，但我们就无法跟踪到 digest 之前发生的旧值是什么了，因为每次值的改变都会覆写上一个值。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('keeps first value as previous for $onChanges when multiple changes', function() {
@@ -518,7 +518,7 @@ it('keeps first value as previous for $onChanges when multiple changes', functio
     var el = $('<my-component my-binding="aValue"></my-component>');
     $compile(el)($rootScope);
     $rootScope.$apply();
-    
+
     $rootScope.aValue = 43;
     $rootScope.$watch('aValue', function() {
       if ($rootScope.aValue !== 44) {
@@ -559,7 +559,7 @@ function recordChanges(key, currentValue, previousValue) {
 
 我们想要实现的效果是，无论有多少个组件存在，我们也只会启动一个 digest。我们可以在同一个 digest 中同时为所有组件调用`$onChanges`。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('runs $onChanges for all components in the same digest', function() {
@@ -590,7 +590,7 @@ it('runs $onChanges for all components in the same digest', function() {
     $rootScope.$apply();
     // Dirty watches always cause a second digest, hence 2
     expect(watchSpy.calls.count()).toBe(2);
-    
+
     $rootScope.aValue = 43;
     $rootScope.$apply();
     // Two more because of dirty watches,
@@ -688,7 +688,7 @@ function flushOnChanges() {
 this.$get = ['$injector', '$parse', '$controller', '$rootScope', '$http',
   '$interpolate',
   function($injector, $parse, $controller, $rootScope, $http, $interpolate) {
-    
+
     var onChangesQueue;
 
     function flushOnChanges() {
@@ -701,7 +701,7 @@ this.$get = ['$injector', '$parse', '$controller', '$rootScope', '$http',
     }
 
     // ...
-  
+
   }
 ];
 ```
@@ -712,7 +712,7 @@ this.$get = ['$injector', '$parse', '$controller', '$rootScope', '$http',
 
 但还有一件事情。如果我们有一个`$onChanges`方法会引起其他组件的绑定数据发生改变该怎么办呢？单个组件这么做是没有问题，但如果我们要把两个组件放到一起，而且两个组件形成了相互改变关联属性的情况，就会产生循环问题。像下面的这个测试用例会产生一个无限循环。
 
-_test/compile_spec.js_
+_test/compile\_spec.js_
 
 ```js
 it('has a TTL for $onChanges', function() {
@@ -749,3 +749,6 @@ it('has a TTL for $onChanges', function() {
   });
 });
 ```
+
+
+
