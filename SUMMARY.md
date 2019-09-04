@@ -239,5 +239,6 @@
   * [23-8-the-$onDestroy-lifecycle-hook](directives/23-components/23-8-the-ondestroy-lifecycle-hook.md)
   * [23-9-the-$postLink-lifecycle-hook](directives/23-components/23-9-the-postlink-lifecycle-hook.md)
   * [23-10-the-$onChange-hook](directives/23-components/23-10-the-onchange-hook.md)
+  * [23-11-summary](directives/23-components/23-11-summary.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
 
