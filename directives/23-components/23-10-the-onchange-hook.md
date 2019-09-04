@@ -750,5 +750,150 @@ it('has a TTL for $onChanges', function() {
 });
 ```
 
+我们创建了来自同一个组件的两个示例，一个实例上的`$onChanges`方法会引起另一个实例上的 input 属性产生变化，反过来也是一样，这样将会产生无限循环。
 
+你可能可以回忆起来，其实在本书的第一章我们已经实现了一种对付类似问题的解决措施：TTL。如果程序在 10 次的反复操作后依然无法稳定下来，TTL 机制就会强制停止 digest 继续进行。但目前在`$onChanges`上并没能用上作用域的 TTL 安全机制。那是因为，在每一次处理变化时，都会脱离当前 digest，然后使用`$$postDigest`重新开始一个 digest，这样 TTL 计数器每次都会清零重新计算。
 
+Angular 为`$onChanges`开发了第二套的 TTL 安全机制。它跟作用域上的 TTL 很像，会在`compile.js`上实现。我们就以实现这一套 TTL 作为本章的结尾。
+
+在`flushOnChanges`函数外面，我们会新建一个变量`onChangesTtl`，它会在我们进入`flushOnChanges`函数时减一，然后在离开这个函数时加一：
+
+_src/compile.js_
+
+```js
+// var onChangesQueue;
+var onChangesTtl = 10;
+
+function flushOnChanges() {
+  try {
+    onChangesTtl--;
+    // $rootScope.$apply(function() {
+    //   _.forEach(onChangesQueue, function(onChangesHook) {
+    //     onChangesHook();
+    //   });
+    //   onChangesQueue = null;
+    // });
+  } finally {
+    onChangesTtl++;
+  }
+}
+```
+
+当这个变量值变成 0，我们就会抛出一个异常，说明`$onChanges`的循环变化导致程序无法稳定下来：
+
+_src/compile.js_
+
+```js
+function flushOnChanges() {
+  try {
+    // onChangesTtl--;
+    if (!onChangesTtl) {
+      onChangesQueue = null;
+      throw '10 $onChanges() iterations reached. Aborting!';
+    }
+    // $rootScope.$apply(function() {
+    //   _.forEach(onChangesQueue, function(onChangesHook) {
+    //     onChangesHook();
+    //   });
+    //   onChangesQueue = null;
+    // });
+  } finally {
+    onChangesTtl++;
+  }
+}
+```
+
+这就能修复我们的问题了。当`onChanges`被循环反复调用，而`flushOnChanges`递归调用达到 10 次时，我们会放弃继续尝试调用并告诉应用开发者修复它们的代码。
+
+除此以外，如果应用开发者有特殊的结构需要，我们还会给予应用开发者修改 TTL 的机会。我们会通过`$CompileProvider`来做这件事，这跟我们在`$rootScope`的 provider 里提供`digestTtl`的方法是一样的：
+
+_test/compile_spec.js_
+
+```js
+it('allows configuring $onChanges TTL', function() {
+  var injector = createInjector(['ng', function($compileProvider) {
+    $compileProvider.onChangesTtl(50);
+    $compileProvider.component('myComponent', {
+      bindings: {
+        input: '<',
+        increment: '='
+      },
+      controller: function() {
+        this.$onChanges = function() {
+          if (this.increment) {
+            this.increment = this.increment + 1;
+          }
+        };
+      }
+    });
+  }]);
+  injector.invoke(function($compile, $rootScope) {
+    var watchSpy = jasmine.createSpy();
+    $rootScope.$watch(watchSpy);
+
+    var el = $('<div>' +
+      '<my-component input="valueOne" increment="valueTwo"></my-component>' +
+      '<my-component input="valueTwo" increment="valueOne"></my-component>' +
+      '</div>');
+    $compile(el)($rootScope);
+    $rootScope.$apply();
+    
+    $rootScope.valueOne = 42;
+    $rootScope.valueTwo = 42;
+    $rootScope.$apply();
+    expect($rootScope.valueOne).toBe(91);
+    expect($rootScope.valueTwo).toBe(91);
+  });
+});
+```
+
+这个测试用例跟前一个基本一样，但这次我们会把 TTL 设置为尝试 50 次才结束继续尝试，我们会通过在配置阶段调用 provider 提供的`onChangesTtl`方法来实现。
+
+我们会在`$CompileProvider`中定义`onChangesTtl`方法，它负责管理 TTL 变量。这个方法既可用于读取，也可用于修改：
+
+_src/compile.js_
+
+```js
+function $CompileProvider($provide) {
+
+  // var hasDirectives = {};
+  
+  var TTL = 10;
+
+  this.onChangesTtl = function(value) {
+    if (arguments.length) {
+      TTL = value;
+      return this;
+    }
+    return TTL;
+  };
+
+// ...
+
+}
+```
+
+我们会用这个 TTL 变量替换掉之前硬编码的数字 10：
+
+```js
+// var onChangesQueue;
+var onChangesTtl = TTL;
+
+function flushOnChanges() {
+  try {
+    onChangesTtl--;
+    if (!onChangesTtl) {
+      // onChangesQueue = null;
+      throw TTL + ' $onChanges() iterations reached. Aborting!';
+    }
+    // $rootScope.$apply(function() {
+    //   _.forEach(onChangesQueue, function(onChangesHook) {
+    //     onChangesHook();
+    //   });
+    //   onChangesQueue = null;
+    // });
+  } finally {
+    onChangesTtl++;
+  }
+}
+```
