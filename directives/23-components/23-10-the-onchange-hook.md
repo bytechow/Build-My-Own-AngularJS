@@ -805,7 +805,7 @@ function flushOnChanges() {
 
 这就能修复我们的问题了。当`onChanges`被循环反复调用，而`flushOnChanges`递归调用达到 10 次时，我们会放弃继续尝试调用并告诉应用开发者修复它们的代码。
 
-除此以外，如果应用开发者有特殊的结构需要，我们还会给予应用开发者修改 TTL 的机会。我们会通过`$CompileProvider`来做这件事，这跟我们在`$rootScope`的 provider 里提供`digestTtl`的方法是一样的：
+除此以外，如果应用开发者有特殊的结构需要，我们还会给予应用开发者修改 TTL 的机会。我们会通过`$CompileProvider`来做这件事，这跟我们在`$rootScope`的 provider 里提供`digestTtl`的方法是对称的：
 
 _test/compile_spec.js_
 
