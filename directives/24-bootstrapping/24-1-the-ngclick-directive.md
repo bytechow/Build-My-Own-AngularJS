@@ -44,5 +44,24 @@ it('starts a digest on click', function() {
 });
 ```
 
-> 我们还没定义`doSomething()`函数，因此这个表达式什么不会做。回忆一下我们在实现表达式的解析时，我们允许在表达式中调用并不存在的函数，这次调用失败了，但不会产生影响。
+> 我们还没定义`doSomething()`函数，因此这个表达式什么不会做。回忆一下我们在实现表达式的解析时，我们允许在表达式中调用并不存在的函数。虽然调用失败了，但不会产生影响。
 
+我们可以通过实现一个简单的`ngClick`指令来满足测试的要求。这个指令只能使用属性形态表示。当链接时，我们会对元素添加一个点击事件处理器。当点击该元素时，它会启动一个 digest：
+
+_src/directives/ng_click.js_
+
+```js
+'use strict';
+function ngClickDirective() {
+  return {
+    restrict: 'A',
+    link: function(scope, element) {
+      element.on('click', function() {
+        scope.$apply();
+      }); 
+    }
+  }; 
+}
+
+module.exports = ngClickDirective;
+```
