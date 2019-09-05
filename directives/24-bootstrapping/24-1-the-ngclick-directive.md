@@ -65,3 +65,67 @@ function ngClickDirective() {
 
 module.exports = ngClickDirective;
 ```
+
+为了让编译器能够处理这个指令，我们依然需要在`ng`模块注册这个指令：
+
+_src/angular_public.js_
+
+```js
+function publishExternalAPI() {
+  setupModuleLoader(window);
+
+  var ngModule = window.angular.module('ng', []);
+  ngModule.provider('$filter', require('./filter'));
+  ngModule.provider('$parse', require('./parse'));
+  ngModule.provider('$rootScope', require('./scope'));
+  ngModule.provider('$q', require('./q').$QProvider);
+  ngModule.provider('$$q', require('./q').$$QProvider);
+  ngModule.provider('$httpBackend', require('./http_backend'));
+  ngModule.provider('$http', require('./http').$HttpProvider);
+  ngModule.provider('$httpParamSerializer',
+    require('./http').$HttpParamSerializerProvider);
+  ngModule.provider('$httpParamSerializerJQLike',
+    require('./http').$HttpParamSerializerJQLikeProvider);
+  ngModule.provider('$compile', require('./compile'));
+  ngModule.provider('$controller', require('./controller').$ControllerProvider);
+  ngModule.provider('$interpolate', require('./interpolate'));
+  ngModule.directive('ngController',
+    require('./directives/ng_controller'));
+  ngModule.directive('ngTransclude',
+    require('./directives/ng_transclude'));
+  ngModule.directive('ngClick',
+    require('./directives/ng_click'));
+}
+```
+
+此时，第一个测试就通过了！
+
+`ngClick` 大多用于在点击事件发生时对绑定的表达式进行求值，会对应用产生某种影响。我们可以通过使用一个调用了函数的表达式来验证一下，看点击事件发生时`ngClick`是否会调用这个函数：
+
+_src/directives/ng_click.js_
+
+```js
+it('evaluates given expression on click', function() {
+  $rootScope.doSomething = jasmine.createSpy();
+  var button = $('<button ng-click="doSomething()"></button>');
+  $compile(button)($rootScope);
+
+  button.click();
+  expect($rootScope.doSomething).toHaveBeenCalled();
+});
+```
+
+这个实现起来也很简单。回忆一下本书第一部分的内容，`scope.$appy`可以接受一个表达式作为参数。传入这个参数后，程序会在当前 scope 的语境下对表达式进行求值。在`ngClick`中，我们可以从当前元素的`ng-click`属性拿到这个表达式。我们可以从`Attributes`对象中轻易地拿到这个值，然后把它传递给`$apply`：
+
+```js
+function ngClickDirective() {
+  return {
+    restrict: 'A',
+    link: function(scope, element, attrs) {
+      element.on('click', function() {
+        scope.$apply(attrs.ngClick);
+      });
+    }
+  };
+}
+```
