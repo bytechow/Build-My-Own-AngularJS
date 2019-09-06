@@ -242,4 +242,5 @@
   * [23-11-summary](directives/23-components/23-11-summary.md)
 * [第24章 引导启动](directives/24-bootstrapping/24-bootstrapping.md)
   * [24-1-the-ngClick-directive](directives/24-bootstrapping/24-1-the-ngclick-directive.md)
+  * [24-2-bootstrapping-angular-applications-manually](directives/24-bootstrapping/24-2-bootstrapping-angular-applications-manually.md)
 
