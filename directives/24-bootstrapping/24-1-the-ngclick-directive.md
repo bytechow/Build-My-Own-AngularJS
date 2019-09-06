@@ -129,3 +129,41 @@ function ngClickDirective() {
   };
 }
 ```
+
+我们快要搞定`ngClick`了，但还有一样东西没有完成，就是我们还没能让表达式可以通过`$event`访问到点击事件对象。这可以让应用代码检查这个事件对象的内容或者阻止事件的冒泡：
+
+_test/directives/ng_click_spec.js_
+
+```js
+it('passes $event to expression', function() {
+  $rootScope.doSomething = jasmine.createSpy();
+  var button = $('<button ng-click="doSomething($event)"></button>');
+  $compile(button)($rootScope);
+
+  button.click();
+  var evt = $rootScope.doSomething.calls.mostRecent().args[0];
+  expect(evt).toBeDefined();
+  expect(evt.type).toBe('click');
+  expect(evt.target).toBeDefined();
+});
+```
+
+我们可以使用之前在表达式解析器已经开发好的、用于加入本地变量的特性进行提供。我们可以把 DOM 事件对象赋值给本地变量`$event`。虽然`scope.$apply()`不允许传递本地变量，但`scope.$eval()`可以，我们可以在调用`$apply`之前先调用一次`scope.$eval()`：
+
+```js
+function ngClickDirective() {
+  return {
+    restrict: 'A',
+    link: function(scope, element, attrs) {
+      element.on('click', function(evt) {
+        scope.$eval(attrs.ngClick, {$event: evt});
+        scope.$apply();
+      }); 
+    }
+  }; 
+}
+```
+
+以上就是开发`ngClick`的过程了！这个指令实际上开发起来是非常简单的，毕竟它只是把一些我们之前实现的核心特性组合起来而已：它是以指令的形式构建的，使用了 scope 和表达式解析器特性来完成整个功能。
+
+> 其实 AngularJS 本身在这一块还有一个优化点：每次点击的时候，程序都会将表达式字符串转化成一个函数。而实际上 AngularJS 框架会在编译阶段再使用`$parse`服务进行解析，然后只需要在每次点击时调用这个解析函数就好了。如果你想加入这个优化，去试试吧！
