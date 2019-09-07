@@ -91,3 +91,150 @@ it('attaches the injector to the bootstrapped element', function() {
   expect(element.data('$injector')).toBe(injector);
 });
 ```
+
+Angular 本身并不需要用这个数据属性做些什么，这个属性只是用于使用工具和调试的目的。
+
+我们会确保传入的元素是一个 jQuery 对象，然后对它加入一些数据属性：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element) {
+  var $element = $(element);
+  var injector = createInjector();
+  $element.data('$injector', injector);
+  return injector;
+};
+```
+
+现在我们的注射器中还什么都没有，没有注入依赖的话我们无法做出一个有用的 Angular 应用！我们至少应该把所有 Angular 内建的服务都注入进来，比如`$compile`和`$rootScope`：
+
+```js
+it('loads built-ins into the injector', function() {
+  var element = $('<div></div>');
+  var injector = window.angular.bootstrap(element);
+
+  expect(injector.has('$compile')).toBe(true);
+  expect(injector.has('$rootScope')).toBe(true);
+});
+```
+
+我们要确保`ng`模块加入到了注射器中。这样我们就把`angular_public.js`中所有内建的服务都注入进来了：
+
+```js
+window.angular.bootstrap = function(element) {
+  var $element = $(element);
+  var injector = createInjector(['ng']);
+  $element.data('$injector', injector);
+  return injector;
+};
+```
+
+但这还不够。用户想要启动的是他们自己的应用，这些应用会有用户自定义的模块组成。添加的这些模块会作为`bootstrap`方法的第二个参数。这个参数是一个由模块名称组成的数组，这些模块之前都应该通过`angular.module`注册好了：
+
+_test/bootstrap_spec.js_
+
+```js
+it('loads other specified modules into the injector', function() {
+  var element = $('<div></div>');
+
+  window.angular.module('myModule', [])
+    .constant('aValue', 42);
+  window.angular.module('mySecondModule', [])
+    .constant('aSecondValue', 43);
+  window.angular.bootstrap(element, ['myModule', 'mySecondModule']);
+  
+  var injector = element.data('$injector');
+  expect(injector.get('aValue')).toBe(42);
+  expect(injector.get('aSecondValue')).toBe(43);
+});
+```
+
+开发时，我们会在给定的数组的最前面插入`ng`模块，这样内建的服务总是会先被加载：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element, modules) {
+  var $element = $(element);
+  modules = modules || [];
+  modules.unshift('ng');
+  var injector = createInjector(modules);
+  $element.data('$injector', injector);
+  return injector;
+};
+```
+
+除了把所有在模块上定义的依赖，`bootstrap`方法也会支持注入一个特殊的依赖项` $rootElement`。它让应用开发者能访问到应用的 DOM 根元素：
+
+_test/bootstrap_spec.js_
+
+```js
+it('makes root element available for injection', function() {
+  var element = $('<div></div>');
+
+  window.angular.bootstrap(element);
+  
+  var injector = element.data('$injector');
+  expect(injector.has('$rootElement')).toBe(true);
+  expect(injector.get('$rootElement')[0]).toBe(element[0]);
+});
+```
+
+我们可以通过注册一个函数形式的模块来完成这个功能。我们创建这个模块，然乎把它放到`modules`数组的前面就可以了。这个模块会注册一个叫`$rootElement`的 value 依赖，它会指向我们要在其上启动应用的元素：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element, modules) {
+  var $element = $(element);
+  modules = modules || [];
+  modules.unshift(['$provide', function($provide) {
+    $provide.value('$rootElement', $element);
+  }]);
+  modules.unshift('ng');
+  var injector = createInjector(modules);
+  $element.data('$injector', injector);
+  return injector;
+};
+```
+
+这些依赖注入实际的设置过程就无需我们关心了。`bootstrap`方法的第二个也是非常重要的职责就是对启动元素包含的 DOM 进行编译。这意味着在这个元素底下的任何指令都会进行编译：
+
+_test/bootstrap_spec.js_
+
+```js
+it('compiles the element', function() {
+  var element = $('<div><div my-directive></div></div>');
+  var compileSpy = jasmine.createSpy();
+  
+  window.angular.module('myModule', [])
+    .directive('myDirective', function() {
+      return {compile: compileSpy};
+    });
+  window.angular.bootstrap(element, ['myModule']);
+
+  expect(compileSpy).toHaveBeenCalled();
+});
+```
+
+我们会通过注册器中获取到`$compile`服务，然后对启动元素进行使用。我们可以使用`$injector.invoke()`在注入`$compile`服务的同时进行编译：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element, modules) {
+  // var $element = $(element);
+  // modules = modules || [];
+  // modules.unshift(['$provide', function($provide) {
+  //   $provide.value('$rootElement', $element);
+  // }]);
+  // modules.unshift('ng');
+  // var injector = createInjector(modules);
+  // $element.data('$injector', injector);
+  injector.invoke(['$compile', function($compile) {
+    $compile($element);
+  }]);
+  // return injector;
+};
+```
