@@ -218,7 +218,7 @@ it('compiles the element', function() {
 });
 ```
 
-我们会通过注册器中获取到`$compile`服务，然后对启动元素进行使用。我们可以使用`$injector.invoke()`在注入`$compile`服务的同时进行编译：
+我们会通过注射器获取到`$compile`服务，然后对启动元素进行使用。我们可以使用`$injector.invoke()`在注入`$compile`服务的同时进行编译：
 
 _src/bootstrap.js_
 
@@ -238,3 +238,147 @@ window.angular.bootstrap = function(element, modules) {
   // return injector;
 };
 ```
+
+实际上，在启动过程中，DOM 元素不仅会进行编译，也会被链接到应用的根作用域上：
+
+_test/bootstrap_spec.js_
+
+```js
+it('links the element', function() {
+  var element = $('<div><div my-directive></div></div>');
+  var linkSpy = jasmine.createSpy();
+
+  window.angular.module('myModule', [])
+    .directive('myDirective', function() {
+      return {link: linkSpy};
+    });
+  window.angular.bootstrap(element, ['myModule']);
+
+  expect(linkSpy).toHaveBeenCalled();
+  expect(linkSpy.calls.mostRecent().args[0]).toEqual(
+    element.data('$injector').get('$rootScope')
+  );
+});
+```
+
+我们可以把`$rootScope`注入到`invoke`函数中去，然后在编译后马上运行这个公共链接函数：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element, modules) {
+  // var $element = $(element);
+  // modules = modules || [];
+  // modules.unshift(['$provide', function($provide) {
+  //   $provide.value('$rootElement', $element);
+  // }]);
+  // modules.unshift('ng');
+  // var injector = createInjector(modules);
+  // $element.data('$injector', injector);
+  injector.invoke(['$compile', '$rootScope', function($compile, $rootScope) {
+    $compile($element)($rootScope);
+  }]);
+  // return injector;
+};
+```
+
+同时，这意味着在此刻应用初始的 scope 继承层次已经建立起来了：任何一个使用继承作用域或独立作用域的指令出现，都会随之产生一个新的作用域。这些工作都由编译器完成，`bootstrap`方法并不需要对此做什么特殊的处理。
+
+第三个，也是`bootstrap`的最重要的一个职责是启动应用的第一个 digest。这一步会在初始的 DOM 已经编译、链接好后进行。这也意味着初始 DOM 中的插值表达式会被表达式的结果值替换掉：
+
+_test/bootstrap_spec.js_
+
+```js
+it('runs a digest', function() {
+  var element = $('<div><div my-directive>{{expr}}</div></div>');
+  var linkSpy = jasmine.createSpy();
+
+  window.angular.module('myModule', [])
+    .directive('myDirective', function() {
+      return {
+        link: function(scope) {
+          scope.expr = '42';
+        }
+      }
+    });
+  window.angular.bootstrap(element, ['myModule']);
+
+  expect(element.find('div').text()).toBe('42');
+});
+````
+
+我们能做的就是把我们的编译和链接操作放到`$rootScope.$apply()`调用内部就好了，这样就能确保在链接完成以后会运行一个 digest：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element, modules) {
+  // var $element = $(element);
+  // modules = modules || [];
+  // modules.unshift(['$provide', function($provide) {
+  //   $provide.value('$rootElement', $element);
+  // }]);
+  // modules.unshift('ng');
+  // var injector = createInjector(modules);
+  // $element.data('$injector', injector);
+  injector.invoke(['$compile', '$rootScope', function($compile, $rootScope) {
+    $rootScope.$apply(function() {
+      $compile($element)($rootScope);
+    });
+  }]);
+  // return injector;
+};
+```
+
+`bootstrap`还支持一个特性，就是启用严格的依赖注入模式，启用严格模式的代码我们已经在书中的依赖注入板块实现了。启用严格的注入模式后，不是通过数组包裹或使用`$inject`进行注解的注入方式都会抛出异常。要是在指令中使用了这样的一个依赖注入，而我们使用了`bootstrap`的第三个参数来启用严格的注入模式，程序应该运行失败：
+
+_test/bootstrap_spec.js_
+
+```js
+it('supports enabling strictDi mode', function() {
+  var element = $('<div><div my-directive></div></div>');
+  var compileSpy = jasmine.createSpy();
+
+  window.angular.module('myModule', [])
+    .constant('aValue', 42)
+    .directive('myDirective', function(aValue) {
+      return {};
+    });
+  
+  expect(function() {
+    window.angular.bootstrap(element, ['myModule'], { strictDi: true });
+  }).toThrow();
+});
+```
+
+`bootstrap`方法的第三个参数实际上是一个配置对象，但目前只支持一个 key：`strictDi`。我们会把这个参数传递给`createInjector`函数进行调用，作为这个函数的第二个参数——`strictDi`：
+
+_src/bootstrap.js_
+
+```js
+window.angular.bootstrap = function(element, modules, config) {
+  // var $element = $(element);
+  // modules = modules || [];
+  config = config || {};
+  // modules.unshift(['$provide', function($provide) {
+  //   $provide.value('$rootElement', $element);
+  // }]);
+  // modules.unshift('ng');
+  var injector = createInjector(modules, config.strictDi);
+  // $element.data('$injector', injector);
+  // injector.invoke(['$compile', '$rootScope', function($compile, $rootScope) {
+  //   $rootScope.$apply(function() {
+  //     $compile($element)($rootScope);
+  //   }); 
+  // }]);
+  // return injector;
+};
+```
+
+这样我们就有了完整的一个 Angular 应用启动程序了。它包括：
+
+1. 使用内建的和自建的模块，创建一个依赖注射器。
+2. 将传入的元素（应用根元素）进行编译和链接。
+3. 启动应用的第一个 digest。
+
+在这之后，应用中发生的事情就全都由指令、控制器和服务这些模块包含的内容决定了。
