@@ -148,3 +148,66 @@ $(document).ready(function() {
   }
 });
 ```
+
+最后，我们也可以通过在自动启动时启用一个额外属性来设定严格的依赖注入模式。首先，我们需要支持对手动启动应用的函数传递第三个参数`config`：
+
+```js
+var ngAttrPrefixes = ['ng-', 'data-ng-', 'ng:', 'x-ng-'];
+$(document).ready(function() {
+  var foundAppElement, foundModule, config = {};
+  // _.forEach(ngAttrPrefixes, function(prefix) {
+  //   var attrName = prefix + 'app';
+  //   var selector = '[' + attrName.replace(':', '\\:') + ']';
+  //   var element;
+  //   if (!foundAppElement &&
+  //     (element = document.querySelector(selector))) {
+  //     foundAppElement = element;
+  //     foundModule = element.getAttribute(attrName);
+  //   }
+  // });
+  if (foundAppElement) {
+    window.angular.bootstrap(
+      foundAppElement,
+      foundModule ? [foundModule] : [],
+      config
+    );
+  }
+});
+```
+
+当我们找到元素时，如果元素上有一个`ng-strict-di`属性，我们就为 config 对象添加一个 strictDi 属性。这里，我们也支持使用其他几种属性前缀：
+
+- ng-strict-di
+- data-ng-strict-di
+- ng:strict-di
+- x-ng-strict-di
+
+```js
+// var ngAttrPrefixes = ['ng-', 'data-ng-', 'ng:', 'x-ng-'];
+$(document).ready(function() {
+  // var foundAppElement, foundModule, config = {};
+  // _.forEach(ngAttrPrefixes, function(prefix) {
+  //   var attrName = prefix + 'app';
+  //   var selector = '[' + attrName.replace(':', '\\:') + ']';
+  //   var element;
+  //   if (!foundAppElement &&
+  //     (element = document.querySelector(selector))) {
+  //     foundAppElement = element;
+  //     foundModule = element.getAttribute(attrName);
+  //   }
+  // });
+  // if (foundAppElement) {
+    config.strictDi = _.some(ngAttrPrefixes, function(prefix) {
+      var attrName = prefix + 'strict-di';
+      return foundAppElement.hasAttribute(attrName);
+    });
+  //   window.angular.bootstrap(
+  //     foundAppElement,
+  //     foundModule ? [foundModule] : [],
+  //     config
+  //   );
+  // }
+});
+```
+
+这样我们就实现了自动启动功能！它主要是关注如何查找正确的 DOM 元素并对该元素进行检查，剩下的都是重用之前实现的手动启动功能的代码。
