@@ -244,4 +244,5 @@
   * [24-1-the-ngClick-directive](directives/24-bootstrapping/24-1-the-ngclick-directive.md)
   * [24-2-bootstrapping-angular-applications-manually](directives/24-bootstrapping/24-2-bootstrapping-angular-applications-manually.md)
   * [24-3-bootstrapping-angular-applications-automatically](directives/24-bootstrapping/24-3-bootstrapping-angular-applications-automatically.md)
+  * [24-4-building-the-production-bundle](directives/24-bootstrapping/24-4-building-the-production-bundle.md)
 
