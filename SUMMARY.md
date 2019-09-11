@@ -246,4 +246,5 @@
   * [24-3-bootstrapping-angular-applications-automatically](directives/24-bootstrapping/24-3-bootstrapping-angular-applications-automatically.md)
   * [24-4-building-the-production-bundle](directives/24-bootstrapping/24-4-building-the-production-bundle.md)
   * [24-5-running-an-example-app](directives/24-bootstrapping/24-5-running-an-example-app.md)
+  * [24-6-summary](directives/24-bootstrapping/24-6-summary.md)
 
