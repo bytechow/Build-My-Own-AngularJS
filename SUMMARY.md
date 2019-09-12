@@ -2,7 +2,6 @@
 
 ## 前言
 
-* [Introduction](README.md)
 * [前言](introduction/introduction.md)
 * [如何阅读本书](how-to-read-this-book/how-to-read-this-book.md)
 * [有关源代码](how-to-read-this-book/source-code.md)
