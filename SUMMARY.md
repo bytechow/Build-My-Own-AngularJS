@@ -3,9 +3,9 @@
 ## 前言
 
 * [前言](introduction/introduction.md)
-* [如何阅读本书](how-to-read-this-book/how-to-read-this-book.md)
-* [有关源代码](how-to-read-this-book/source-code.md)
-* [贡献者](how-to-read-this-book/contributors.md)
+* [如何阅读本书](introduction/how-to-read-this-book.md)
+* [有关源代码](introduction/source-code.md)
+* [贡献者](introduction/contributors.md)
 
 ## 零、前期准备
 
