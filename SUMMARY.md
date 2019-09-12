@@ -2,10 +2,12 @@
 
 ## 前言
 
+* [Introduction](README.md)
 * [前言](introduction/introduction.md)
 * [如何阅读本书](introduction/how-to-read-this-book.md)
 * [源代码](introduction/source-code.md)
 * [贡献者](introduction/contributors.md)
+* [errata-and-contributing](errata-and-contributing.md)
 
 ## 零、前期准备
 
