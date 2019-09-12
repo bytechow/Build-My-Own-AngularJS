@@ -8,7 +8,7 @@
 * [源代码](introduction/source-code.md)
 * [贡献者](introduction/contributors.md)
 * [勘误与贡献](introduction/errata-and-contributing.md)
-* [contact](contact.md)
+* [联系方式](contact.md)
 
 ## 零、前期准备
 
