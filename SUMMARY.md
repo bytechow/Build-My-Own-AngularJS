@@ -12,6 +12,8 @@
   * [贡献者](how-to-read-this-book/source-code/contributors.md)
 * [前期准备](how-to-read-this-book/setting-up/setting-up.md)
 
+## 零、前期准备
+
 ## 一、作用域
 
 * [一、作用域](scopes/scopes.md)
