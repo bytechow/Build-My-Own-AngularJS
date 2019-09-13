@@ -1,3 +1,5 @@
+## 安装 Node 和 NPM(Install Node and NPM)
+
 我们的项目将会非常依赖 [Node.js](http://nodejs.org)。这个 JavaScript 运行时将是支撑我们项目构建和测试的基础。Node.js 本身也已经集成了 NPM，NPM 是我们将要用到的包管理器。
 
 幸运的是，Node 和 NPM 都被各大操作系统所支持，如 Linux，Mac OS X 和 Windows。这里我就不详细介绍 Node 的安装过程了，大家可以到 [https://nodejs.org/download/](https://nodejs.org/download/) 查看官方的安装指南。

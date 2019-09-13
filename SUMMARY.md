@@ -13,6 +13,7 @@
 
 * [搭建项目框架](setting-up/setting-up.md)
 * [安装 Node 和 NPM](setting-up/install-node-and-npm.md)
+* [创建项目目录](setting-up/create-the-project-directories.md)
 
 ## 一、作用域
 
