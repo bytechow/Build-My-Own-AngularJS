@@ -9,9 +9,9 @@
 * [勘误与贡献](introduction/errata-and-contributing.md)
 * [联系方式](introduction/contact.md)
 
-## 零、前期准备
+## 零、搭建项目框架
 
-* [联系方式](introduction/contact.md)
+* [搭建项目框架](setting-up/setting-up.md)
 
 ## 一、作用域
 
