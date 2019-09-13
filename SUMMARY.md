@@ -12,6 +12,7 @@
 ## 零、搭建项目框架
 
 * [搭建项目框架](setting-up/setting-up.md)
+* [安装 Node 和 NPM](setting-up/install-node-and-npm.md)
 
 ## 一、作用域
 
