@@ -16,6 +16,7 @@
 * [创建项目目录](setting-up/create-the-project-directories.md)
 * [为 NPM 创建 package.json](setting-up/create-package-json-for-npm.md)
 * ["Hello，World!"](setting-up/hello-world.md)
+* ["Hello，World!"](setting-up/enable-static-analysis-with-jshint.md)
 
 ## 一、作用域
 
