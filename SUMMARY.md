@@ -14,7 +14,7 @@
 * [搭建项目框架](setting-up/setting-up.md)
 * [安装 Node 和 NPM](setting-up/install-node-and-npm.md)
 * [创建项目目录](setting-up/create-the-project-directories.md)
-* [为 NPM 创建 package.json](setting-up/create-package-json-for-npm.md)
+* [创建 NPM 所需的 package.json](setting-up/create-package-json-for-npm.md)
 * ["Hello，World!"](setting-up/hello-world.md)
 * [利用 JSHint 做静态语法分析](setting-up/enable-static-analysis-with-jshint.md)
 
