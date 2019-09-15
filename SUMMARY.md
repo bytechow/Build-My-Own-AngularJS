@@ -18,6 +18,7 @@
 * ["Hello，World!"](setting-up/hello-world.md)
 * [利用 JSHint 做静态分析](setting-up/enable-static-analysis-with-jshint.md)
 * [使用 Jasmine，Sinon 和 Karma 构建单元测试](setting-up/enable-unit-testing-with-jasmine-sinon-and-karma.md)
+* [集成 Browserify](setting-up/integrate-browserify.md)
 
 ## 一、作用域
 
