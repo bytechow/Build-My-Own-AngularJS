@@ -1,4 +1,4 @@
-## 集成 Browserify（Integrate Browserify）
+### 集成 Browserify（Integrate Browserify）
 
 之前的设置会让 Karme 对所有在 `src` 和 `test` 目录下找到的所有 JavaScript 文件进行加载，并执行里面的全部内容。这意味着文件中的全局变量和函数，比如`sayHello`，能被其他文件访问到。
 

@@ -1,4 +1,4 @@
-## 创建 NPM 所需的 package.json（Create package.json for NPM）
+### 创建 NPM 所需的 package.json（Create package.json for NPM）
 
 要用 NPM，我们就需要创建一个名为`package.json`的文件。NPM 能够从这个文件获知项目的一些基本信息，同时还有更重要的，告知项目依赖了哪些 NPM 包。
 

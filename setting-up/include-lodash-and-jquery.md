@@ -1,4 +1,4 @@
-## 安装 Lo-Dash 和 jQuery（Include Lo-Dash And jQuery）
+### 安装 Lo-Dash 和 jQuery（Include Lo-Dash And jQuery）
 
 Angular 本身并不依赖任何第三方库（虽然如果引入了 jQuery，它也确实会用）。但在我们的开发过程中，为了集中精力研究 Angular 框架的原理，我们可以将一些底层细节交给已有的第三方库来处理。
 

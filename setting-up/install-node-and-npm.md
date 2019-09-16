@@ -1,4 +1,4 @@
-## 安装 Node 和 NPM(Install Node and NPM)
+### 安装 Node 和 NPM(Install Node and NPM)
 
 我们的项目将会非常依赖 [Node.js](http://nodejs.org)。这个 JavaScript 运行时将是支撑我们项目构建和测试的基础。Node.js 本身也已经集成了 NPM，NPM 是我们将要用到的包管理器。
 
