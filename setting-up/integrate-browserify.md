@@ -66,4 +66,4 @@ module.exports = function(config) {
 
 现在试一下启动 Karma，然后加入一些会引起程序出错的代码，看看效果。语法错误会导致一个 JSHint 错误信息的出现，而单元测试失败则会导致一个测试错误信息的出现。这两个错误都能在 Karma 的输出中看到。
 
-> 当要运行单元测试的时候，偶尔会看到一个“Some of your tests did a full page reload!”的信息，即使当前你并没有在单元测试中做这样的事情。虽然并无大碍，但确实会让人分心。<br/><br/>这是由于
+> 当要运行单元测试的时候，偶尔会看到一个“Some of your tests did a full page reload!”的信息，即使当前你并没有在单元测试中做这样的事情。虽然并无大碍，但确实会让人分心。这是由于
