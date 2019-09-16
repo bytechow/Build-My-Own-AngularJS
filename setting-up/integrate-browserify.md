@@ -68,4 +68,4 @@ module.exports = function(config) {
 
 > 当要运行单元测试的时候，偶尔会看到一个“Some of your tests did a full page reload!”的信息，即使当前你并没有在单元测试中做这样的事情。虽然并无大碍，但确实会让人分心。
 > 
-> 这是由于侦测到文件变化后单元测试执行得太快导致的。你可以通过调高 Browserify 的 bundleDelay 配置参数来解决，直接把这个配置参数加入到 `karma.conf.js` 的 `browserify` 部分就可以了。这个配置参数的默认值为 700，而在我的电脑上设置 `bundleDelay: 2000` 就可以解决这个问题了。
+> 出现这个问题的原因是，在侦测到文件变化后，测试用例过早执行了。你可以通过调高 Browserify 的 bundleDelay 配置参数来解决，直接把这个配置参数加入到 `karma.conf.js` 的 `browserify` 部分就可以了。这个配置参数的默认值为 700，而在我的电脑上设置 `bundleDelay: 2000` 就可以解决这个问题了。
