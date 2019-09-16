@@ -1,3 +1,3 @@
-我们将要构建一个完整成熟的 JavaScript 框架。为了让我们开发的过程变得更简单，我们有必要花点时间来构建一个有着坚实的构建过程和自动化的测试的项目框架。幸运的是，目前有一些很棒的工具来帮我们来简化这个过程，我们只需要引入这些工具，然后就可以正式进入开发阶段了。
+我们将要构建一个完整成熟的 JavaScript 框架。为了让我们开发的过程变得更简单，我们有必要花点时间来搭建一个有着完善的构建流程和自动化测试的项目框架。幸运的是，目前已经有一些很棒的工具来帮我们来简化这个过程，我们只需要引入并配置好这些工具就可以进行开发了。
 
 在这个“热身”的章节中，我们会创建一个 JavaScript 库项目，这个项目会用到 [NPM](https://npmjs.org/) 和 [Browserify](http://browserify.org/)。同时，我们会使用 [JSHint](https://jshint.com/) 来完成静态分析，使用 [Jasmine](https://jasmine.github.io/2.0/introduction.html) 和 [Karma](http://karma-runner.github.io/) 来构建单元测试。
