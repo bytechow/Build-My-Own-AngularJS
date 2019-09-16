@@ -4,7 +4,7 @@
 
 幸运的是，Node 和 NPM 都被各大操作系统所支持，如 Linux，Mac OS X 和 Windows。这里我就不详细介绍 Node 的安装过程了，大家可以到 [https://nodejs.org/download/](https://nodejs.org/download/) 查看官方的安装指南。
 
-在开始创建项目之前，请确保你已经安装了 `node`，并且在终端上能够使用 `npm` 命令。在我的机器上，正常的终端输出会像下面这样：
+在开始创建项目之前，请确保你已经安装了 `node`，并且在终端上能够使用 `npm` 命令。在我的机器上，若成功安装了 Node，正常的终端输出会像下面这样：
 
 ```bash
 node -v
