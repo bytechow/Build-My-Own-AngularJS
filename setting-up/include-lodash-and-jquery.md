@@ -27,4 +27,20 @@ module.exports = function sayHello(to){
 }
 ```
 
-这个函数现在将要打招呼的对象变成参数传入，然后使用 Lo-Dash 的 [template](https://lodash.com/docs#template) 函数生成结果字符串。
+这个函数现在将要打招呼的对象变成参数传入，然后利用 Lo-Dash 的 [template](https://lodash.com/docs#template) 函数生成结果字符串。
+
+然后我们在单元测试中也进行对应的更改：
+
+_test/hello_spec.js_
+
+```js
+var sayHello = require('../src/hello');
+
+describe('Hello', function() {
+  
+  it('says hello', function() {
+    expect(sayHello('Jane')).toBe('Hello, Jane!');
+  });
+
+});
+```
