@@ -64,7 +64,7 @@ module.exports = function(config) {
 
 注意，我们也启用了 Browserify 的 debug 功能，这意味着 Browserify 会在处理代码的同时输出 [source map](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/)，这样测试出现错误时我们能看到出错出现在哪个文件的哪一行中。如果测试出错，我们要定位错误原因时，这个特性是十分关键的。
 
-现在试一下启动 Karma，然后加入一些会引起程序出错的代码，看看效果。语法错误会导致一个 JSHint 错误信息的出现，而单元测试失败则会导致一个测试错误信息的出现。这两个错误都能在 Karma 的输出中看到。
+现在试一下启动 Karma，然后加入一些会引起程序出错的代码看看效果。语法错误会导致一个 JSHint 错误信息的出现，而单元测试失败则会导致一个测试错误信息的出现。这两个错误都能在 Karma 的输出中看到。
 
 > 当要运行单元测试的时候，偶尔会看到一个“Some of your tests did a full page reload!”的信息，即使当前你并没有在单元测试中做这样的事情。虽然并无大碍，但确实会让人分心。
 > 
