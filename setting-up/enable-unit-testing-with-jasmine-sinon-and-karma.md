@@ -34,7 +34,7 @@ npm install --save-dev jasmine-core sinon
 npm install --save-dev karma karma-jasmine karma-jshint-preprocessor
 ```
 
-还要安装一个 PhantomJS 影子浏览器，Karma 会在这个隐形的浏览器中运行单元测试：
+还要安装一个 PhantomJS 影子浏览器，Karma 实际上会在这个隐形的浏览器中运行单元测试：
 
 ```bash
 npm install --save-dev phantomjs-prebuilt karma-phantomjs-launcher
