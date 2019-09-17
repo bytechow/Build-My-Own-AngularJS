@@ -61,11 +61,11 @@ module.exports = function(config) {
 }
 ```
 
-这样，Karma 就会对 `src` 目录下的所有 JavaScript 文件进行测试。测试本身则存放在 `test` 目录下。当 Karma 运行时，会一直监测 `src` 目录，看它里面的文件是否发生了改变，如果发生了变化则自动重新运行测试套件。
+这样就会以 `src` 目录下的所有 JavaScript 文件为目标运行测试了。对它们测试会存放在 `test` 目录下对应的 JavaScript 文件中。当 Karma 运行时，会持续监测这些文件，如果它们发生了改变，则自动重新运行测试套件。
 
-这里，我们还会设置一个 `jshint` 预处理器，在每个测试套件启动之前，我们都会先运行 JSHint。
+这里，我们还会设置一个 `jshint` 预处理器，在每个测试套件执行之前，我们都会先运行 JSHint。
 
-在单元测试中，我们会用到很多由 Jasmine 定义的全局变量，因此需要把我们要用到的 Jasmine 全局变量都放到 JSHint 的 `globals` 对象中，以免 JSHint 报错：
+在测试代码中，我们会用到很多 Jasmine 自定义的全局变量，我们需要把这些变量都放到 JSHint 的 `globals` 对象中，以免 JSHint 报错：
 
 _.jshintrc_
 
