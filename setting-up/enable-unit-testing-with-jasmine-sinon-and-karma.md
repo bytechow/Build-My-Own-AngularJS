@@ -110,9 +110,9 @@ describe('Hello', function() {
 });
 ```
 
-如果你曾经用过 Ruby 的 [rSpec](http://rspec.info/) ，应该不会对这种语法感到陌生：顶层作用域有一个 `describe` 代码块，里面可以存放了多个单元测试。每个单元测试则是通过 `it` 代码块进行定义的，每一个代 `it` 码块都包含一个名称和一个测试函数。
+如果你曾经用过 Ruby 的 [rSpec](http://rspec.info/) ，应该不会对这种语法感到陌生：顶层作用域有一个 `describe` 代码块，代码块里可以存放了多个单元测试。而单个的单元测试是通过 `it` 代码块进行定义的，每个单元测试都定义了一个名称和一个测试函数。
 
-> 这种 Jasmine （或 rSpec）使用的语法来源于 [行为驱动型开发模式](http://en.wikipedia.org/wiki/Behavior-driven_development)。`describe` 和 `it` 代码块一同定义了代码的行为。这也是我们为测试文件加上 `_spec.js` 后缀的原因，这些测试文件相当于代码的_说明书_。
+> Jasmine （或 rSpec）使用的语法来源于 [行为驱动型开发模式](http://en.wikipedia.org/wiki/Behavior-driven_development)。`describe` 和 `it` 代码块一同定义了代码的行为。这也是我们为测试文件加上 `_spec.js` 后缀的原因，这些测试文件相当于代码的_说明书_。
 
 下面我们启动 Karma 来执行这个单元测试：
 
@@ -124,5 +124,5 @@ npm test
 
 在你阅读本书的时候，我推荐在终端窗口中一直运行着 Karma。这样你就不用一直通过手动的方式执行这些测试，有代码出错的话我们也能及时发现。
 
-这个单元测试通过了，我们可以继续下一步了。
+我们的第一个单元测试通过了，可以继续下一步了。
 
