@@ -6,7 +6,7 @@
 describe('you can group test cases in "describe" blocks...', function() {
 
   describe('...which can also be nested', function() {
-  
+
     it('test cases are in "it" blocks', function() {
       var string = 'where we can run arbitrary JavaScript code...';
       // ...and make assertions about results using "expect":
@@ -98,7 +98,7 @@ _package.json_
 
 现在我们可以运行单元测试，我们先来创建一个测试文件。我们在 `test` 目录中新建 `hello_spec.js` 文件，然后往里面添加以下内容：
 
-_test/hello_spec.js_
+_test/hello\_spec.js_
 
 ```js
 describe('Hello', function() {
@@ -125,3 +125,4 @@ npm test
 在你阅读本书的时候，我推荐在终端窗口中一直运行着 Karma。这样你就不用一直通过手动的方式执行这些测试，有代码出错的话我们也能及时发现。
 
 这个单元测试通过了，我们可以继续下一步了。
+
