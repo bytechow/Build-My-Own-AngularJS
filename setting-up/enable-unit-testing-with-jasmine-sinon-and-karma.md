@@ -40,7 +40,7 @@ npm install --save-dev karma karma-jasmine karma-jshint-preprocessor
 npm install --save-dev phantomjs-prebuilt karma-phantomjs-launcher
 ```
 
-下一步，我们会在 Karma 特有的配置文件 `karma.conf.js` 加载并配置 Karme 和 Jasmine：
+下一步，我们会在 Karma 特有的配置文件 `karma.conf.js` 加载并配置 Karma 和 Jasmine：
 
 _karma.conf.js_
 
