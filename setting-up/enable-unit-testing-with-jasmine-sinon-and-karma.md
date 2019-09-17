@@ -18,7 +18,7 @@ describe('you can group test cases in "describe" blocks...', function() {
 });
 ```
 
-要真正运行单元测试，我们需要用到一个很受欢迎的测试执行器—— [Karma](http://karma-runner.github.io/)。稍后，在我们安装了 Karme 的相关插件之后，它就能与 Jasmine 和 Browserify 结合起来使用。
+要真正运行单元测试，我们需要用到一个很受欢迎的测试执行器—— [Karma](http://karma-runner.github.io/)。安装插件后，它就能与 Jasmine 和 Browserify 良好地集成到在一起使用。
 
 另外，我们还会用到一个测试助手库—— [Sinon.JS](https://sinonjs.org/)，这个库能为我们提供之后会用到的一些较为复杂的 mock 对象。在我们开始构建 HTTP 服务时，Sinon 会变得非常有用。
 
