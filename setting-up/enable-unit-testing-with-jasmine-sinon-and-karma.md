@@ -1,6 +1,6 @@
 ### 使用 Jasmine，Sinon 和 Karma 构建单元测试（Enable Unit Testing With Jasmine, Sinon, and Karma）
 
-单元测试在整个开发过程中都处于绝对的中心地位。这意味着我们需要一个好的测试框架。我们将要使用的测试框架是 [Jasmine](https://jasmine.github.io/2.3/introduction.html)，除了它有良好、简洁的 API 之外，它也满足我们所有的测试需求：
+单元测试在整个开发过程中都处于绝对的中心地位。这意味着我们需要一个好的测试框架。我们将要使用的测试框架是 [Jasmine](https://jasmine.github.io/2.3/introduction.html)，它有良好、简洁的 API，同时也满足我们所有的测试需求：
 
 ```js
 describe('you can group test cases in "describe" blocks...', function() {
