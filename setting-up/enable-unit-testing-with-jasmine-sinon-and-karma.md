@@ -40,9 +40,7 @@ npm install --save-dev karma karma-jasmine karma-jshint-preprocessor
 npm install --save-dev phantomjs-prebuilt karma-phantomjs-launcher
 ```
 
-> 译者注：由于 karma-phantomjs-launcher 用到需要到 2.1.7 版本的 phantomjs-prebuilt，所以这里应该为 > ```bash
-> npm install --save-dev phantomjs-prebuilt karma-phantomjs-launcher`
->```
+> 译者注：由于 karma-phantomjs-launcher 用到需要到 2.1.7 版本的 phantomjs-prebuilt，所以这里应该为 > `npm install --save-dev phantomjs-prebuilt karma-phantomjs-launcher`
 
 下一步，我们会在 Karma 特有的配置文件 `karma.conf.js` 加载并配置 Karma 和 Jasmine：
 
