@@ -85,7 +85,7 @@ _.jshintrc_
 }
 ```
 
-我们同样可以使用 NPM 运行脚本简化 Karma 的启动命令。但在此之前，我们先加入一个名为`lint`的 运行脚本，执行这个脚本时，会对 `src` 和 `test` 目录下的文件进行 jshint 检查：
+我们同样可以使用 NPM 运行脚本简化 Karma 的启动命令。但在此之前，我们要让 `lint` 运行脚本也能对`test` 目录下的文件进行 jshint 检查：
 
 _package.json_
 
