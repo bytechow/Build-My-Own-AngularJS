@@ -36,7 +36,7 @@ describe('Hello', function() {
 });
 ```
 
-在运行代码之前，我们需要先在测试配置中加入对 Browserify 的支持。由于我们已经安装了 `karma-browserify` 插件，现在直接启用它就可以了：
+在运行代码之前，我们需要先在测试配置中集成对 Browserify 的支持。由于我们已经安装了 `karma-browserify` 插件，现在直接启用它就可以了：
 
 _karma.conf.js_
 
@@ -60,12 +60,12 @@ module.exports = function(config) {
 }
 ```
 
-有了这个配置文件，在执行代码之前，会通过了 `browserify` 进行预处理。此时，Browserify 会处理模块的 import 和 export。
+这样配置好之后，以后每次执行代码之前都会先运行 `browserify` 预处理器，此时，Browserify 会处理模块的 import 和 export。
 
-注意，我们也启用了 Browserify 的 debug 功能，这意味着 Browserify 会在处理代码的同时输出 [source map](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/)，这样测试出现错误时我们能看到出错出现在哪个文件的哪一行中。如果测试出错，我们要定位错误原因时，这个特性是十分关键的。
+这里要注意的是，我们也启用了 Browserify 的 debug 功能，这意味着 Browserify 会在处理代码的同时输出 代码的[source map](http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/)，这样我们能从错误信息中看到发生错误的代码来源于哪个文件的哪一行。如果测试无法通过、要定位错误原因时，这项功能会显得特别重要的。
 
-现在试一下启动 Karma，然后加入一些会引起程序出错的代码看看效果。语法错误会导致一个 JSHint 错误信息的出现，而单元测试失败则会导致一个测试错误信息的出现。这两个错误都能在 Karma 的输出中看到。
+现在试一下启动 Karma，然后故意加入一些错误代码看看效果。语法错误会出现一个 JSHint 错误信息，而单元测试失败则会出现一个测试错误信息。这两个错误都能在 Karma 的输出中看到。
 
-> 当要运行单元测试的时候，偶尔会看到一个“Some of your tests did a full page reload!”的信息，即使当前你并没有在单元测试中做这样的事情。虽然并无大碍，但确实会让人分心。
+> 运行单元测试时，偶尔会看到一个“Some of your tests did a full page reload!”的信息，但你实际上并没有在单元测试中做这样的操作。虽然这个问题对我们的开发不会产生实质性的影响，但还是会让人分心。
 > 
-> 出现这个问题的原因是，在侦测到文件变化后，测试用例过早执行了。你可以通过调高 Browserify 的 bundleDelay 配置参数来解决，直接把这个配置参数加入到 `karma.conf.js` 的 `browserify` 部分就可以了。这个配置参数的默认值为 700，而在我的电脑上设置 `bundleDelay: 2000` 就可以解决这个问题了。
+> 出现这个问题的原因在于侦测到文件变化后测试用例过早地执行了。你可以通过调高 Browserify 的 bundleDelay 配置参数来解决，直接把这个配置参数加入到 `karma.conf.js` 的 `browserify` 部分就可以了。这个配置参数的默认值为 700，而我在电脑上设置 `bundleDelay: 2000` 就可以解决这个问题了。
