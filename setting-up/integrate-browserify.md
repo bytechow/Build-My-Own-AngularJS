@@ -1,10 +1,10 @@
 ### 集成 Browserify（Integrate Browserify）
 
-之前的设置会让 Karme 对所有在 `src` 和 `test` 目录下找到的所有 JavaScript 文件进行加载，并执行里面的全部内容。这意味着文件中的全局变量和函数，比如`sayHello`，能被其他文件访问到。
+目前我们的处理是，Karma 会对所有在 `src` 和 `test` 目录下的 JavaScript 文件都进行加载，并执行里面的全部内容。这意味着文件中的全局变量和函数，比如`sayHello`，能被其他文件访问到。
 
-这种文件组织方式会让我们难以对某一点进行跟踪，因为我们要定位代码的位置很困难。官方的 AngularJS 代码就是使用这种方式的，但因为官方项目是在 2009 年创建的，当时并没有合适的替代方案。幸运的是，我们现在才开始创建，而目前已经有替代方案了。
+但这种文件组织方式在某种程度上会让代码难以跟踪，因为这样难以定位目标代码的位置。官方的 AngularJS 代码就是使用这种方式的，但这是因为官方项目是在 2009 年创建的，当时并没有真正合适的替代方案。幸运的是，目前已经有替代方案了。
 
-Node.js 遵循一种打包标准，这种标准被称作 [CommonJS](http://wiki.commonjs.org/wiki/CommonJS)，它规定一个文件就是一个模块。一个模块可以使用 `require` 引入其他模块的东西，同时我们可以在模块中使用 `module.exports` 来定义可供对外输出的东西。这种模块系统非常适合我们使用。但我们要编写的不是 Node.js 代码，而是客户端的 JavaScript。但也不是没有办法，我们可以使用一个名为 `Browserify` 的工具，这样就能在客户端代码中使用模块系统。它会对我们所有的文件进行处理，最终输出一个能在浏览器（比如测试用的 PhantomJS 浏览器）中运行的包。
+Node.js 遵循的打包标准是 [CommonJS](http://wiki.commonjs.org/wiki/CommonJS)，这个标准规定一个文件就是一个模块。一个模块可以使用 `require` 语法引入其他模块的东西，同时我们可以在模块中使用 `module.exports` 语法定义模块中可对外输出的东西。这套模块系统就非常适合用来做文件组织了。但我们要编写的不是 Node.js 代码，而是客户端的 JavaScript 代码。不过也不是没有办法，我们可以使用一个名为 `Browserify` 的工具，它能使我们在客户端代码中使用模块系统。`Browserify`会对所有文件进行处理，最终输出一个能在浏览器（比如我们测试用到的 PhantomJS 浏览器）中运行的包。
 
 ```bash
 npm install --save-dev browserify watchify karma-browserify
