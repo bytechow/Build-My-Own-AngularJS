@@ -26,6 +26,7 @@
 
 * [一、作用域](scopes/scopes.md)
 * [第1章 作用域与脏值检测](scopes/1-scopes-and-dirty-checking/1-scopes-and-dirty-checking.md)
+ * [1-1 作用域对象](scopes/1-scopes-and-dirty-checking/1-1-scope-objects.md)
 * [第2章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
