@@ -10,7 +10,7 @@ Node.js 遵循的打包标准是 [CommonJS](http://wiki.commonjs.org/wiki/Common
 npm install --save-dev browserify watchify karma-browserify
 ```
 
-让我们来看看代码中怎么来使用模块系统。我们应该在 `hello.js` 中对 `sayHello` 函数进行输出：
+我们来看看在代码中怎么使用这个工具。我们应该在 `hello.js` 中对 `sayHello` 函数进行输出：
 
 _src/hello.js_
 
@@ -36,7 +36,7 @@ describe('Hello', function() {
 });
 ```
 
-在我们运行这段代码之前，我们需要先在测试的配置中加入对 Browserify 的支持。我们已经安装了 `karma-browserify` 插件了，现在我们需要在 Karma 的配置文件中启用它：
+在运行代码之前，我们需要先在测试配置中加入对 Browserify 的支持。由于我们已经安装了 `karma-browserify` 插件，现在直接启用它就可以了：
 
 _karma.conf.js_
 
