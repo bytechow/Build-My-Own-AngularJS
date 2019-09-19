@@ -52,4 +52,56 @@ describe('Scope', function() {
 
 在上面的测试用例中，我们调用 `$watch` 为作用域注册了一个 watcher。由于目前我们的关注点不在 watch 函数参数上，传入一个会返回常量的函数就可以了。而对于 listener 函数参数，我们会传入一个 [Jasmine Spy](https://jasmine.github.io/2.0/introduction.html#section-Spies)。然后我们只需要调用 `$digest` 并检查一下 listener 函数有没有被调用就可以了。
 
-> spy 是一个 Jasmine 术语，表示一种模拟函数。它让我们能方便地验证诸如“这个函数会被调用吗？”或“调用这个函数时传入的参数是什么？”的问题。
+> spy 是一个 Jasmine 术语，表示一种模拟函数。这种技术可以让我们方便地验证诸如“这个函数会被调用吗？”或“调用这个函数时传入的参数是什么？”的问题。
+
+要让这个测试用例通过，我们需要做几件事。首先，作用域需要有一个能保存所有 watcher 的空间。我们会在 `Scope` 构造函数中添加一个数组来存放它们：
+
+_src/scope.js_
+
+```js
+function Scope() {
+  this.$$watchers = [];
+}
+```
+
+> 两个美元符号组成的前缀——`$$` ，表示这个变量仅用于 Angular 框架内部，不允许在应用代码中进行访问。
+
+现在我们可以定义 `$watch` 函数了。这个函数会接收两个函数类型的参数，并把这两个参数存放到 `$$watchers` 数组中。我们希望每个作用域对象都有 `$watch` 函数，因此会把它添加到 `Scope` 构造函数的原型上：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watch = function(watchFn, listenerFn) {
+  var watcher = {
+    watchFn: watchFn,
+    listenerFn: listenerFn
+  };
+  this.$$watchers.push(watcher);
+};
+```
+
+最后我再来实现 `$digest` 函数。现在我们要实现的是 `$digest` 函数的简单版本，它只需要遍历所有已注册的 watcher 并调用它们的 listener 函数就可以了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$digest = function() {
+  _.forEach(this.$$watchers, function(watcher) {
+    watcher.listenerFn();
+  });
+};
+```
+
+这个函数里面用到的 `forEach` 函数来源于 LoDash，所以，我们需要在文件的顶部引入 LoDash：
+
+_src/scope.js_
+
+```js
+'use strict';
+
+var _ = require('lodash');
+
+// ...
+```
+
+这样，单元测试就通过了，但这样的 `$digest` 并没有多大用处。我们的需求是，检查 watch 函数指定的数据是否发生了改变，如果发生了改变，我们才调用它的 listener 函数。这才可以称为 _脏值检测_（dirty-checking）。
