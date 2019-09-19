@@ -1,0 +1,1 @@
+### 侦测对象属性的方法：$watch 和 $digest（Watching Object Properties: $watch And $digest）
