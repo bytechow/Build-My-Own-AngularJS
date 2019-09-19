@@ -7,4 +7,49 @@
 - 一个是 watch 函数，它指定了我们要侦听其变化的数据。
 - 另一个是 listener 函数，当要侦听的数据发生变化时，就会调用这个函数。
 
-> 实际上，Angular 使用者更普遍的做法是指定侦听数据时用的是一个 watch 的表达式，而不是 watch 函数。
+> 实际上，Angular 使用者一般会用一个 watch 表达式指定要侦听的数据，而不是用 watch 函数。watch 表达式实际上就是一个字符串，比如“user.firstName”，这个数据来源于数据绑定，也可能来源于一个指令属性，或者就是在 JavaScript 代码中定义的。Angular 会在内部对它进行解析和编译，最终同样是转化成一个 watch 函数。我们会在本书第二部分实现这一功能，在此之前，我们先使用 watch 函数这种较低级别的方法进行指定。
+
+硬币的另一面就是 `$digest` 函数了。这个函数会对所有绑定到作用域上的 watcher 进行遍历，对各个 watcher 上的 watch 函数和对应的 listener 函数进行调用。
+
+要实现这两个部件，我们先要定义一个测试用例，这个用例会嘉定我们可以使用 `$watch` 函数来注册 watcher，并且当我们调用 `$digest` 时，这个 watcher 的 listener 函数会被调用。
+
+为了方便管理，我们在 `scope_spec.js` 文件中加入一个嵌套 `describe` 代码块：
+
+_test/scope_spec.js_
+
+```js
+describe('Scope', function() {
+
+  it('can be constructed and used as an object', function() {
+    var scope = new Scope();
+    scope.aProperty = 1;
+    
+    expect(scope.aProperty).toBe(1);
+  });
+
+  describe('digest', function() {
+  
+    var scope;
+  
+    beforeEach(function() {
+      scope = new Scope();
+    });
+  
+    it('calls the listener function of a watch on first $digest', function() {
+      var watchFn = function() { return 'wat'; };
+      var listenerFn = jasmine.createSpy();
+      scope.$watch(watchFn, listenerFn);
+  
+      scope.$digest();
+  
+      expect(listenerFn).toHaveBeenCalled();
+    });
+
+  });
+  
+});
+```
+
+在上面的测试用例中，我们调用 `$watch` 为作用域注册了一个 watcher。由于目前我们的关注点不在 watch 函数参数上，传入一个会返回常量的函数就可以了。而对于 listener 函数参数，我们会传入一个 [Jasmine Spy](https://jasmine.github.io/2.0/introduction.html#section-Spies)。然后我们只需要调用 `$digest` 并检查一下 listener 函数有没有被调用就可以了。
+
+> spy 是一个 Jasmine 术语，表示一种模拟函数。它让我们能方便地验证诸如“这个函数会被调用吗？”或“调用这个函数时传入的参数是什么？”的问题。
