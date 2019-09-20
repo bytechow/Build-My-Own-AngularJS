@@ -73,3 +73,35 @@ it('calls the listener function when the watched value changes', function() {
   expect(scope.counter).toBe(2);
 });
 ```
+
+首先，我们在作用域上添加了两个属性：一个字符串，一个是数字（计数器）。然后添加了一个 watcher，这个 watcher 会对字符串类型的属性进行侦听，如果字符串发生了改变，则计数器属性会自增。我们希望出现的是，当第一次 `$digest` 运行时，计数器自增 1，之后的每次 `$digest` 如果发现值发生了改变，计数器都会加 1。
+
+注意，在这个单元测试中，我们也定义 listener 函数的签名：像 watch 函数一样，它会把作用域作为参数。同时，watcher 的旧值和新值也会作为参数传入到 listener 函数中去。这样更方便应用开发者检查发生了什么变化。
+
+要实现这个效果，`$digest` 就需要记忆上一次 watch 函数调用时的值是什么。由于之前我们已经为每一个 watcher 创建了一个对象，我们只需要把这个旧值放到里面去就好了。下面是对 `$digest` 最新的定义，它会对每个 watch 函数发生的变化进行检查：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$digest = function() {
+  // var self = this;
+  var newValue, oldValue;
+  // _.forEach(this.$$watchers, function(watcher) {
+    newValue = watcher.watchFn(self);
+    oldValue = watcher.last;
+    if (newValue !== oldValue) {
+      watcher.last = newValue;
+      watcher.listenerFn(newValue, oldValue, self);
+    }
+  // }); 
+};
+```
+
+在每一个 watcher 里面，我们会把 watch 函数的返回值与上一次保存的 `last` 属性值进行比较。如果两个值不同，我们就可以在调用 listener 函数的同时传入新值、旧值和作用域对象。最后，我们会把新值赋值给 watcher 的 `last` 属性，以便下回再次进行比较。
+
+现在，我们已经实现了 Angular 作用域的核心功能：添加 watcher 并在 digest 中运行它们。
+
+我们也可以在这里看到 Angular 作用域有关性能的一些重要特征：
+
+- 不通过作用域来添加数据的话会对性能造成影响。如果 watcher 没有对一个属性进行侦听，那这个属性是否是作用域属性并不重要。Angular 不会遍历一个作用域的属性，只会对 watcher 进行遍历。
+- 每一次 `$digest` 都会把绑定在作用域上的 watch 函数都执行一遍。因此，我们最好留意一下自己注册的 watcher 的数量，还要注意每一个 watch 函数或表达式的性能表现。
