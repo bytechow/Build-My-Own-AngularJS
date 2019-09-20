@@ -99,7 +99,7 @@ Scope.prototype.$digest = function() {
 
 在每一个 watcher 里面，我们会把 watch 函数的返回值与上一次保存的 `last` 属性值进行比较。如果两个值不同，我们就可以在调用 listener 函数的同时传入新值、旧值和作用域对象。最后，我们会把新值赋值给 watcher 的 `last` 属性，以便下回再次进行比较。
 
-现在，我们已经实现了 Angular 作用域的核心功能：添加 watcher 并在 digest 中运行它们。
+现在，我们已经实现了 Angular 作用域的精华部分：添加 watcher 并在 digest 中运行它们。
 
 我们也可以在这里看到 Angular 作用域有关性能的一些重要特征：
 
