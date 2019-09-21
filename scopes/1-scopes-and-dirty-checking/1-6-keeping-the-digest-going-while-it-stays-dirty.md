@@ -1,0 +1,1 @@
+### 尚有脏值存在时继续运行 digest（Keeping The Digest Going While It Stays Dirty）
