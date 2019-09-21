@@ -17,3 +17,70 @@ it('calls listener when watch value is first undefined', function() {
   expect(scope.counter).toBe(1);
 });
 ```
+
+在这个测试用例中，listener 函数需要被调用一次才符合我们的需求。我们需要做的就是把 `last` 属性初始化为一个保证是唯一的值，这样无论 watch 函数返回什么值，包括 `undefined`，这个值都不会与初始的 `last` 属性值相等。
+
+使用一个函数作为 `last` 属性的初始值就能满足我们的需求了，因为 JavaScript 函数是所谓的_引用值_（reference values）——它们不与其他任何值相等，只与自身相等。我们在 `scope.js` 的顶层作用于中加入一个函数值：
+
+_src/scope.js_
+
+```js
+function initWatchVal() { }
+```
+
+现在，我们就可以在生成新的 watcher 时把这个函数赋值给它的 `last` 属性了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watch = function(watchFn, listenerFn) {
+  var watcher = {
+    watchFn: watchFn,
+    listenerFn: listenerFn,
+    last: initWatchVal
+  };
+  this.$$watchers.push(watcher);
+};
+```
+
+这样处理后，新创建的 watcher 就始终可以调用 listener 函数了，无论它的 watch 函数返回什么值。
+
+同时，`initWatchVal` 也会作为 watcher 的旧值传递给 listener 处理函数。但我们并不希望这个特殊函数能在 `scope.js` 以外的地方访问到。对于新创建的 watcher，我们应该把新值当作是旧值传入：
+
+_test/scope_spec.js_
+
+```js
+it('calls listener with new value as old value the first time', function() {
+  scope.someValue = 123;
+  var oldValueGiven;
+
+  scope.$watch(
+    function(scope) { return scope.someValue; },
+    function(newValue, oldValue, scope) { oldValueGiven = oldValue; }
+  );
+
+  scope.$digest();
+  expect(oldValueGiven).toBe(123);
+});
+```
+
+在 `$digest` 方法中，当我们调用 listener 时，我们会判断当前采用的旧值是不是约定的初始值，如果是则替换为新值：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$digest = function() {
+  var self = this;
+  var newValue, oldValue;
+  _.forEach(this.$$watchers, function(watcher) {
+    newValue = watcher.watchFn(self);
+    oldValue = watcher.last;
+    if (newValue !== oldValue) {
+      watcher.last = newValue;
+      watcher.listenerFn(newValue,
+        (oldValue === initWatchVal ? newValue : oldValue),
+        self);
+    } 
+  });
+};
+```
