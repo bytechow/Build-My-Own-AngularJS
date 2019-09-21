@@ -29,6 +29,7 @@
  * [1-1 作用域对象](scopes/1-scopes-and-dirty-checking/1-1-scope-objects.md)
  * [1-2 侦听对象属性的方法：$watch 和 $digest](scopes/1-scopes-and-dirty-checking/1-2-watching-object-properties-$watch-and-$digest.md)
  * [1-3 脏值检测](scopes/1-scopes-and-dirty-checking/1-3-checking-for-dirty-values.md)
+ * [1-3 初始化侦听数据值](scopes/1-scopes-and-dirty-checking/1-4-initializing-watch-values.md)
 * [第2章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
