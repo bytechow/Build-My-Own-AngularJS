@@ -41,6 +41,8 @@ it('triggers chained watchers in the same digest', function() {
 
 我们需要做的就是修改 digest 的代码，让其在侦听属性值停止变化之前持续对所有 watcher 进行遍历。多轮检查，是我们能让依赖其他 watcher 的 watcher 感知到属性变化的唯一方法。
 
+我们先把 `$digest` 函数重命名为 `$$digestOnce`，然后对它进行调整，使它能把所有 watcher 都执行一次，最终返回一个说明本轮执行 watcher 时是否发现有变化的布尔值：
+
 _src/scope.js_
 
 ```js
