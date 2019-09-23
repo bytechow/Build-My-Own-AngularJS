@@ -33,6 +33,7 @@
  * [1-5 digest 时得到通知](scopes/1-scopes-and-dirty-checking/1-5-getting-notified-of-digests.md)
  * [1-6 尚有脏值存在时继续运行 digest](scopes/1-scopes-and-dirty-checking/1-6-keeping-the-digest-going-while-it-stays-dirty.md)
  * [1-7 发现值始终无法稳定下来时结束 digest](scopes/1-scopes-and-dirty-checking/1-7-giving-up-on-an-unstable-digest.md)
+ * [1-8 如果最后一个 watcher 未发生变化则绕过 digest](scopes/1-scopes-and-dirty-checking/1-8-short-circuiting-the-digest-when-the-last-watch-is-clean.md)
 * [第2章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
