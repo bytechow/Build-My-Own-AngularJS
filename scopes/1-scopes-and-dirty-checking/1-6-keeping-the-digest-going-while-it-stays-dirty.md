@@ -37,7 +37,7 @@ it('triggers chained watchers in the same digest', function() {
 
 我们在作用域里面有两个 watcher：一个会侦听 `nameUpper` 属性，它会根据这个属性来生成`initial`属性，而另一个侦听的是 `name` 属性，并根据这个属性生成赋给 `nameUpper` 属性的值。我们希望产生的效果是，在同一个 digest 阶段中，当作用域上的 `name` 发生变化时，`nameUpper` 和 `initial` 的属性值会相应发生改变。但目前的情况并不是这样的。
 
-> 我们故意把注册 watcher 的顺序调成依赖的一方先注册。如果顺序调换过来，因为 watcher 是按照正常的依赖顺序排列的，这个测试直接就能通过了。但无论如何，我们希望出现的是 watcher 之间的依赖不受注册顺序的影响。
+> 我们故意先注册依赖另一个 watcher 的 watcher。如果注册顺序换过来，由于 watcher 按照依赖的先后顺序执行，测试就可以直接通过了。但我们希望 watcher 之间的依赖变化不受注册顺序的影响。
 
 我们需要做的就是修改 digest 的代码，让其在侦听属性值停止变化之前持续对所有 watcher 进行遍历。多轮检查，是我们能让依赖其他 watcher 的 watcher 感知到属性变化的唯一方法。
 
