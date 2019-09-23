@@ -45,7 +45,7 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
 
 这样处理后，新创建的 watcher 就始终可以调用 listener 函数了，无论它的 watch 函数返回什么值。
 
-同时，`initWatchVal` 也会作为 watcher 的旧值传递给 listener 处理函数。但我们并不希望这个特殊函数能在 `scope.js` 以外的地方访问到。对于新创建的 watcher，我们应该把新值当作是旧值传入：
+同时，`initWatchVal` 也会作为 watcher 的旧值传递给 listener 处理函数。但我们并不希望这个特殊函数能在 `scope.js` 以外的地方访问到。对于新创建的 watcher，我们应该把新值当作是旧值：
 
 _test/scope_spec.js_
 
