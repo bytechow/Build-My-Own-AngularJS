@@ -1,4 +1,4 @@
-### 如果上轮最后一个变脏的 watcher 未发生变化则绕过本轮 digest（Short-Circuiting The Digest When The Last Watch Is Clean）
+### 短路优化（Short-Circuiting The Digest When The Last Watch Is Clean）
 
 在目前的代码中，我们会对作用域中 watcher 集合进行持续遍历，直到在某轮遍历中所有 watcher 都未发生变化（或者达到了 TTL 上限）。
 
@@ -33,3 +33,9 @@ it('ends the digest when the last watch is clean', function() {
   expect(watchExecutions).toBe(301);
 });
 ```
+
+首先，我们在作用域中添加一个有 100 个元素的数组。然后为数组中的每个元素新建一个 watcher。同时我们会加入了一个计数器，每当有 watcher 被执行时就加 1，这样我们就可以记录 watcher 执行的总数了。
+
+然后，我们运行一次 digest 来初始化 watcher。在这一次 digest 中，每个 watcher 会执行两次。
+
+然后，我们对数组的第一个元素进行修改。如果这个绕过的优化起作用
