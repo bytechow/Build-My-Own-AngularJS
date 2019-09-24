@@ -38,4 +38,44 @@ it('ends the digest when the last watch is clean', function() {
 
 然后，我们运行一次 digest 来初始化 watcher。在这一次 digest 中，每个 watcher 会执行两次。
 
-然后，我们对数组的第一个元素进行修改。如果这个绕过的优化起作用
+然后，我们对数组的第一个元素进行修改，然后再启动 digest。如果短路优化起作用的话，那么在本次 digest 的第二轮遍历时会发生“短路”，digest 中断，使得最终 watcher 的总执行量为 301 而不是 400。
+
+目前在 `scope_spec.js` 中还没能使用 LoDash，为了接下来能用上它的 `range` 和 `times` 函数，我们需要先引入 LoDash：
+
+_test/scope_spec.js_
+
+```js
+'use strict';
+
+var _ = require('lodash');
+var Scope = require('../src/scope');
+```
+
+正如上面提到的，我们可以通过记录上轮最后一个发生变化的 watcher 来实现短路优化。下面我们对 `Scope` 构造函数添加一个实例属性：
+
+_src/scope.js_
+
+```js
+function Scope() {
+  this.$$watchers = [];
+  this.$$lastDirtyWatch = null;
+}
+```
+
+现在，无论 digest 在何时启动，我们都会把这个实力属性设为 `null`：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$digest = function() {
+  // var ttl = 10;
+  // var dirty;
+  this.$$lastDirtyWatch = null;
+  // do {
+  //   dirty = this.$$digestOnce();
+  //   if (dirty && !(ttl--)) {
+  //     throw '10 digest iterations reached';
+  //   }
+  // } while (dirty);
+};
+```
