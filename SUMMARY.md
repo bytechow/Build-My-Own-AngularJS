@@ -36,6 +36,7 @@
  * [1-8 短路优化](scopes/1-scopes-and-dirty-checking/1-8-short-circuiting-the-digest-when-the-last-watch-is-clean.md)
  * [1-9 基于值的脏值检测](scopes/1-scopes-and-dirty-checking/1-9-value-based-dirty-checking.md)
  * [1-10 处理值为 NaN 的情况](scopes/1-scopes-and-dirty-checking/1-10-nans.md)
+ * [1-11 处理异常](scopes/1-scopes-and-dirty-checking/1-11-handling-exceptions.md)
 * [第2章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
