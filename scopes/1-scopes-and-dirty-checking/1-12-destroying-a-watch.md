@@ -153,3 +153,11 @@ Scope.prototype.$$digestOnce = function() {
   // return dirty;
 };
 ```
+
+下一个特殊情况就是在 watcher 中移除另一个 watcher。我们来看看下面的测试用例：
+
+_test/scope_spec.js_
+
+```js
+
+```
