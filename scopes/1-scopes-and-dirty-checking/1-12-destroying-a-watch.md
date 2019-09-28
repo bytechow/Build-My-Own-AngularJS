@@ -188,3 +188,91 @@ it('allows a $watch to destroy another during digest', function() {
   expect(scope.counter).toBe(1);
 });
 ```
+
+这个单元测试没有通过。罪魁祸首是我们的短路优化。回忆一下，在 `$$digestOnce` 中我们会检查当前 watcher 是不是上轮发现的最后变“脏”的 watcher，如果是的话，就表明当前 digest 轮次的所有 watcher 都是“干净”（没有发生变化）的了，可以停止 digest 了。而在这个单元测试中的情况是这样的：
+
+1. 执行了第一个 watcher。这个 watcher 变脏了，所以会保存在 `$$lastDirtyWatch` 中，然后会调用它的 listener 函数。这个 listener 函数会销毁第二个 watcher。
+2. 由于第一个 watcher（在销毁了第二个 watcher 后）需要在数组向前补位，所以第一个 watcher 会被再次执行。由于此时第一个 watcher 已经是“干净”的了，而且它已经被赋值为 `$$lastDirtyWatch`，导致 digest 直接结束，第三个 watcher 永远不会被执行。
+
+要想避免这种情况，我们需要在移除 watcher 的同时取消短路优化：
+
+```js
+Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
+  // var self = this;
+  // var watcher = {
+  //   watchFn: watchFn,
+  //   listenerFn: listenerFn,
+  //   valueEq: !!valueEq,
+  //   last: initWatchVal
+  // };
+  // self.$$watchers.unshift(watcher);
+  // this.$$lastDirtyWatch = null;
+  // return function() {
+  //   var index = self.$$watchers.indexOf(watcher);
+  //   if (index >= 0) {
+  //     self.$$watchers.splice(index, 1);
+      self.$$lastDirtyWatch = null;
+  //   }
+  // };
+};
+```
+
+最后我们要考虑的是一个 watcher 移除多个 watcher 的情况：
+
+```js
+it('allows destroying several $watches during digest', function() {
+  scope.aValue = 'abc';
+  scope.counter = 0;
+
+  var destroyWatch1 = scope.$watch(
+    function(scope) {
+      destroyWatch1();
+      destroyWatch2();
+    }
+  );
+
+  var destroyWatch2 = scope.$watch(
+    function(scope) { return scope.aValue; },
+    function(newValue, oldValue, scope) {
+      scope.counter++;
+    }
+  );
+  
+  scope.$digest();
+  expect(scope.counter).toBe(0);
+});
+```
+
+第一个 watcher 不仅会销毁自身，还会把尚未执行的第二个 watcher 也销毁掉。这样会导致程序抛出异常，虽然我们不需要在这种情况下执行第二个 watcher，但不希望抛出异常。
+
+我们需要做的是在遍历时检查一下当前 watcher 是否真的存在：
+
+```js
+Scope.prototype.$$digestOnce = function() {
+  // var self = this;
+  // var newValue, oldValue, dirty;
+  // _.forEachRight(this.$$watchers, function(watcher) {
+    // try {
+      if (watcher) {
+        // newValue = watcher.watchFn(self);
+        // oldValue = watcher.last;
+        // if (!self.$$areEqual(newValue, oldValue, watcher.valueEq)) {
+        //   self.$$lastDirtyWatch = watcher;
+        //   watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
+        //   watcher.listenerFn(newValue,
+        //     (oldValue === initWatchVal ? newValue : oldValue),
+        //     self);
+        //   dirty = true;
+        // } else if (self.$$lastDirtyWatch === watcher) {
+        //   return false;
+        // }
+      }
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // });
+  // return dirty;
+};
+```
+
+现在，我们就能确保无论怎么移除 watcher 都不会影响到 digest 的持续运行。
