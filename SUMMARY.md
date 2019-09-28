@@ -40,6 +40,7 @@
  * [1-12 销毁 watcher](scopes/1-scopes-and-dirty-checking/1-12-destroying-a-watch.md)
  * [1-13 本章小结](scopes/1-scopes-and-dirty-checking/1-13-summary.md)
 * [第2章 作用域方法](scopes/2-scope-methods/2-scope-methods.md)
+  * [2-1 $eval——在作用域语境下对表达式求值](scopes/2-scope-methods/2-1-$eval-evaluating-code-in-the-context-of-a-scope.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
