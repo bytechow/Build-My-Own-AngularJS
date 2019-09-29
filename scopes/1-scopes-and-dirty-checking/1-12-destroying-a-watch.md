@@ -245,7 +245,7 @@ it('allows destroying several $watches during digest', function() {
 });
 ```
 
-第一个 watcher 不仅会销毁自身，还会把尚未执行的第二个 watcher 也销毁掉。这样会导致程序抛出异常（遍历第二个元素时由于元素被移除，所以 watcher 是 undefined），虽然我们不需要在这种情况下执行第二个 watcher，但不希望抛出异常。
+第一个 watcher 不仅会销毁自身，还会把尚未执行的第二个 watcher 也销毁掉。这样会导致程序抛出异常（遍历第二个元素时由于元素被移除，所以 watcher 变量是 undefined，undefined 执行函数自然会报错），虽然我们不需要在这种情况下执行第二个 watcher，但不希望抛出异常。
 
 我们需要做的是在遍历时检查一下当前 watcher 是否真的存在：
 
