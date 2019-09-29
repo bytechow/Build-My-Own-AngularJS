@@ -98,7 +98,7 @@ it('allows destroying a $watch during digest', function() {
 
 实际上，由于第二个 watcher 在 digest 的第一轮中移除了自己，这时存放 watcher 的数组会自动进行 shift 操作（把第三个 watcher 放到第二个 watcher 的位置），导致 `$$digestOnce` 在那一轮中跳过第三个 watcher 没有执行。
 
-> **译者注**：这个 digest 一共会执行了三轮，结果会是`['first', 'second', 'first', 'third', 'first', 'third']`。第一轮必定变“脏”，$$lastDirtyWatch 会是第二个 watcher；第二轮，由于移除了第二个 watcher，所以剩下的第一个和第三个 watcher 肯定不会与 $$lastDirtyWatch 相等，此时第三个 watcher 第一次执行，所以该轮 digest 也变“脏”了，将会再执行最后一轮 digest，因此出现这个结果。
+> **译者注**：这个 digest 一共会执行了三轮，结果会是`['first', 'second', 'first', 'third', 'first', 'third']`。第一轮必定变“脏”，\$\$lastDirtyWatch 会是第二个 watcher；第二轮，由于移除了第二个 watcher，所以剩下的第一个和第三个 watcher 肯定不会与 \$\$lastDirtyWatch 相等，此时第三个 watcher 第一次执行，所以该轮 digest 也变“脏”了，将会再执行最后一轮 digest，因此出现这个结果。
 
 解决这个问题的诀窍在于对 `$$watchers` 数组进行反向操作，新的 watcher 会被添加到数组的开头，然后按照从后到前的顺序进行遍历。当在 digest 的过程中有 watcher 被移除时，已经执行的 watcher 就会填满空出来的数组空间，这样不会对剩余的 watcher 产生影响。
 
