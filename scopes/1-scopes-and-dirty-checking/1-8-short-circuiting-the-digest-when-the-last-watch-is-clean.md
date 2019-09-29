@@ -159,7 +159,7 @@ it('does not end digest so that new watches are not run', function() {
 });
 ```
 
-此时第二个 watcher 并没有执行。原因是在 digest 的第二轮遍历中，在这个新 watcher 运行之前，我们把第一个 watcher 当作是上轮变化了而当前没有再次发生变化的 watcher，因此直接结束了 digest。我们可以通过在添加 watcher 后重置 `$$lastDirtyWatch`来解决这个问题，这样就能有效地禁用短路优化：
+此时第二个 watcher 并没有执行。原因是在 digest 的第二轮遍历中，在这个新 watcher 运行之前，我们把第一个 watcher 当作是上轮变化了而本轮没有再次发生变化的 watcher，因此直接结束了 digest。我们可以通过在添加 watcher 后重置 `$$lastDirtyWatch`来解决这个问题，这样就能有效地禁用短路优化：
 
 _src/scope.js_
 
