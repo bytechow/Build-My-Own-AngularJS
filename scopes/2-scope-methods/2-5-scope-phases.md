@@ -165,4 +165,4 @@ Scope.prototype.$evalAsync = function(expr) {
 
 有了以上的设置，我们就能确信，无论何时在何处调用 `$evalAsync` ，都会有一个 digest 在调用之后的一段时间启动起来。
 
-如果在调用 `$evalAsync` 的时候已经有一个 digest 在运行，那我们传入的函数就会在这个 digest 中得到处理。如果调用时没有 digest 在运行，`$evalAsync` 就会自动启动一个 digest。我们会使用 `setTimeout` 来稍微推迟这个 digest 的开始时间。通过这种方式，`$evalAsync` 的调用者就可以保证无论当前 digest 处于什么阶段，这个函数都能立即返回，而无需马上就对表达式进行同步（synchronously）运算。
+如果在调用 `$evalAsync` 的时候已经有一个 digest 在运行，那我们传入的函数就会在这个 digest 中得到处理。如果调用时没有 digest 在运行，`$evalAsync` 就会自动启动一个 digest。我们会使用 `setTimeout` 来稍微推迟这个 digest 的开始时间。通过这种方式，`$evalAsync` 的调用者就可以保证无论当前 digest 处于什么阶段，调用这个函数后就会立即返回，而无需等待对表达式的同步（synchronously）运算。
