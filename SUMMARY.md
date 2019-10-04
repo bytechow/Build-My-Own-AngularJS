@@ -45,6 +45,7 @@
   * [2-3 $evalAsync——延迟执行](scopes/2-scope-methods/2-3-$evalAsync-deferred-execution.md)
   * [2-4 在 watch 函数中使用 $evalAsync 定时任务](scopes/2-scope-methods/2-4-scheduling-$evalAsync-from-watch-functions.md)
   * [2-5 作用域阶段](scopes/2-scope-methods/2-5-scope-phases.md)
+  * [2-6 合并 $apply 调用—— $applyAsync](scopes/2-scope-methods/2-6-coalescing-$apply-invocations-$applyAsync.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
