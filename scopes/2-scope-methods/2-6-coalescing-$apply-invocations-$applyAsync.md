@@ -152,3 +152,138 @@ it('coalesces many calls to $applyAsync', function(done) {
   }, 50);
 });
 ```
+
+我们希望计数器的数字能到 2（因为在第一次 digest 中 watch 会被执行两次），但不能高于这个数字。
+
+我们要做的就是记录用于执行异步任务队列的 `timeout` 定时器是不是已经设定好了。我们会在把这个信息保存在私有的作用域属性 `$$applyAsyncId` 中：
+
+_src/scope.js_
+
+```js
+function Scope() {
+  // this.$$watchers = [];
+  // this.$$lastDirtyWatch = null;
+  // this.$$asyncQueue = [];
+  // this.$$applyAsyncQueue = [];
+  this.$$applyAsyncId = null;
+  // this.$$phase = null;
+}
+```
+
+在设定延时任务之前，我们需要先检查一下这个属性，并在设定好之后和任务完成之后对这个属性进行更新：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$applyAsync = function(expr) {
+  var self = this;
+  self.$$applyAsyncQueue.push(function() {
+    self.$eval(expr);
+  });
+  if (self.$$applyAsyncId === null) {
+    self.$$applyAsyncId = setTimeout(function() {
+      // self.$apply(function() {
+      //   while (self.$$applyAsyncQueue.length) {
+      //     self.$$applyAsyncQueue.shift()();
+      //   }
+        self.$$applyAsyncId = null;
+    //   });
+    // }, 0);
+  }
+};
+```
+
+关于 `$applyAsync` 的另一个事实是，如果在 timeout 定时器触发之前因为其他某些原因已经启动了一个 digest，那定时器中的 digest 就无需启动了。在这种情况下，当前在运行 digest 就能把异步任务执行完，而 `$applyAsync` 的定时器应该被销毁了：
+
+_test/scope_spec.js_
+
+```js
+it('cancels and flushes $applyAsync if digested first', function(done) {
+  scope.counter = 0;
+
+  scope.$watch(
+    function(scope) {
+      scope.counter++;
+      return scope.aValue;
+    },
+    function(newValue, oldValue, scope) {}
+  );
+
+  scope.$applyAsync(function(scope) {
+    scope.aValue = 'abc';
+  });
+  scope.$applyAsync(function(scope) {
+    scope.aValue = 'def';
+  });
+
+  scope.$digest();
+  expect(scope.counter).toBe(2);
+  expect(scope.aValue).toEqual('def');
+  
+  setTimeout(function() {
+    expect(scope.counter).toBe(2);
+    done();
+  }, 50);
+});
+```
+
+在这里，我们验证 `$applyAsync` 设定的任务是否都会在调用 `$digest` 之后就会马上执行，这样后面就没剩下需要执行的任务了。
+
+下面，我们先把 `$applyAsync` 中用于遍历执行异步任务队列的代码抽取成一个内部函数，这样我们就可以在多处地方使用了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$$flushApplyAsync = function() {
+  while (this.$$applyAsyncQueue.length) {
+    this.$$applyAsyncQueue.shift()();
+  }
+  this.$$applyAsyncId = null;
+};
+
+Scope.prototype.$applyAsync = function(expr) {
+  // var self = this;
+  // self.$$applyAsyncQueue.push(function() {
+  //   self.$eval(expr);
+  // });
+  // if (self.$$applyAsyncId === null) {
+  //   self.$$applyAsyncId = setTimeout(function() {
+      self.$apply(_.bind(self.$$flushApplyAsync, self));
+  //   }, 0);
+  // }
+};
+```
+
+> LoDash 的 `_.bind` 函数就相当于 ECMAScript 5 的 `Function.prototype.bind`，是用于确保函数的 this 指向一个已知值的。
+
+现在，我们就可以在 `$digest` 函数中直接调用这个函数了，并判断如果当前已经有定时器处于等待触发状态，我们就取消这个定时器并立即开始遍历异步任务队列：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$digest = function() {
+  // var ttl = 10;
+  // var dirty;
+  // this.$$lastDirtyWatch = null;
+  // this.$beginPhase('$digest');
+
+  if (this.$$applyAsyncId) {
+    clearTimeout(this.$$applyAsyncId);
+    this.$$flushApplyAsync();
+  }
+  
+  // do {
+  //   while (this.$$asyncQueue.length) {
+  //     var asyncTask = this.$$asyncQueue.shift();
+  //     asyncTask.scope.$eval(asyncTask.expression);
+  //   }
+  //   dirty = this.$$digestOnce();
+  //   if ((dirty || this.$$asyncQueue.length) && !(ttl--)) {
+  //     throw '10 digest iterations reached';
+  //   }
+  // } while (dirty || this.$$asyncQueue.length);
+  // this.$clearPhase();
+};
+```
+
+这就是 `$applyAsync` 的全部内容了。它实际上就是在 `$apply` 的基础进行了一些小优化，在一些需要调用 `$apply` 但会在短时间内多次调用的情况能派上用场。
