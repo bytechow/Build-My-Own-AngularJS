@@ -153,7 +153,7 @@ it('coalesces many calls to $applyAsync', function(done) {
 });
 ```
 
-我们希望计数器的数字能到 2（因为在第一次 digest 中 watch 会被执行两次），但不能高于这个数字。
+我们希望计数器的数字能到 2（因为在第一次 digest 中 watch 会被执行两次），但不能大于这个数字。
 
 我们要做的就是记录用于执行异步任务队列的 `timeout` 定时器是不是已经设定好了。我们会在把这个信息保存在私有的作用域属性 `$$applyAsyncId` 中：
 
