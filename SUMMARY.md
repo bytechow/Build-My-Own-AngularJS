@@ -47,6 +47,8 @@
   * [2-5 作用域阶段](scopes/2-scope-methods/2-5-scope-phases.md)
   * [2-6 合并 $apply 调用—— $applyAsync](scopes/2-scope-methods/2-6-coalescing-$apply-invocations-$applyAsync.md)
   * [2-7 在 digest 之后运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
+  * [2-7 在 digest 之后运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
+  * [2-8 异常处理](scopes/2-scope-methods/2-8-handling-exceptions.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
