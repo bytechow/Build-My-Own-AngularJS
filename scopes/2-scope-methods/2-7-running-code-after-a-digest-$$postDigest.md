@@ -1,5 +1,5 @@
 ### 在 digest 之后运行代码—— $$postDigest
-Running Code After A Digest - $$postDigest
+#### Running Code After A Digest - $$postDigest
 
 有一种方法让我们可以在 digest 周期结束后执行代码，就是通过设置 `$$postDigest` 函数来实现。
 
