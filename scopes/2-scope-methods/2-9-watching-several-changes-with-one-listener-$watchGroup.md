@@ -134,3 +134,155 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
   });
 };
 ```
+
+这样就处理好了 `$watchGroup` 的基本行为了。接下来我们来关注几种特殊情况。
+
+第一个特殊情况与“listener 第一次调用时传入的新旧值必须为一致”的要求有关。实际上现在的 `$watchGroup` 已经可以处理这种情况了，因为它是建立在已经实现这种了行为的 `$watch` 函数上。当 listener 函数第一次被调用时，`newValue` 和 `oldValue` 的内容就是一样的了。 
+
+虽然这两个数组的内容一样，但它们依然是不同的两个数组对象。这就破坏了新旧值必须为同一个值的约定。这也意味着用户比较两个值的时候不能使用基于引用的比较方式，而只能对数组里面的所有内容进行逐一比较，看对应的两个内容是否一致。
+
+我们希望做得更好，让 listener 函数在第一次调用时传入的新值和旧值要是同一个值。
+
+```js
+it('uses the same array of old and new values on first run', function() {
+  var gotNewValues, gotOldValues;
+
+  scope.aValue = 1;
+  scope.anotherValue = 2;
+  
+  scope.$watchGroup([
+    function(scope) { return scope.aValue; },
+    function(scope) { return scope.anotherValue; }
+  ], function(newValues, oldValues, scope) {
+    gotNewValues = newValues;
+    gotOldValues = oldValues;
+  });
+  scope.$digest();
+  
+  expect(gotNewValues).toBe(gotOldValues);
+});
+```
+
+这样处理的同时，我们也要保证不会破坏现有的功能。我们可以通过检查 listener 函数在第一次之后调用时，新旧值数组是否依然是不同的两个数组来验证：
+
+_test/scope_spec.js_
+
+```js
+it('uses different arrays for old and new values on subsequent runs', function() {
+  var gotNewValues, gotOldValues;
+
+  scope.aValue = 1;
+  scope.anotherValue = 2;
+  
+  scope.$watchGroup([
+    function(scope) { return scope.aValue; },
+    function(scope) { return scope.anotherValue; }
+  ], function(newValues, oldValues, scope) {
+    gotNewValues = newValues;
+    gotOldValues = oldValues;
+  });
+  scope.$digest();
+
+  scope.anotherValue = 3;
+  scope.$digest();
+  
+  expect(gotNewValues).toEqual([1, 3]);
+  expect(gotOldValues).toEqual([1, 2]);
+});
+```
+
+我们可以通过检查当前 listener 的调用是否第一次调用就可以解决这个需求。如果确实是第一次调用，那我们就把 `newValues` 同时作为新值和旧值的参数传入进去：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
+  // var self = this;
+  // var oldValues = new Array(watchFns.length);
+  // var newValues = new Array(watchFns.length);
+  // var changeReactionScheduled = false;
+  var firstRun = true;
+
+  function watchGroupListener() {
+    if (firstRun) {
+      firstRun = false;
+      listenerFn(newValues, newValues, self);
+    } else {
+      listenerFn(newValues, oldValues, self);
+    }
+    // changeReactionScheduled = false;
+  }
+  
+  // _.forEach(watchFns, function(watchFn, i) {
+  //   self.$watch(watchFn, function(newValue, oldValue) {
+  //     newValues[i] = newValue;
+  //     oldValues[i] = oldValue;
+  //     if (!changeReactionScheduled) {
+  //       changeReactionScheduled = true;
+  //       self.$evalAsync(watchGroupListener);
+  //     }
+  //   });
+  // });
+};
+```
+
+另外一种特殊情况出现在存储多个 watch 函数的数组为空时。在这种情况要怎么处理其实并不是那么明显的。而按照我们目前的代码来说，它就并不会进行任何处理——如果没有 watch，那就不会调用 listener 函数。而实际上在这种情况下，Angular 也必须确保 listener 函数至少被调用一次，而传入的结果值就是一个空数组：
+
+_test/scope_spec.js_
+
+```js
+it('calls the listener once when the watch array is empty', function() {
+  var gotNewValues, gotOldValues;
+
+  scope.$watchGroup([], function(newValues, oldValues, scope) {
+    gotNewValues = newValues;
+    gotOldValues = oldValues;
+  });
+  scope.$digest();
+
+  expect(gotNewValues).toEqual([]);
+  expect(gotOldValues).toEqual([]);
+});
+```
+
+我们要做的就是在 `$watchGroup` 中加入对数组为空的情况进行检查，如果确实为空，我们就设定一个调用 listener 函数的任务，之后就不需要继续再往下执行了，直接退出即可：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
+  // var self = this;
+  // var oldValues = new Array(watchFns.length);
+  // var newValues = new Array(watchFns.length);
+  // var changeReactionScheduled = false;
+  // var firstRun = true;
+
+  if (watchFns.length === 0) {
+    self.$evalAsync(function() {
+      listenerFn(newValues, newValues, self);
+    });
+    return;
+  }
+
+  // function watchGroupListener() {
+  //   if (firstRun) {
+  //     firstRun = false;
+  //     listenerFn(newValues, newValues, self);
+  //   } else {
+  //     listenerFn(newValues, oldValues, self);
+  //   }
+  //   changeReactionScheduled = false;
+  // }
+  
+  // _.forEach(watchFns, function(watchFn, i) {
+  //   self.$watch(watchFn, function(newValue, oldValue) {
+  //     newValues[i] = newValue;
+  //     oldValues[i] = oldValue;
+  //     if (!changeReactionScheduled) {
+  //       changeReactionScheduled = true;
+  //       self.$evalAsync(watchGroupListener);
+  //     }
+  //   });
+  // });
+};
+```
