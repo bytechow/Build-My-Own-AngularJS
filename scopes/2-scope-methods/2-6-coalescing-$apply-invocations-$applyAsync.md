@@ -1,4 +1,5 @@
 ### 合并 $apply 调用—— $applyAsync
+
 #### Coalescing $apply Invocations - $applyAsync
 
 虽然 `$evalAsync` 既可以用于在一个 digest 内设置延时任务，也可以在 digest 外设置延时任务，但实际上它被设计出来主要是用于应付前一种情况的。digest 中调用的 `setTimeout` 主要只是为了防止有人在 digest 外调用 `$evalAsync` 而引起混乱。
@@ -9,17 +10,17 @@
 
 在关于 `$applyAsync` 的第一个测试用例中，我们希望调用这个函数后不会立马发生改变，在过了 50 毫秒以后才会产生变化：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 describe('$applyAsync', function() {
-  
+
   var scope;
-  
+
   beforeEach(function() {
     scope = new Scope();
   });
-  
+
   it('allows async $apply with $applyAsync', function(done) {
     scope.counter = 0;
 
@@ -43,16 +44,16 @@ describe('$applyAsync', function() {
       done();
     }, 50);
   });
-  
+
 });
 ```
 
 到目前为止，我们还没有发现 `$applyAsync` 跟 `$evalAsync` 有什么区别，但我们只要在 listner 函数中调用一下 `$applyAsync` 就能发现端倪。如果我们在这里调用 `$evalAsync`，那么这个函数仍然会在同一个 digest 中被调用。但 `$applyAsync` 总是会延迟函数的调用：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
-it('never executes $applyAsynced function in the same cycle', function(done) {
+it('never executes $applyAsync function in the same cycle', function(done) {
   scope.aValue = [1, 2, 3];
   scope.asyncApplied = false;
 
@@ -64,7 +65,7 @@ it('never executes $applyAsynced function in the same cycle', function(done) {
       });
     }
   );
-  
+
   scope.$digest();
   expect(scope.asyncApplied).toBe(false);
   setTimeout(function() {
@@ -125,7 +126,7 @@ Scope.prototype.$applyAsync = function(expr) {
 
 正如我们上面说到的，`$applyAsync`的核心是对一些高频操作进行优化，让这些操作带来的变化用一次 digest 就能进行处理。我们现在还没有真正实现这个目标。目前的情况是，每次调用 `$applyAsync` 都会设定一个启动 digest 的延时任务，我们在 watch 函数中添加一个计数器就能发现问题了：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('coalesces many calls to $applyAsync', function(done) {
@@ -145,7 +146,7 @@ it('coalesces many calls to $applyAsync', function(done) {
   scope.$applyAsync(function(scope) {
     scope.aValue = 'def';
   });
-  
+
   setTimeout(function() {
     expect(scope.counter).toBe(2);
     done();
@@ -195,7 +196,7 @@ Scope.prototype.$applyAsync = function(expr) {
 
 关于 `$applyAsync` 的另一个事实是，如果在 timeout 定时器触发之前因为其他某些原因已经启动了一个 digest，那定时器中的 digest 就无需启动了。在这种情况下，当前在运行 digest 就能把异步任务执行完，而 `$applyAsync` 的定时器应该被销毁了：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('cancels and flushes $applyAsync if digested first', function(done) {
@@ -219,7 +220,7 @@ it('cancels and flushes $applyAsync if digested first', function(done) {
   scope.$digest();
   expect(scope.counter).toBe(2);
   expect(scope.aValue).toEqual('def');
-  
+
   setTimeout(function() {
     expect(scope.counter).toBe(2);
     done();
@@ -271,7 +272,7 @@ Scope.prototype.$digest = function() {
     clearTimeout(this.$$applyAsyncId);
     this.$$flushApplyAsync();
   }
-  
+
   // do {
   //   while (this.$$asyncQueue.length) {
   //     var asyncTask = this.$$asyncQueue.shift();
@@ -287,3 +288,4 @@ Scope.prototype.$digest = function() {
 ```
 
 这就是 `$applyAsync` 的全部内容了。它实际上就是在 `$apply` 的基础进行了一些小优化，在一些需要调用 `$apply` 但会在短时间内多次调用的情况能派上用场。
+
