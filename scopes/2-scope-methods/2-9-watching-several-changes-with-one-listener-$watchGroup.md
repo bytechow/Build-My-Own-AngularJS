@@ -1,4 +1,5 @@
 ### 多个变化共用同一个 listener 函数
+
 #### Watching Several Changes With One Listener: $watchGroup
 
 到目前为止，我们看到所有的 watch 函数和 listener 函数是一个简单的因果关系对：当这个发生了变化，就那样做。但还有一种情况也并不少见，就是同时观察多个状态，当其中一个状态发生改变时就执行某段代码。
@@ -9,12 +10,11 @@
 
 事实上，在 Angular 1.3 以后的版本中我们已经不再需要手动创建这类函数，可以直接使用 Angular 内建的 `$watchGroup`。
 
-_test/scope_spec.js_
-
+_test/scope\_spec.js_
 
 ```js
 describe('$watchGroup', function() {
-  
+
   var scope;
   beforeEach(function() {
     scope = new Scope();
@@ -22,10 +22,10 @@ describe('$watchGroup', function() {
 
   it('takes watches as an array and calls listener with arrays', function() {
     var gotNewValues, gotOldValues;
-    
+
     scope.aValue = 1;
     scope.anotherValue = 2;
-    
+
     scope.$watchGroup([
       function(scope) { return scope.aValue; },
       function(scope) { return scope.anotherValue; }
@@ -34,7 +34,7 @@ describe('$watchGroup', function() {
       gotOldValues = oldValues;
     });
     scope.$digest();
-    
+
     expect(gotNewValues).toEqual([1, 2]);
     expect(gotOldValues).toEqual([1, 2]);
   });
@@ -83,7 +83,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 
 我们下面来测试在发生多个数据变化的情况下，listener 函数是否会只被调用一次：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('only calls listener once per digest', function() {
@@ -91,7 +91,7 @@ it('only calls listener once per digest', function() {
 
   scope.aValue = 1;
   scope.anotherValue = 2;
-  
+
   scope.$watchGroup([
     function(scope) { return scope.aValue; },
     function(scope) { return scope.anotherValue; }
@@ -99,7 +99,7 @@ it('only calls listener once per digest', function() {
     counter++;
   });
   scope.$digest();
-  
+
   expect(counter).toEqual(1);
 });
 ```
@@ -121,7 +121,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
     listenerFn(newValues, oldValues, self);
     changeReactionScheduled = false;
   }
-  
+
   _.forEach(watchFns, function(watchFn, i) {
     self.$watch(watchFn, function(newValue, oldValue) {
       newValues[i] = newValue;
@@ -137,7 +137,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 
 这样就处理好了 `$watchGroup` 的基本行为了。接下来我们来关注几种特殊情况。
 
-第一个特殊情况与“listener 第一次调用时传入的新旧值必须为一致”的要求有关。实际上现在的 `$watchGroup` 已经可以处理这种情况了，因为它是建立在已经实现这种了行为的 `$watch` 函数上。当 listener 函数第一次被调用时，`newValue` 和 `oldValue` 的内容就是一样的了。 
+第一个特殊情况与“listener 第一次调用时传入的新旧值必须为一致”的要求有关。实际上现在的 `$watchGroup` 已经可以处理这种情况了，因为它是建立在已经实现这种了行为的 `$watch` 函数上。当 listener 函数第一次被调用时，`newValue` 和 `oldValue` 的内容就是一样的了。
 
 虽然这两个数组的内容一样，但它们依然是不同的两个数组对象。这就破坏了新旧值必须为同一个值的约定。这也意味着用户比较两个值的时候不能使用基于引用的比较方式，而只能对数组里面的所有内容进行逐一比较，看对应的两个内容是否一致。
 
@@ -149,7 +149,7 @@ it('uses the same array of old and new values on first run', function() {
 
   scope.aValue = 1;
   scope.anotherValue = 2;
-  
+
   scope.$watchGroup([
     function(scope) { return scope.aValue; },
     function(scope) { return scope.anotherValue; }
@@ -158,14 +158,14 @@ it('uses the same array of old and new values on first run', function() {
     gotOldValues = oldValues;
   });
   scope.$digest();
-  
+
   expect(gotNewValues).toBe(gotOldValues);
 });
 ```
 
 这样处理的同时，我们也要保证不会破坏现有的功能。我们可以通过检查 listener 函数在第一次之后调用时，新旧值数组是否依然是不同的两个数组来验证：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('uses different arrays for old and new values on subsequent runs', function() {
@@ -173,7 +173,7 @@ it('uses different arrays for old and new values on subsequent runs', function()
 
   scope.aValue = 1;
   scope.anotherValue = 2;
-  
+
   scope.$watchGroup([
     function(scope) { return scope.aValue; },
     function(scope) { return scope.anotherValue; }
@@ -185,7 +185,7 @@ it('uses different arrays for old and new values on subsequent runs', function()
 
   scope.anotherValue = 3;
   scope.$digest();
-  
+
   expect(gotNewValues).toEqual([1, 3]);
   expect(gotOldValues).toEqual([1, 2]);
 });
@@ -212,7 +212,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
     }
     // changeReactionScheduled = false;
   }
-  
+
   // _.forEach(watchFns, function(watchFn, i) {
   //   self.$watch(watchFn, function(newValue, oldValue) {
   //     newValues[i] = newValue;
@@ -228,7 +228,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 
 另外一种特殊情况出现在存储多个 watch 函数的数组为空时。在这种情况要怎么处理其实并不是那么明显的。而按照我们目前的代码来说，它就并不会进行任何处理——如果没有 watch，那就不会调用 listener 函数。而实际上在这种情况下，Angular 也必须确保 listener 函数至少被调用一次，而传入的结果值就是一个空数组：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('calls the listener once when the watch array is empty', function() {
@@ -273,7 +273,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
   //   }
   //   changeReactionScheduled = false;
   // }
-  
+
   // _.forEach(watchFns, function(watchFn, i) {
   //   self.$watch(watchFn, function(newValue, oldValue) {
   //     newValues[i] = newValue;
@@ -289,12 +289,12 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 
 `$watchGroup` 最后要开发的特性就是销毁 watcher 的功能。用户能用与销毁单个 watcher 一样的方法来销毁一个 watcher 组：就是利用 `$watchGroup` 本身返回的函数来执行销毁。
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('can be deregistered', function() {
   var counter = 0;
-  
+
   scope.aValue = 1;
   scope.anotherValue = 2;
 
@@ -309,7 +309,7 @@ it('can be deregistered', function() {
   scope.anotherValue = 3;
   destroyGroup();
   scope.$digest();
-  
+
   expect(counter).toEqual(1);
 });
 ```
@@ -354,7 +354,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
       // }
     });
   });
-  
+
   return function() {
     _.forEach(destroyFunctions, function(destroyFunction) {
       destroyFunction();
@@ -365,7 +365,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 
 由于也有可能出现 watch 数组为空的情况，我们需要保证在这种情况下也会生成一个销毁 watcher 的函数。在这种情况下，listener 只会被调用一次，但我们依然可以在第一次 digest 启动之前调用销毁函数，这样我们就能跳过这次 listener 的调用：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('does not call the zero-watch listener when deregistered first', function() {
@@ -376,7 +376,7 @@ it('does not call the zero-watch listener when deregistered first', function() {
   });
   destroyGroup();
   scope.$digest();
-  
+
   expect(counter).toEqual(0);
 });
 ```
@@ -425,7 +425,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
   //     }
   //   });
   // });
-  
+
   // return function() {
   //   _.forEach(destroyFunctions, function(destroyFunction) {
   //     destroyFunction();
@@ -433,3 +433,6 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
   // };
 };
 ```
+
+
+
