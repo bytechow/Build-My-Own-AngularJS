@@ -56,7 +56,6 @@ it('executes $evalAsynced functions even when not dirty', function() {
 
   expect(scope.asyncEvaluatedTimes).toBe(2);
 });
-`
 ```
 
 这个版本的测试用例会调用两次 `$evalAsync`。在第二次调用时，由于 `scope.aValue` 已经不再变化，watcher 也就不会变脏了。这意味着 `$digest` 结束了，而（在第二轮 digest 循环中）`$evalAsync` 设定的延时不会被调用了。虽然在它能在下一次 digest 时被执行，但我们希望它在当前 digest 中就能执行。这就意味着我们需要改变 `$digest` 循环的终止条件，如果在异步任务队列中还存在任务，就继续循环：
