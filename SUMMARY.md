@@ -49,6 +49,7 @@
   * [2-7 在 digest 之后运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
   * [2-8 异常处理](scopes/2-scope-methods/2-8-handling-exceptions.md)
   * [2-9 多个变化共用同一个 listener 函数](scopes/2-scope-methods/2-9-watching-several-changes-with-one-listener-$watchGroup.md)
+  * [2-10 本章总结](scopes/2-scope-methods/2-10-summary.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
