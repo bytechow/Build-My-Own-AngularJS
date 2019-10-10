@@ -177,10 +177,10 @@ _src/scope.js_
 
 ```js
 Scope.prototype.$applyAsync = function(expr) {
-  var self = this;
-  self.$$applyAsyncQueue.push(function() {
-    self.$eval(expr);
-  });
+  // var self = this;
+  // self.$$applyAsyncQueue.push(function() {
+  //   self.$eval(expr);
+  // });
   if (self.$$applyAsyncId === null) {
     self.$$applyAsyncId = setTimeout(function() {
       // self.$apply(function() {
