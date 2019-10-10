@@ -1,4 +1,5 @@
 ### 作用域阶段
+
 #### Scope Phases
 
 `$evalAsync`还可以在检测到当前没有 digest 运行时定时调用 `$digest` 方法。那意味着，无论你在什么时候使 `$evalAsync` 来延迟执行一个函数，你都可以保证这个函数会在“不久后”被调用，而不需要等待其他东西来启动一个 digest。
@@ -9,7 +10,7 @@
 
 在单元测试中，我们假设作用域对象上有一个属性叫 `$$phase`，它的值在 digest 运行过程中会是 `“$digest”`，而在 apply 一个函数的调用时会是 `“$apply”`，其他时间就是 `null`。下面我们会在 `describe('$digest')` 的测试集中加入这个单元测试：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('has a $$phase field whose value is the current digest phase', function() {
@@ -114,7 +115,7 @@ Scope.prototype.$apply = function(expr) {
 
 最后，我们再把定时执行 `$digest` 的功能加入到 `$evalAsync` 中。首先，我们还是把这个需求定义为一个单元测试，并把它放到 `describe('$evalAsync')` 测试集中：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('schedules a digest in $evalAsync', function(done) {
@@ -127,9 +128,9 @@ it('schedules a digest in $evalAsync', function(done) {
       scope.counter++;
     }
   );
-  
+
   scope.$evalAsync(function(scope) {});
-  
+
   expect(scope.counter).toBe(0);
   setTimeout(function() {
     expect(scope.counter).toBe(1);
@@ -160,9 +161,10 @@ Scope.prototype.$evalAsync = function(expr) {
 
 注意，我们会在两处地方检查异步任务队列的长度：
 
-- 在调用 `setTimeout` 之前，我们要保证这个队列是空的。那是因为我们不希望 `setTimeout` 的调用次数超出我们的预期。如果异步任务队列还没清空，说明之前已经设置了一个 timeout 定时任务，这个定时任务中的 digest 会把这些异步任务队列都执行掉，无需再开一个定时器。
-- 在 `setTimeout` 函数中，我们需要保证这个队列是非空的。异步任务队列可能会在 timeout 定时任务执行之前由于某些原因（比如有个正在执行的 digest 循环已经把异步任务都完成了）已经全部被执行掉了，这时如果没事可干，就没必要再启动一个 digest 了。
+* 在调用 `setTimeout` 之前，我们要保证这个队列是空的。那是因为我们不希望 `setTimeout` 的调用次数超出我们的预期。如果异步任务队列还没清空，说明之前已经设置了一个 timeout 定时任务，这个定时任务中的 digest 会把这些异步任务队列都执行掉，无需再开一个定时器。
+* 在 `setTimeout` 函数中，我们需要保证这个队列是非空的。异步任务队列可能会在 timeout 定时任务执行之前由于某些原因（比如有个正在执行的 digest 循环已经把异步任务都完成了）已经全部被执行掉了，这时如果没事可干，就没必要再启动一个 digest 了。
 
 有了以上的设置，我们就能确信，无论何时在何处调用 `$evalAsync` ，都会有一个 digest 在调用之后的一段时间启动起来。
 
 如果在调用 `$evalAsync` 的时候已经有一个 digest 在运行，那我们传入的函数就会在这个 digest 中得到处理。如果调用时没有 digest 在运行，`$evalAsync` 就会自动启动一个 digest。我们会使用 `setTimeout` 来稍微推迟这个 digest 的开始时间。通过这种方式，`$evalAsync` 的调用者就可以保证无论当前 digest 处于什么阶段，调用这个函数后就会立即返回，而无需等待对表达式的同步（synchronously）运算。
+
