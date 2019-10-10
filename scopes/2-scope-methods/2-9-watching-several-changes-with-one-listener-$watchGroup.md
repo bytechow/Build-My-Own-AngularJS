@@ -286,3 +286,150 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
   // });
 };
 ```
+
+`$watchGroup` 最后要开发的特性就是销毁 watcher 的功能。用户能用与销毁单个 watcher 一样的方法来销毁一个 watcher 组：就是利用 `$watchGroup` 本身返回的函数来执行销毁。
+
+_test/scope_spec.js_
+
+```js
+it('can be deregistered', function() {
+  var counter = 0;
+  
+  scope.aValue = 1;
+  scope.anotherValue = 2;
+
+  var destroyGroup = scope.$watchGroup([
+    function(scope) { return scope.aValue; },
+    function(scope) { return scope.anotherValue; }
+  ], function(newValues, oldValues, scope) {
+    counter++;
+  });
+  scope.$digest();
+
+  scope.anotherValue = 3;
+  destroyGroup();
+  scope.$digest();
+  
+  expect(counter).toEqual(1);
+});
+```
+
+这里我们测试在调用销毁函数后，后续对数据的更改是否会再触发 listener 函数。
+
+由于在单个 watcher 调用后本来就会返回用于销毁该 watcher 的函数，我们需要做的就是将它们收集起来，然后就创建一个新的销毁函数，这个 watch group 的销毁函数会把收集到所有销毁函数进行逐一调用：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
+  // var self = this;
+  // var oldValues = new Array(watchFns.length);
+  // var newValues = new Array(watchFns.length);
+  // var changeReactionScheduled = false;
+  // var firstRun = true;
+  // if (watchFns.length === 0) {
+  //   self.$evalAsync(function() {
+  //     listenerFn(newValues, newValues, self);
+  //   });
+  //   return;
+  // }
+
+  // function watchGroupListener() {
+  //   if (firstRun) {
+  //     firstRun = false;
+  //     listenerFn(newValues, newValues, self);
+  //   } else {
+  //     listenerFn(newValues, oldValues, self);
+  //   }
+  //   changeReactionScheduled = false;
+  // }
+
+  var destroyFunctions = _.map(watchFns, function(watchFn, i) {
+    return self.$watch(watchFn, function(newValue, oldValue) {
+      // newValues[i] = newValue;
+      // oldValues[i] = oldValue;
+      // if (!changeReactionScheduled) {
+      //   changeReactionScheduled = true;
+      //   self.$evalAsync(watchGroupListener);
+      // }
+    });
+  });
+  
+  return function() {
+    _.forEach(destroyFunctions, function(destroyFunction) {
+      destroyFunction();
+    });
+  };
+};
+```
+
+由于也有可能出现 watch 数组为空的情况，我们需要保证在这种情况下也会生成一个销毁 watcher 的函数。在这种情况下，listener 只会被调用一次，但我们依然可以在第一次 digest 启动之前调用销毁函数，这样我们就能跳过这次 listener 的调用：
+
+_test/scope_spec.js_
+
+```js
+it('does not call the zero-watch listener when deregistered first', function() {
+  var counter = 0;
+
+  var destroyGroup = scope.$watchGroup([], function(newValues, oldValues, scope) {
+    counter++;
+  });
+  destroyGroup();
+  scope.$digest();
+  
+  expect(counter).toEqual(0);
+});
+```
+
+我们会在处理这种情况的代码块中加入一个布尔值标识，然后在调用 listener 函数之前检查一下这个布尔值标识的值：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
+  // var self = this;
+  // var oldValues = new Array(watchFns.length);
+  // var newValues = new Array(watchFns.length);
+  // var changeReactionScheduled = false;
+  // var firstRun = true;
+
+  if (watchFns.length === 0) {
+    var shouldCall = true;
+    self.$evalAsync(function() {
+      if (shouldCall) {
+        listenerFn(newValues, newValues, self);
+      }
+    });
+    return function() {
+      shouldCall = false;
+    };
+  }
+
+  // function watchGroupListener() {
+  //   if (firstRun) {
+  //     firstRun = false;
+  //     listenerFn(newValues, newValues, self);
+  //   } else {
+  //     listenerFn(newValues, oldValues, self);
+  //   }
+  //   changeReactionScheduled = false;
+  // }
+
+  // var destroyFunctions = _.map(watchFns, function(watchFn, i) {
+  //   return self.$watch(watchFn, function(newValue, oldValue) {
+  //     newValues[i] = newValue;
+  //     oldValues[i] = oldValue;
+  //     if (!changeReactionScheduled) {
+  //       changeReactionScheduled = true;
+  //       self.$evalAsync(watchGroupListener);
+  //     }
+  //   });
+  // });
+  
+  // return function() {
+  //   _.forEach(destroyFunctions, function(destroyFunction) {
+  //     destroyFunction();
+  //   });
+  // };
+};
+```
