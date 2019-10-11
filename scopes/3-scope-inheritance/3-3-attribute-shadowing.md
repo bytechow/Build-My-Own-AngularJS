@@ -44,4 +44,4 @@ it('does not shadow members of parent scopes attributes', function() {
 
 在这个例子中，我们可以成功修改父作用域上的属性的原因是，我们并没有对子作用域指派（assign）任何的属性。我们只是从作用域中读取 `user` 对象属性，并对这个对象的属性进行指派而已。两个作用域都持有访问同一个 `user` 对象的引用，而这个 `user` 对象只是一个普通的 JavaScript 对象，与作用域继承机制无关。
 
-> 这种模式也被称为 _Dot Rule_，这与我们在改变作用域时用的表达式中用于访问属性的点运算符的数量有关。正如 [Misko Hevery 说的](https://www.youtube.com/watch?feature=player_detailpage&v=ZhfUv0spHCY#t=1758s)那样，“无论你在何时使用 ngModel，总会在某处有一个点运算符。如果一个点运算符都没有，你就用错了。”
+> 这种模式也被称为 _Dot Rule_，这与我们在改变作用域时用的表达式中用于访问属性的点运算符的数量有关。正如 [Misko Hevery 所说的](https://www.youtube.com/watch?feature=player_detailpage&v=ZhfUv0spHCY#t=1758s)，“无论你在何时使用 ngModel，总会在某处有一个点运算符。如果一个点运算符都没有，你就用错了。”
