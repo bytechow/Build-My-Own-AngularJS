@@ -1,6 +1,8 @@
 # Summary
 
-[前言](README.md)
+## 前言
+
+* [前言](README.md)
 * [如何阅读本书](introduction/how-to-read-this-book.md)
 * [源代码](introduction/source-code.md)
 * [贡献者](introduction/contributors.md)
