@@ -60,7 +60,7 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
 
 首先，watcher 可能会在自己的 watch 或 listener 函数移除自身。我们要保证它不会影响其他 watcher:
 
-_test/scope.js_
+_test/scope_spec.js_
 
 ```js
 it('allows destroying a $watch during digest', function() {
