@@ -171,4 +171,4 @@ Scope.prototype.$new = function() {
 
 这个函数没多少代码，但已经能让我们在本节中的所有测试用例都通过了！
 
-> 我们还可以使用 ES5 的简写函数（shorthand function）`Object.create()` 来构建子作用域。
+> 我们还可以使用 ES5 提供的简写函数（shorthand function）`Object.create()` 来构建子作用域。
