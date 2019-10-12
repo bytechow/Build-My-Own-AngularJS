@@ -36,7 +36,7 @@ describe('Scope', function() {
 _test/scope_spec.js_
 
 ```js
-it("inherits the parent's properties", function() {
+it('inherits the parent\'s properties', function() {
   var parent = new Scope();
   parent.aValue = [1, 2, 3];
 
