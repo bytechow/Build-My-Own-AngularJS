@@ -26,3 +26,21 @@ it('does not digest its parent(s)', function() {
   expect(child.aValueWas).toBeUndefined();
 });
 ```
+
+这个测试失败的原因是我们调用了 `child.$digest()`，我们实际上是执行了 `parent` 上的 watch。让我们来修复这个问题。
+
+其中的诀窍就是在每个子作用域都指派一个自己的 `$$watchers` 数组：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$new = function() {
+  // var ChildScope = function() { };
+  // ChildScope.prototype = this;
+  // var child = new ChildScope();
+  child.$$watchers = [];
+  // return child;
+};
+```
+
+你可能也注意到了，我们在这里使用了上一节提到的属性屏蔽。每个在子作用域上定义的 `$$watchers` 数组属性都会屏蔽父作用域上的同名属性。整个作用域链所有层次的作用域都有属于自己的 watcher。现在，当我们在某个作用域上调用 `$digest`，只有这个作用域上的 watcher 会被调用。
