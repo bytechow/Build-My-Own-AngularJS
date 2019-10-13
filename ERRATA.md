@@ -6,3 +6,6 @@ Angular scopes 实际上列出了五个内容，但却说是“four main areas�
 
 ## p96
 单元测试名 'inherits the parent's properties' 中的 'parent's' 的单引号跟标记字符串的前后两个单引号冲突了，需要使用转义符
+
+## p106
+该页的第一个代码块下第三段文字中 "Armed with the knowledge about this difference between digest and $apply,..." 中的 digest 应改为 `$digest`
