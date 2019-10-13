@@ -82,7 +82,7 @@ it('digests its children', function() {
 
 注意，这个测试基本上就是上一节测试的一个“镜像”，上节的测试中我们断言调动子作用域上的 `$digest` 不应运行父作用域上的 watcher。
 
-要实现这一点，我们需要更改 $$digestOnce 以让它能运行整个层次结构中的所有 watcher。为了使其更简单，我们先添加一个帮助函数 `$$everyScope`（灵感来源于 JavaScript 的 `Array.every`），它能对整个层次结构中的每个作用域都执行一个任意函数直至该函数返回一个假值（falsy value）：
+要实现这一点，我们需要更改 $$digestOnce 以让它能运行整个树结构中的所有 watcher。为了使其更简单，我们先添加一个帮助函数 `$$everyScope`（灵感来源于 JavaScript 的 `Array.every`），它能对整个树结构中的每个作用域都执行一个任意函数直至该函数返回一个假值（falsy value）：
 
 _src/scope.js_
 
@@ -137,3 +137,11 @@ Scope.prototype.$$digestOnce = function() {
   // return dirty;
 };
 ```
+
+现在 `$$digestOnce` 函数就会对整个树结构都进行遍历，最后返回一个布尔值标识，这个标识说明了树结构中是否有 watcher 变“脏”。
+
+内部的循环会遍历作用域所在的树结构，直到所有作用域都已经被访问过或者遇到了适用短路优化的情况。我们会使用 `continueLoop` 变量来跟踪是否适用优化。如果这个变量变成 `false`，我们就同时跳出循环和 `$$digestOnce` 函数。
+
+注意，我们适用的 `$$lastDirtyWatch` 属性总是指向最顶层的哪个作用域。短路优化需要考虑作用域所在树结构范围内的所有 watcher。如果我们在当前作用域设置 `$$lastDirtyWatch` 属性，就会屏蔽父作用域上的同名属性。
+
+> 实际上，AngularJS 的作用域上并没有 `$$children` 属性。如果查看源码，你能发现它会把子作用域放到一个定制的、链表形式的变量组中：`$$nextSibling`，`$$prevSibling`，`$$childHead` 和 `$$childTail`。这是一种优化手段，通过无需操作数组来降低增删元素的成本。在功能上跟我们使用 `$$children` 数组并无二致。
