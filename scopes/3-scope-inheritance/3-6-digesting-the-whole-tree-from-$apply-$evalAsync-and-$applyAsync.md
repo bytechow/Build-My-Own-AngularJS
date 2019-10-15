@@ -117,3 +117,108 @@ Scope.prototype.$evalAsync = function(expr) {
   // this.$$asyncQueue.push({ scope: this, expression: expr });
 };
 ```
+
+有了 `$root` 属性的帮助，我们还可以回顾一下 digest 的代码，保证我们引用的是正确的 `$$lastDirtyWatch` 以便检查短路优化的相关状态。无论我们现在是在哪个作用域上调用 `$digest`，`$$lastDirtyWatch` 指向的应该一直都是根作用域的 `$$lastDirtyWatch`。
+
+我们应该在 `$watch` 函数改成引用 `$root.$$lastDirtyWatch`：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
+  // var self = this;
+  // var watcher = {
+  //   watchFn: watchFn,
+  //   listenerFn: listenerFn || function() {},
+  //   last: initWatchVal,
+  //   valueEq: !!valueEq
+  // };
+  // this.$$watchers.unshift(watcher);
+  // this.$root.$$lastDirtyWatch = null;
+  return function() {
+    // var index = self.$$watchers.indexOf(watcher);
+    // if (index >= 0) {
+    //   self.$$watchers.splice(index, 1);
+      self.$root.$$lastDirtyWatch = null;
+    // }
+  };
+};
+```
+
+在 `$digest` 中我们也要这样处理：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$digest = function() {
+  // var ttl = 10;
+  // var dirty;
+  this.$root.$$lastDirtyWatch = null;
+  // this.$beginPhase('$digest');
+  
+  // if (this.$$applyAsyncId) {
+  //   clearTimeout(this.$$applyAsyncId);
+  //   this.$$flushApplyAsync();
+  // }
+
+  // do {
+  //   while (this.$$asyncQueue.length) {
+  //     try {
+  //       var asyncTask = this.$$asyncQueue.shift();
+  //       asyncTask.scope.$eval(asyncTask.expression);
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   }
+  //   dirty = this.$$digestOnce();
+  //   if ((dirty || this.$$asyncQueue.length) && !(ttl--)) {
+  //     throw '10 digest iterations reached';
+  //   }
+  // } while (dirty || this.$$asyncQueue.length);
+  
+  // this.$clearPhase();
+  // while (this.$$postDigestQueue.length) {
+  //   try {
+  //     this.$$postDigestQueue.shift()();
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // }
+};
+```
+
+最后是 `$$digestOnce`：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$$digestOnce = function() {
+  // var dirty;
+  // this.$$everyScope(function(scope) {
+  //   var newValue, oldValue;
+  //   _.forEachRight(scope.$$watchers, function(watcher) {
+  //     try {
+  //       if (watcher) {
+  //         newValue = watcher.watchFn(scope);
+  //         oldValue = watcher.last;
+          if (!scope.$$areEqual(newValue, oldValue, watcher.valueEq)) {
+            scope.$root.$$lastDirtyWatch = watcher;
+            // watcher.last = (watcher.valueEq ? _.cloneDeep(newValue) : newValue);
+            // watcher.listenerFn(newValue,
+            //   (oldValue === initWatchVal ? newValue : oldValue),
+            //   scope);
+            // dirty = true;
+          } else if (scope.$root.$$lastDirtyWatch === watcher) {
+            // dirty = false;
+            // return false;
+          }
+  //       }
+  //     } catch (e) {
+  //       console.error(e);
+  //     }
+  //   });
+  //   return dirty !== false;
+  // });
+  // return dirty;
+};
+```
