@@ -9,3 +9,9 @@ Angular scopes 实际上列出了五个内容，但却说是“four main areas�
 
 ## p106
 该页的第一个代码块下第三段文字中 "Armed with the knowledge about this difference between digest and $apply,..." 中的 digest 应改为 `$digest`
+
+## p115
+"First of all, we should share the queue between scopes, just like we did with the $evalAsync and $postDigest queues:" 
+
+这里的 $postDigest 应该改为 $$postDigest
+

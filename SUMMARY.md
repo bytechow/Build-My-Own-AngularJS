@@ -58,6 +58,7 @@
   * [3-5 递归 digest](scopes/3-scope-inheritance/3-5-recursive-digestion.md)
   * [3-6 调用 `$apply`，`$evalAsync` 和 `$applyAsync` 时会对整个树结构进行 digest](scopes/3-scope-inheritance/3-6-digesting-the-whole-tree-from-$apply-$evalAsync-and-$applyAsync.md)
   * [3-7 孤立的作用域](scopes/3-scope-inheritance/3-7-isolated-scopes.md)
+  * [3-8 替换父作用域](scopes/3-scope-inheritance/3-8-substituting-the-parent-scope.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
