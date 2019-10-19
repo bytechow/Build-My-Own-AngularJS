@@ -62,7 +62,7 @@
   * [3-9 销毁作用域](scopes/3-scope-inheritance/3-9-destroying-scopes.md)
   * [3-10 本章总结](scopes/3-scope-inheritance/3-10-summary.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
-  * [4-1 建立基础设施](scopes/4-scope-inheritance/4-1-setting-up-the-infrastructure.md)
+  * [4-1 建立基础设施](scopes/4-watching-collections/4-1-setting-up-the-infrastructure.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
 ## 二、表达式和过滤器
