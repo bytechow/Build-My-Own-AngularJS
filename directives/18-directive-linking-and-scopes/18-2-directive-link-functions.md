@@ -262,4 +262,4 @@ function applyDirectivesToNode(directives, compileNode, attrs) {
 
 应用开发者可以使用的是第一个和最后一个链接方法。而其中的两个步骤都是`compile.js`中会进行的内部过程。
 
-![compile and link](/assets/compile-and-link.png)
+![compile and link](/assets/18-directive-linking-scopes/compile-and-link.png)
