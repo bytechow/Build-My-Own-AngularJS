@@ -380,7 +380,7 @@ _.forEachRight(interceptors, function(interceptor) {
 return promise;
 ```
 
-![](/assets/request-response-cycle.png)
+![](/assets/15-http/request-response-cycle.png)
 
 另外两个我们要实现的拦截器方法属性是跟异常处理有关的。如果在请求被发送之前，出现了错误，`requestError`方法就会被调用，也就是说前面的拦截器可能发生了错误：
 
