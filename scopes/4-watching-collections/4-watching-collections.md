@@ -10,4 +10,4 @@
 
 本章都是跟 `$watchCollection` 有关的。虽然概念比较简单，但这个函数中包含了很多东西。知道了它的运作方式之后，你就能更充分地使用它了。实现 `$watchCollection` 的过程也可以作为我们对某类特定数据结构的一个学习案例，这是我们在构建 Angular 应用时需要用到的。
 
-> 下载[本章初识代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter3-scope-inheritance)
+> 下载[本章初始代码](https://github.com/teropa/build-your-own-angularjs/releases/tag/chapter3-scope-inheritance)
