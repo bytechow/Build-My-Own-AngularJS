@@ -293,7 +293,7 @@ _.forEachRight(postLinkFns, function(linkFn) {
 
 当你在指令中接收到一个 transclusion 函数时，实际上接收到的事：被 transclude 内容的原生链接函数，被包裹到两个不同的绑定函数中。
 
-![](/assets/when-receive-a-transclusion-function.png)
+![](/assets/21-directive-transclusion/when-receive-a-transclusion-function.png)
 
 之前，我们“内部”绑定的 transclusion 函数，现在接收的是被称为"containing scope"的作用域：
 
