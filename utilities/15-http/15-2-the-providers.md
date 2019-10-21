@@ -1,4 +1,4 @@
-Provider（The Providers）
+### Provider（The Providers）
 
 像实现 $q 服务时一样，我们的第一步就是为 $http 设置 Provider。但在 $http 中我们需要两个 Provider，这是因为 AngularJS 中的 HTTP 通信也是分为两种—— $http 和 $httpBackend
 
