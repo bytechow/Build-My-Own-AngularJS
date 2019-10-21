@@ -2,7 +2,7 @@
 
 最简单的 transclusion 用例就是：当元素上使用了一个 transclusion 指令，元素里面的子节点会被迁移到指令系统的指定位置上去。
 
-![compile and link](/assets/21-direction-transclusion/basic-transclusion.png)
+![compile and link](/assets/21-directive-transclusion/basic-transclusion.png)
 
 当一个指令定义对象包含了`transclude: true`这个特性。这个功能第一个的可见影响是当前元素的子节点会从原来的 DOM 中消失：
 
