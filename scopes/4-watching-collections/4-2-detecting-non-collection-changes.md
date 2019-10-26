@@ -1,7 +1,7 @@
 ### 侦听非集合数据的变化
 #### Detecting Non-Collection Changes
 
-`$watchCollection` 的目标就是要侦听数组和对象。但是，它也能支持 watch 函数返回值是一个非集合的情况。在这种情况下，它会回退到直接调用 `$watch` 的工作状态。虽然这可能是 `$watchCollection` 中最乏味的内容，但先开发这个能充实我们的函数结构。
+`$watchCollection` 的目标就是要侦听数组和对象。但是，它也能支持 watch 函数返回值是一个非集合的情况。在这种情况下，它会回退到直接调用 `$watch` 的工作状态。虽然这可能是 `$watchCollection` 中最乏味的内容，但在处理这个情况的同时能充实我们的函数结构。
 
 下面这个测试用于确认函数的基本行为：
 
@@ -63,9 +63,9 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-通过把 `newValue` 和 `oldValue` 的变量定义放到 `internalListenerFn` 函数体的外面，我们就能在内部的 watch 函数和 listener 函数共用这两个变量。它们也会通过 `$watchCollection` 函数形成的闭包在 digest 的不同轮次之间一直保持着。这对于旧值来说就特别重要，因为我们需要在不同轮次中比较这个值。
+通过把 `newValue` 和 `oldValue` 的变量定义放到 `internalListenerFn` 函数体的外面，我们就能同时在 `internalWatchFn` 函数和 `internalListenerFn` 函数共用这两个变量。它们也会通过 `$watchCollection` 函数形成的闭包在 digest 的不同轮次之间一直保持着。这对于旧值来说就特别重要，因为我们需要在不同轮次中比较这个值。
 
-这个 listener 函数就只是委托给原始的 listener 函数，把新旧值和作用域都传进去：
+这个 listener 函数要做的只是直接调用传入的 listener 函数，把新旧值和作用域都传进去就可以了：
 
 _src/scope.js_
 
@@ -91,4 +91,8 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-回想一下，决定 `$digest` 是否调用 listener 函数，是通过对 watch 函数连续返回的值进行比较
+回想一下，`$digest` 对是否需要调用 listener 函数的判断，是通过对 watch 函数在连续两轮 digest 中返回的值进行比较得出的。但是现在内部的 watch 函数还什么都没有返回，listener 函数自然也不会被调用了。
+
+那内部的 watch 函数应该返回什么呢？既然在 `$watchCollection` 外部已经无法访问这个函数，我们也无需做太大的改变。我们只需要知道一旦发生了改变，那连续两轮返回的值就会不同，而这就是 listener 函数的触发条件。
+
+Angular 解决这个问题的方法是引入一个整数计数器，然后只要检测到有一个值发生了变化就对它进行递增。每一个通过 `$watchCollection` 注册的 watcher 都有自己的计数器，它会在 watcher 的整个生命周期中不断地递增。只要在 `internalWatchFn` 中返回这个计数器，我们就确保能满足对 watch 函数的约束
