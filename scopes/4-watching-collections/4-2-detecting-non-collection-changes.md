@@ -95,4 +95,93 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 
 那内部的 watch 函数应该返回什么呢？既然在 `$watchCollection` 外部已经无法访问这个函数，我们也无需做太大的改变。我们只需要知道一旦发生了改变，那连续两轮返回的值就会不同，而这就是 listener 函数的触发条件。
 
-Angular 解决这个问题的方法是引入一个整数计数器，然后只要检测到有一个值发生了变化就对它进行递增。每一个通过 `$watchCollection` 注册的 watcher 都有自己的计数器，它会在 watcher 的整个生命周期中不断地递增。只要在 `internalWatchFn` 中返回这个计数器，就能确保满足对 watch 函数的约束
+Angular 解决这个问题的方法是引入一个整数计数器，然后只要检测到有一个值发生了变化就对它进行递增。每一个通过 `$watchCollection` 注册的 watcher 都有自己的计数器，它会在 watcher 的整个生命周期中不断地递增。只要在 `internalWatchFn` 中返回这个计数器，就能满足对 watch 函数的约束了。
+
+对于非集合数据的情况，我们直接基于引用对比新旧值就好了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+  // var self = this;
+  // var newValue;
+  // var oldValue;
+  var changeCount = 0;
+
+  var internalWatchFn = function(scope) {
+    // newValue = watchFn(scope);
+
+    if (newValue !== oldValue) {
+      changeCount++;
+    }
+    // oldValue = newValue;
+
+    return changeCount;
+  };
+
+  // var internalListenerFn = function() {
+  //   listenerFn(newValue, oldValue, self);
+  // };
+  
+  // return this.$watch(internalWatchFn, internalListenerFn);
+};
+```
+
+这样我们就能够处理非集合数据的情况了。但如果这个非集合数据刚好是 `NaN` 又该怎么办？
+
+_test/scope_spec.js_
+
+```js
+it('works like a normal watch for NaNs', function() {
+  scope.aValue = 0 / 0;
+  scope.counter = 0;
+
+  scope.$watchCollection(
+    function(scope) { return scope.aValue; },
+    function(newValue, oldValue, scope) {
+      scope.counter++;
+    }
+  );
+  
+  scope.$digest();
+  expect(scope.counter).toBe(1);
+  
+  scope.$digest();
+  expect(scope.counter).toBe(1);
+});
+```
+
+这个单元测试无法通过的原因跟我们在第一章处理 NaN 时的一模一样：`NaN` 不等于自身。我们将不使用 `!==`，而使用现有的帮助函数 `$$areEqual`来进行相等性比较，因为这个帮助函数已经知道如何处理值为 `NaN` 的情况了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+  // var self = this;
+  // var newValue;
+  // var oldValue;
+  // var changeCount = 0;
+
+  // var internalWatchFn = function(scope) {
+  //   newValue = watchFn(scope);
+
+    if (!self.$$areEqual(newValue, oldValue, false)) {
+      changeCount++;
+    }
+  //   oldValue = newValue;
+
+  //   return changeCount;
+  // };
+
+  // var internalListenerFn = function() {
+  //   listenerFn(newValue, oldValue, self);
+  // };
+  
+  // return this.$watch(internalWatchFn, internalListenerFn);
+};
+```
+
+调用 `$$areEqual` 时传入的最后一个参数为 `false` 表示我们不会在这里使用基于值的比较。在这个情况下，我们使用基于引用的比较就可以了。
+
+现在我们已经有了 `$watchCollection` 的基本结构了，接下来可以把注意力放到对集合数据的变化侦测上来了。
+
