@@ -27,3 +27,60 @@ var internalWatchFn = function(scope) {
   // return changeCount;
 }
 ````
+
+我们确认这个对象就是数组的方式，就是在确认是对象之后马上再加一个判断看这个值是否是数组类型的。如果不是，那显然已经发生了改变：
+
+_test/scope_spec.js_
+
+```js
+it('notices when the value becomes an array', function() {
+  scope.counter = 0;
+
+  scope.$watchCollection(
+    function(scope) { return scope.arr; },
+    function(newValue, oldValue, scope) {
+      scope.counter++;
+    }
+  );
+
+  scope.$digest();
+  expect(scope.counter).toBe(1);
+  
+  scope.arr = [1, 2, 3];
+  scope.$digest();
+  expect(scope.counter).toBe(2);
+  
+  scope.$digest();
+  expect(scope.counter).toBe(2);
+});
+```
+
+由于现在 `internalWatchFn` 处理数组的分支还什么都没有，我们没法察觉到这种变化。要处理这种情况，我们需要先对旧值的类型进行判断：
+
+_src/scope.js_
+
+```js
+var internalWatchFn = function(scope) {
+  // newValue = watchFn(scope);
+
+  if (_.isObject(newValue)) {
+    if (_.isArray(newValue)) {
+      if (!_.isArray(oldValue)) {
+        changeCount++;
+        oldValue = [];
+      }
+    } else {
+
+    }
+  } else {
+    // if (!self.$$areEqual(newValue, oldValue, false)) {
+    //   changeCount++;
+    // }
+    // oldValue = newValue;
+  }
+  
+  // return changeCount;
+};
+```
+
+如果旧值不是一个数组，我们就记录为一次变化。同时，我们也会把旧值初始化为一个空数组。稍后，我们才会在这个内部数组中对正在侦听的数组内容进行拷贝，但现在这样已经可以通过我们的测试了。
