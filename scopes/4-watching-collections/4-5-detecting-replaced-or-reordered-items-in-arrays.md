@@ -110,4 +110,43 @@ it('does not fail on NaNs in arrays', function() {
 });
 ```
 
-这个测试会抛出一个异常，这是因为 NaN 值的存在会一直触发变化，从而产生一个无限的 digest
+这个测试会抛出一个异常，这是因为 NaN 值的存在会一直触发变化，从而产生无限的 digest 循环。我们可以通过检查旧值和新值是不是都是 NaN 来解决这个问题：
+
+_src/scope.js_
+
+```js
+var internalWatchFn = function(scope) {
+  newValue = watchFn(scope);
+
+  if (_.isObject(newValue)) {
+    if (_.isArray(newValue)) {
+      // if (!_.isArray(oldValue)) {
+      //   changeCount++;
+      //   oldValue = [];
+      // }
+      // if (newValue.length !== oldValue.length) {
+      //   changeCount++;
+      //   oldValue.length = newValue.length;
+      // }
+      _.forEach(newValue, function(newItem, i) {
+        var bothNaN = _.isNaN(newItem) && _.isNaN(oldValue[i]);
+        if (!bothNaN && newItem !== oldValue[i]) {
+          // changeCount++;
+          // oldValue[i] = newItem;
+        }
+      });
+    } else {
+
+    }
+  } else {
+    // if (!self.$$areEqual(newValue, oldValue, false)) {
+    //   changeCount++;
+    // }
+    // oldValue = newValue;
+  }
+  
+  // return changeCount;
+};
+```
+
+这样处理以后，我们就可以检测所有可能发生在数组中的改变了，不再需要拷贝设置遍历任何“在”数组内的嵌套内容了。
