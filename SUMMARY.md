@@ -64,11 +64,11 @@
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
   * [4-1 建立基础设施](scopes/4-watching-collections/4-1-setting-up-the-infrastructure.md)
   * [4-2 侦听非集合数据的变化](scopes/4-watching-collections/4-2-detecting-non-collection-changes.md)
-  * [4-3 侦测新建数组](scopes/4-watching-collections/4-3-detecting-new-arrays.md)
+  * [4-3 侦测转换为数组的情况](scopes/4-watching-collections/4-3-detecting-new-arrays.md)
   * [4-4 侦测数组元素的新增或移除](scopes/4-watching-collections/4-4-detecting-new-or-removed-items-in-arrays.md)
   * [4-5 侦测数组元素的替换和重排序](scopes/4-watching-collections/4-5-detecting-replaced-or-reordered-items-in-arrays.md)
   * [4-6 类数组对象](scopes/4-watching-collections/4-6-array-like-objects.md)
-  * [4-7 侦听新建对象](scopes/4-watching-collections/4-7-detecting-new-objects.md)
+  * [4-7 侦听转换为对象的情况](scopes/4-watching-collections/4-7-detecting-new-objects.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
 ## 二、表达式和过滤器
