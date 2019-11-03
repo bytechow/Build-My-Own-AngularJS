@@ -70,6 +70,7 @@
   * [4-6 类数组对象](scopes/4-watching-collections/4-6-array-like-objects.md)
   * [4-7 侦听转换为对象的情况](scopes/4-watching-collections/4-7-detecting-new-objects.md)
   * [4-8 侦听对象属性的新增或替换](scopes/4-watching-collections/4-8-detecting-new-or-replaced-attributes-in-objects.md)
+  * [4-9 侦听对象属性的移除](scopes/4-watching-collections/4-9-detecting-removed-attributes-in-objects.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
 ## 二、表达式和过滤器
