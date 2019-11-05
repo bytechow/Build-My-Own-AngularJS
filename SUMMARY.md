@@ -72,6 +72,7 @@
   * [4-8 侦测对象属性的新增或替换](scopes/4-watching-collections/4-8-detecting-new-or-replaced-attributes-in-objects.md)
   * [4-9 侦测对象属性的移除](scopes/4-watching-collections/4-9-detecting-removed-attributes-in-objects.md)
   * [4-10 防止不必要的对象迭代](scopes/4-watching-collections/4-10-preventing-unnecessary-object-iteration.md)
+  * [4-11 处理带有 length 属性的对象](scopes/4-watching-collections/4-11-dealing-with-objects-that-have-a-length.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
 ## 二、表达式和过滤器
