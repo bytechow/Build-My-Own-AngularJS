@@ -49,7 +49,7 @@
   * [2-7 在 digest 之后运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
   * [2-8 异常处理](scopes/2-scope-methods/2-8-handling-exceptions.md)
   * [2-9 多个变化共用同一个 listener 函数](scopes/2-scope-methods/2-9-watching-several-changes-with-one-listener-$watchGroup.md)
-  * [2-10 本章总结](scopes/2-scope-methods/2-10-summary.md)
+  * [2-10 本章小结](scopes/2-scope-methods/2-10-summary.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
   * [3-1 根作用域](scopes/3-scope-inheritance/3-1-the-root-scope.md)
   * [3-2 创建一个子作用域](scopes/3-scope-inheritance/3-2-making-a-child-scope.md)
@@ -60,7 +60,7 @@
   * [3-7 孤立的作用域](scopes/3-scope-inheritance/3-7-isolated-scopes.md)
   * [3-8 替换父作用域](scopes/3-scope-inheritance/3-8-substituting-the-parent-scope.md)
   * [3-9 销毁作用域](scopes/3-scope-inheritance/3-9-destroying-scopes.md)
-  * [3-10 本章总结](scopes/3-scope-inheritance/3-10-summary.md)
+  * [3-10 本章小结](scopes/3-scope-inheritance/3-10-summary.md)
 * [第4章 监听集合](scopes/4-watching-collections/4-watching-collections.md)
   * [4-1 建立基础设施](scopes/4-watching-collections/4-1-setting-up-the-infrastructure.md)
   * [4-2 侦听非集合数据的变化](scopes/4-watching-collections/4-2-detecting-non-collection-changes.md)
@@ -74,6 +74,7 @@
   * [4-10 防止不必要的对象迭代](scopes/4-watching-collections/4-10-preventing-unnecessary-object-iteration.md)
   * [4-11 处理带有 length 属性的对象](scopes/4-watching-collections/4-11-dealing-with-objects-that-have-a-length.md)
   * [4-12 把旧的集合值传递给 listener 函数](scopes/4-watching-collections/4-12-handing-the-old-collection-value-to-listeners.md)
+  * [4-13 本章小结](scopes/4-watching-collections/4-12-handing-the-old-collection-value-to-listeners.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
 
 ## 二、表达式和过滤器
