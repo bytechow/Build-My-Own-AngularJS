@@ -96,6 +96,82 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
   // var changeCount = 0;
 
   // ...
-  
+
 };
 ````
+
+`Function` 的 `length` 属性包含了函数中声明的参数数量。如果多于一个，例如`(newValue, oldValue)` 或者 `(newValue, oldValue, scope)`，我们才会启用并跟踪这个 `veryOldValue`。
+
+请注意，除非你在 listener 函数参数中声明了 `oldValue`，否则 `$watchCollection` 不用承担拷贝 `veryOldValue` 的成本。这也意味着你不能想当然地从 listener 函数的 `arguments` 对象中访问 `oldValue`。要访问的话就必须声明它。
+
+剩下来的工作就需要在 `internalListenerFn` 中完成了。我们不再传递 `oldValue` 给 listener，而会传递 `veryOldValue`。然后需要基于当前值拷贝下一个 `veryOldValue` 值以便下一次使用。我们可以使用 `_.clone` 对集合数据进行浅拷贝，它同样适用于原始数据类型（primitives）：
+
+_src/scope.js_
+
+```js
+var internalListenerFn = function() {
+  listenerFn(newValue, veryOldValue, self);
+
+  if (trackVeryOldValue) {
+    veryOldValue = _.clone(newValue);
+  }
+};
+```
+
+在第一章中，我们说在第一次调用 listener 函数时 `oldValue` 应该与新值是相同的。这个规则对于 `$watchCollection` 中的 listner 函数来说也是一样的：
+
+_test/scope_spec.js_
+
+```js
+it('uses the new value as the old value on first digest', function() {
+  scope.aValue = { a: 1, b: 2 };
+  var oldValueGiven;
+
+  scope.$watchCollection(
+    function(scope) { return scope.aValue; },
+    function(newValue, oldValue, scope) {
+      oldValueGiven = oldValue;
+    }
+  );
+
+  scope.$digest();
+  
+  expect(oldValueGiven).toEqual({ a: 1, b: 2 });
+});
+```
+
+传入的 oldValue 是 `undefined`，导致这个单元测试未能通过，这是由于在 listener 函数第一次调用之前，我们还未对 `veryOldValue` 进行过赋值。
+
+我们需要设置一个标识来区分当前是否在 listener 的第一次调用中，然后根据这个标识来选用不同的调用方式：
+
+src/scope.js
+
+```js
+Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
+  // var self = this;
+  // var newValue;
+  // var oldValue;
+  // var oldLength;
+  // var veryOldValue;
+  // var trackVeryOldValue = (listenerFn.length > 1);
+  // var changeCount = 0;
+  var firstRun = true;
+
+  // ...
+  
+  var internalListenerFn = function() {
+    if (firstRun) {
+      listenerFn(newValue, newValue, self);
+      firstRun = false;
+    } else {
+      // listenerFn(newValue, veryOldValue, self);
+    }
+
+    // if (trackVeryOldValue) {
+    //   veryOldValue = _.clone(newValue);
+    // }
+  };
+  
+  // return this.$watch(internalWatchFn, internalListenerFn);
+};
+```
