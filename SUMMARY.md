@@ -20,7 +20,7 @@
 * [使用 Jasmine，Sinon 和 Karma 构建单元测试](setting-up/enable-unit-testing-with-jasmine-sinon-and-karma.md)
 * [集成 Browserify](setting-up/integrate-browserify.md)
 * [安装 Lo-Dash 和 jQuery](setting-up/include-lodash-and-jquery.md)
-* [本章总结](setting-up/summary.md)
+* [本章小结](setting-up/summary.md)
 
 ## 一、作用域
 
@@ -108,7 +108,7 @@
   * [11-15 严格模式](modules-and-dependency-injection/11-modules-and-the-injector/11-15-strict-mode.md)
   * [11-16 在调用过程中使用注解](modules-and-dependency-injection/11-modules-and-the-injector/11-16-integrating-annotation-with-invocation.md)
   * [11-17 对构造函数使用依赖注入](modules-and-dependency-injection/11-modules-and-the-injector/11-17-instantiating-objects-with-dependency-injection.md)
-  * [11-18 本章总结](modules-and-dependency-injection/11-modules-and-the-injector/11-18-summary.md)
+  * [11-18 本章小结](modules-and-dependency-injection/11-modules-and-the-injector/11-18-summary.md)
 * [第12章 providers](modules-and-dependency-injection/12-providers/12-providers.md)
   * [12-1 最简单的provider——一个包含$get方法的对象](modules-and-dependency-injection/12-providers/12-1-the-simplest-possible-provider-an-object-with-a-get-method.md)
   * [12-2 对 $get 方法注入依赖](modules-and-dependency-injection/12-providers/12-2-injecting-dependencies-to-the-$get-method.md)
@@ -118,7 +118,7 @@
   * [12-6 Provider构造函数](modules-and-dependency-injection/12-providers/12-6-provider-constructors.md)
   * [12-7 provider注射器和instance注射器](modules-and-dependency-injection/12-providers/12-7-two-injectors-the-provider-injector-and-the-instance-injector.md)
   * [12-8 提升常量在任务队列的注册优先级](modules-and-dependency-injection/12-providers/12-8-unshifting-constants-in-the-invoke-queue.md)
-  * [12-9 本章总结](modules-and-dependency-injection/12-providers/12-9-summary.md)
+  * [12-9 本章小结](modules-and-dependency-injection/12-providers/12-9-summary.md)
 * [第13章 依赖注入进阶](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-high-level-dependency-injection-features.md)
   * [13-1 注入 $injector 服务](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-1-injecting-the-$injectors.md)
   * [13-2 注入 $provider 服务](modules-and-dependency-injection/13-high-level-dependency-injection-features/13-2-injecting-provider.md)
