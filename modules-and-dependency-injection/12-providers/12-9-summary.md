@@ -1,4 +1,4 @@
-### 本章总结（Summary）
+### 本章小结（Summary）
 
 本章主要介绍了 provider 在 Angular 依赖注入的重要地位。provider 使递归依赖成为可能，也能够实现依赖的按需加载（懒加载）。
 

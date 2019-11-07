@@ -1,4 +1,4 @@
-### 本章总结（Summary）
+### 本章小结（Summary）
 
 表达式 interpolation 对于 Angular 来说是一个很重要的特性。它是大多数开发者学习 Angular 的第一课，而且没有 Angular 应用能离开它。
 
