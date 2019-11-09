@@ -76,6 +76,7 @@
   * [4-12 把旧的集合值传递给 listener 函数](scopes/4-watching-collections/4-12-handing-the-old-collection-value-to-listeners.md)
   * [4-13 本章小结](scopes/4-watching-collections/4-13-summary.md)
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
+  * [5-1 发布-订阅式的消息传递](scopes/5-scope-events/5-1-publish-subscribe-messaging.md)
 
 ## 二、表达式和过滤器
 
