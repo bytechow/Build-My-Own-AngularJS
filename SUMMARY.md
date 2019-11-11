@@ -78,6 +78,7 @@
 * [第5章 作用域事件](scopes/5-scope-events/5-scope-events.md)
   * [5-1 发布-订阅式的消息传递](scopes/5-scope-events/5-1-publish-subscribe-messaging.md)
   * [5-2 开发准备](scopes/5-scope-events/5-2-setup.md)
+  * [5-3 注册事件监听器](scopes/5-scope-events/5-3-registering-event-listeners-$on.md)
 
 ## 二、表达式和过滤器
 
