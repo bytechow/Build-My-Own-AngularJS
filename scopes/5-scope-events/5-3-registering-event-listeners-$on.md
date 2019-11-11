@@ -35,16 +35,16 @@ _src/scope.js_
 
 ```js
 function Scope() {
-  this.$$watchers = [];
-  this.$$lastDirtyWatch = null;
-  this.$$asyncQueue = [];
-  this.$$applyAsyncQueue = [];
-  this.$$applyAsyncId = null;
-  this.$$postDigestQueue = [];
-  this.$root = this;
-  this.$$children = [];
+  // this.$$watchers = [];
+  // this.$$lastDirtyWatch = null;
+  // this.$$asyncQueue = [];
+  // this.$$applyAsyncQueue = [];
+  // this.$$applyAsyncId = null;
+  // this.$$postDigestQueue = [];
+  // this.$root = this;
+  // this.$$children = [];
   this.$$listeners = {};
-  this.$$phase = null;
+  // this.$$phase = null;
 }
 ```
 
@@ -81,3 +81,31 @@ it('registers different listeners for every scope', function() {
   expect(isolatedChild.$$listeners).toEqual({someEvent: [listener3]});
 });
 ```
+
+这个单元测试失败了，因为 `scope` 和 `child` 是可以访问到 `$$listeners` 集合的，但 `isolatedChild` 并不能访问这个集合。我们需要对子作用域的构造函数进行改造，让它们显式地管理自己的的 `$$listeners` 集合。对于非孤立的作用域来说，会屏蔽父作用域上的同名属性。这也是我们在第二章中对 `$$watchers` 使用过的解决方案：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$new = function(isolated, parent) {
+  // var child;
+  // parent = parent || this;
+  // if (isolated) {
+  //   child = new Scope();
+  //   child.$root = parent.$root;
+  //   child.$$asyncQueue = parent.$$asyncQueue;
+  //   child.$$postDigestQueue = parent.$$postDigestQueue;
+  //   child.$$applyAsyncQueue = this.$$applyAsyncQueue;
+  // } else {
+  //   var ChildScope = function() {};
+  //   ChildScope.prototype = this;
+  //   child = new ChildScope();
+  // }
+  // parent.$$children.push(child);
+  // child.$$watchers = [];
+  child.$$listeners = {};
+  // child.$$children = [];
+  // child.$parent = parent;
+  // return child;
+};
+````
