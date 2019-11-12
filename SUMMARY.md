@@ -80,6 +80,7 @@
   * [5-2 开发准备](scopes/5-scope-events/5-2-setup.md)
   * [5-3 注册事件监听器](scopes/5-scope-events/5-3-registering-event-listeners-$on.md)
   * [5-4 $emit 和 $broadcast 的基础功能](scopes/5-scope-events/5-4-the-basics-of-$emit-and-$broadcast.md)
+  * [5-5 处理重复代码](scopes/5-scope-events/5-5-dealing-with-duplication.md)
 
 ## 二、表达式和过滤器
 
