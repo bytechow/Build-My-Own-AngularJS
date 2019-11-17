@@ -84,6 +84,7 @@
   * [5-6 事件对象](scopes/5-scope-events/5-6-event-objests.md)
   * [5-7 其他的监听器参数](scopes/5-scope-events/5-7-additional-listener-arguments.md)
   * [5-8 注销事件监听器](scopes/5-scope-events/5-8-deregistering-event-listeners.md)
+  * [5-9 往上层作用域发出事件](scopes/5-scope-events/5-9-emitting-up-the-scope-hierarchy.md)
 
 ## 二、表达式和过滤器
 
