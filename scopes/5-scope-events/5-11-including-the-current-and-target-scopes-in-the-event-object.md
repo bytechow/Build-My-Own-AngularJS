@@ -76,4 +76,54 @@ Scope.prototype.$broadcast = function(eventName) {
 };
 ```
 
-与 `scope` 不同，`currentScope` 会根据当前绑定了 listener 的作用域不同而发生变化，它会指向现在正在使用 listener 处理事件的那个作用域。
+与 `scope` 不同，`currentScope` 会根据当前绑定了 listener 的作用域不同而发生变化，它会指向现在正在使用 listener 处理事件的那个作用域。一个证据是，当事件在作用域树中向上或向下传递时，`currentScope` 指向当前事件传播到的作用域。
+
+这种情况下，我们不能使用 Jasmine spy 来进行测试，因为 spy 只能在调用完成之后才能进行验证。`currentScope` 会在遍历作用域时发生变化，所以我们需要在调用 listener 时记录它在那一瞬间的值。我们可以通过 listener 函数加上本地变量来完成这个检测：
+
+对于 `$emit`：
+
+_test/scope_spec.js_
+
+```js
+it('attaches currentScope on $emit', function() {
+  var currentScopeOnScope, currentScopeOnParent;
+  var scopeListener = function(event) {
+    currentScopeOnScope = event.currentScope;
+  };
+  var parentListener = function(event) {
+    currentScopeOnParent = event.currentScope;
+  };
+
+  scope.$on('someEvent', scopeListener);
+  parent.$on('someEvent', parentListener);
+
+  scope.$emit('someEvent');
+  
+  expect(currentScopeOnScope).toBe(scope);
+  expect(currentScopeOnParent).toBe(parent);
+});
+```
+
+而对于 `$broadcast`，我们这样处理：
+
+_test/scope_spec.js_
+
+```js
+it('attaches currentScope on $broadcast', function() {
+  var currentScopeOnScope, currentScopeOnChild;
+  var scopeListener = function(event) {
+    currentScopeOnScope = event.currentScope;
+  };
+  var childListener = function(event) {
+    currentScopeOnChild = event.currentScope;
+  };
+
+  scope.$on('someEvent', scopeListener);
+  child.$on('someEvent', childListener);
+  
+  scope.$broadcast('someEvent');
+  
+  expect(currentScopeOnScope).toBe(scope);
+  expect(currentScopeOnChild).toBe(child);
+});
+```
