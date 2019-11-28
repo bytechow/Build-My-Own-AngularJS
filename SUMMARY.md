@@ -87,6 +87,7 @@
   * [5-9 往上层作用域发出事件](scopes/5-scope-events/5-9-emitting-up-the-scope-hierarchy.md)
   * [5-10 往下层作用域广播事件](scopes/5-scope-events/5-10-broadcasting-down-the-scope-hierarchy.md)
   * [5-11 在事件对象中加入当前和目标作用域](scopes/5-scope-events/5-11-including-the-current-and-target-scopes-in-the-event-object.md)
+  * [5-12 停止事件传播](scopes/5-scope-events/5-12-stopping-event-propagation.md)
 
 ## 二、表达式和过滤器
 
