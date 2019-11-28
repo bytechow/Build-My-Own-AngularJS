@@ -127,3 +127,98 @@ it('attaches currentScope on $broadcast', function() {
   expect(currentScopeOnChild).toBe(child);
 });
 ```
+
+幸运的是，实现这个功能比这些测试代码要简单直接得多。我们需要做的就只是把我们正遍历到的作用域赋值到事件对象上就可以了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$emit = function(eventName) {
+  // var event = {name: eventName, targetScope: this};
+  // var listenerArgs = [event].concat(_.tail(arguments));
+  // var scope = this;
+  do {
+    event.currentScope = scope;
+    // scope.$$fireEventOnScope(eventName, listenerArgs);
+    // scope = scope.$parent;
+  } while (scope);
+  return event;
+};
+Scope.prototype.$broadcast = function(eventName) {
+  // var event = {name: eventName, targetScope: this};
+  // var listenerArgs = [event].concat(_.tail(arguments));
+  this.$$everyScope(function(scope) {
+    event.currentScope = scope;
+    // scope.$$fireEventOnScope(eventName, listenerArgs);
+    // return true;
+  });
+  return event;
+};
+```
+
+由于 `currentScope` 代表着当前事件传播的状态，它应该要在事件传播结束后被清空掉。否则，在事件完成传播后，保留该事件对象的程序将会拿到过时的传播状态信息。我们可以通过在一个 listener 中捕获事件对象的方式进行测试，看看当事件传播结束后，`currentScope` 的值是否为 `null`：
+
+_test/scope_spec.js_
+
+```js
+it('sets currentScope to null after propagation on $emit', function() {
+  var event;
+  var scopeListener = function(evt) {
+    event = evt;
+  };
+  scope.$on('someEvent', scopeListener);
+
+  scope.$emit('someEvent');
+  
+  expect(event.currentScope).toBe(null);
+});
+
+it('sets currentScope to null after propagation on $broadcast', function() {
+  var event;
+  var scopeListener = function(evt) {
+    event = evt;
+  };
+  scope.$on('someEvent', scopeListener);
+
+  scope.$broadcast('someEvent');
+  
+  expect(event.currentScope).toBe(null);
+});
+```
+
+我们可以通过在 `$emit` 方法结束遍历时将 `currentScope` 赋值为 `null` 来解决这个问题：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$emit = function(eventName) {
+  // var event = {name: eventName, targetScope: this};
+  // var listenerArgs = [event].concat(_.tail(arguments));
+  // var scope = this;
+  do {
+    // event.currentScope = scope;
+    // scope.$$fireEventOnScope(eventName, listenerArgs);
+    // scope = scope.$parent;
+  } while (scope);
+  event.currentScope = null;
+  // return event;
+};
+```
+
+在 `$broadcast` 方法中，我们也做类似的处理：
+
+```js
+Scope.prototype.$broadcast = function(eventName) {
+  // var event = {name: eventName, targetScope: this};
+  // var listenerArgs = [event].concat(_.tail(arguments));
+  // this.$$everyScope(function(scope) {
+  //   event.currentScope = scope;
+  //   scope.$$fireEventOnScope(eventName, listenerArgs);
+  //   return true;
+  // });
+  event.currentScope = null;
+  // return event;
+};
+```
+
+现在事件监听器就可以知道事件是从作用域树中的哪个节点发出来的，还可以知道当前这个事件被哪个作用域监听。
