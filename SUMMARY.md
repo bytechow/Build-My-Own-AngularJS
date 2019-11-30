@@ -89,6 +89,7 @@
   * [5-11 在事件对象中加入当前和目标作用域](scopes/5-scope-events/5-11-including-the-current-and-target-scopes-in-the-event-object.md)
   * [5-12 停止事件传播](scopes/5-scope-events/5-12-stopping-event-propagation.md)
   * [5-13 阻止事件的默认行为](scopes/5-scope-events/5-13-preventing-default-event-bahavior.md)
+  * [5-14 广播作用域被移除的事件](scopes/5-scope-events/5-14-broadcasting-scope-removal.md)
 
 ## 二、表达式和过滤器
 
