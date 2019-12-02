@@ -90,6 +90,7 @@
   * [5-12 停止事件传播](scopes/5-scope-events/5-12-stopping-event-propagation.md)
   * [5-13 阻止事件的默认行为](scopes/5-scope-events/5-13-preventing-default-event-bahavior.md)
   * [5-14 广播作用域被移除的事件](scopes/5-scope-events/5-14-broadcasting-scope-removal.md)
+  * [5-15 禁用已销毁作用域上的 listener](scopes/5-scope-events/5-15-disabling-listeners-on-destroyed-scopes.md)
 
 ## 二、表达式和过滤器
 
