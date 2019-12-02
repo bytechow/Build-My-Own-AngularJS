@@ -92,6 +92,7 @@
   * [5-14 广播作用域被移除的事件](scopes/5-scope-events/5-14-broadcasting-scope-removal.md)
   * [5-15 禁用已销毁作用域上的 listener](scopes/5-scope-events/5-15-disabling-listeners-on-destroyed-scopes.md)
   * [5-16 异常处理](scopes/5-scope-events/5-16-handling-exceptions.md)
+  * [5-17 本章总结](scopes/5-scope-events/5-17-summary.md)
 
 ## 二、表达式和过滤器
 
