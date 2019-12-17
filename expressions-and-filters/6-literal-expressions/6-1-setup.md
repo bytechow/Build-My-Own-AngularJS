@@ -49,3 +49,5 @@ function(scope) {
 ```
 
 `Parser` 的职责就是把上面几个基础步骤给串起来。它本身没有干什么事情，“重活”都交给 Lexer、AST Builder 和 AST Compiler 做了。
+
+![expression-parsing](/assets/6-literal-expressions/expression-parsing.png)
