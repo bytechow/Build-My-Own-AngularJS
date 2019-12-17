@@ -1,6 +1,4 @@
 # Logs
-logs
-*.log
 
 # Runtime data
 pids
@@ -28,3 +26,6 @@ _book/
 book.pdf
 book.epub
 book.mobi
+
+# Mac
+.DS_Store
