@@ -51,3 +51,33 @@ function(scope) {
 `Parser` 的职责就是把上面几个基础步骤给串起来。它本身没有干什么事情，“重活”都交给 Lexer、AST Builder 和 AST Compiler 做了。
 
 ![expression-parsing](/assets/6-literal-expressions/expression-parsing.png)
+
+这意味着无论你在 Angular 应用中的何处使用了表达式，背后都代表着一个 JavaScript 函数被生成了。在之后的 digest 中，一旦需要对表达式进行求值，这些函数就会被再次执行。
+
+下面我们会为上述这些功能准备一些“脚手架”。首先，`Lexer` 会被定义为一个构造函数。它包含了一个叫 `lex` 的方法，这个方法会执行 tokenization （表达式符号拆分）的过程：
+
+_src/parse.js_
+
+```js
+function Lexer() {
+}
+
+Lexer.prototype.lex = function(text) {
+  // Tokenization will be done here
+};
+```
+
+而 AST Builder（在代码中使用的名称就是 `AST`）则是另一个构造函数。他会接收一个 Lexer 作为参数。它也有一个名为 `ast` 的方法，这个方法会根据表达式转化而出的 token 执行 AST 的构建：
+
+_src/parse.js_
+
+```js
+function AST(lexer) {
+  this.lexer = lexer;
+}
+
+AST.prototype.ast = function(text) {
+  this.tokens = this.lexer.lex(text);
+  // AST building will be done here
+};
+```
