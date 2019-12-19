@@ -125,3 +125,40 @@ Lexer.prototype.readNumber = function() {
   }
 };
 ````
+
+这个 `while` 循环会读取当前字符。如果这个字符是一个数字，它会把这个数字加入到本地变量 `number` 中去，然后将字符索引自增 1。如果字符不是数字，就终止这个循环。
+
+这能生成一个 `number` 字符串，但目前我们还不会对它进行处理。我们需要对外输出一个 token：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readNumber = function() {
+  // var number = '';
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+  //   if (this.isNumber(ch)) {
+  //     number += ch;
+  //   } else {
+  //     break;
+  //   }
+  //   this.index++;
+  // }
+  this.tokens.push({
+    text: number,
+    value: Number(number)
+  });
+};
+```
+
+这里我们把一个新的 token 添加到 `this.tokens` 这个集合中去。这个 token 的 `text` 属性就是我们之前读取过的字符串，而 `value` 属性就是把这个字符串通过 `Number 构造函数` 转化而成的数字值。
+
+现在，Lexer 已经完成了在解析数字过程中属于自己的任务。下面我们来看看 AST Builder。
+
+正如之前介绍的，AST 是一个嵌套的 JavaScript 对象，它使用类似树的形式来表示表达式。这棵树上的每一个节点都会有一个 `type` 属性来描述这个节点代表的语法结构。除了类型信息以外，节点上还会有该类型特定的一些属性，这些属性能提供更多关于这个节点的信息。
+
+举个例子，数字字面量的类型是 `AST.Literal`，而它的 `value` 属性就保存了这个字面量的值：
+
+```js
+{type: AST.Literal, value: 42}
+```
