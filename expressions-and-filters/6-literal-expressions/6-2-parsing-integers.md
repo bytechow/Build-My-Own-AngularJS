@@ -61,3 +61,67 @@ Lexer.prototype.lex = function(text) {
   return this.tokens;
 };
 ```
+
+这个函数目前还什么都没干（除了会无限循环以外），但它为我们准备了会在循环中用到的几个局部变量：
+
+- `text` - 原始的字符串
+- `index` - 当前遍历到的字符索引
+- `ch` - 当前遍历到的字符
+- `tokens` - token 的结果集
+
+我们会在 `while` 循环中处理各种各样的字符。先来处理一下数字：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.lex = function(text) {
+  // this.text = text;
+  // this.index = 0;
+  // this.ch = undefined;
+  // this.tokens = [];
+
+  while (this.index < this.text.length) {
+    // this.ch = this.text.charAt(this.index);
+    if (this.isNumber(this.ch)) {
+      this.readNumber();
+    } else {
+      throw 'Unexpected next character: ' + this.ch;
+    }
+  }
+
+  // return this.tokens;
+};
+```
+
+如果当前字符是一个数字，我们会使用一个叫 `readNumber` 的函数来处理它。如果这个字符不是数字，由于目前我们还无法解决，所以直接抛出异常就好了。
+
+检查函数 `isNumber` 也十分简单：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.isNumber = function(ch) {
+  return '0' <= ch && ch <= '9';
+};
+```
+
+我们使用数字运算符 `<=` 来检查这个字符的值是否处于 `‘0’` 到 `‘9’` 之间。与数字比较不同，JavaScript 会在此处使用字典序比较，但在只有个位数的情况下，它们两者是相同的。
+
+`readNumber` 方法的顶层结构跟 `lex` 很类似：它会对文本进行逐个字符的检索，并在遍历过程中构建数字：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readNumber = function() {
+  var number = '';
+  while (this.index < this.text.length) {
+    var ch = this.text.charAt(this.index);
+    if (this.isNumber(ch)) {
+      number += ch;
+    } else {
+      break;
+    }
+    this.index++;
+  }
+};
+````
