@@ -162,3 +162,59 @@ Lexer.prototype.readNumber = function() {
 ```js
 {type: AST.Literal, value: 42}
 ```
+
+每一个 AST 都有一个类型为 `AST.Program` 的根节点。根节点上有一个 `body` 属性用于存放表达式的内容。因此，实际上这个数字字面量要被包裹到 `AST.Program` 节点下面去：
+
+```js
+{
+  type: AST.Program,
+  body: {
+    type: AST.Literal,
+    value: 42 
+  }
+}
+```
+
+这就是目前我们需要应该从 Lexer 输出中生成的 AST。
+
+> 实际上，我们现在还跳过了 AST 的另一层包裹。它跟含有多个 `statements`（声明）的表达式有关。我们将在本书后面的部分看到它是如何操作的。
+
+我们通过 AST Builder 的 `program` 方法来生成顶层的 Program 节点。它会作为整个 AST 构建过程的返回值：
+
+_src/parse.js_
+
+```js
+AST.prototype.ast = function(text) {
+  // this.tokens = this.lexer.lex(text);
+  return this.program();
+};
+AST.prototype.program = function() {
+  return {type: AST.Program};
+};
+```
+
+AST.Program 类型的值，是一个在 `AST` 函数中定义的“标记常量”。它用于识别它所表示的节点类型。它的值其实就是一个简单的字符串而已：
+
+_src/parse.js_
+
+```js
+function AST(lexer) {
+  this.lexer = lexer;
+}
+AST.Program = 'Program';
+```
+
+之后我们会对所有 AST 节点类型引入类似的标记常量，然后在 AST Compiler 中根据它们来判断应该生成哪种类型的 JavaScript 代码。
+
+程序应该有程序体，在这种情况下程序体就是一个数字字面量而已。它的 `type` 就是 `AST.Literal`，而且它会由 AST Builder 的 `constant` 方法来生成：
+
+_src/parse.js_
+
+```js
+AST.prototype.program = function() {
+  return {type: AST.Program, body: this.constant()};
+};
+AST.prototype.constant = function() {
+  return {type: AST.Literal, value: this.tokens[0].value};
+};
+```
