@@ -153,7 +153,7 @@ Lexer.prototype.readNumber = function() {
 
 这里我们把一个新的 token 添加到 `this.tokens` 这个集合中去。这个 token 的 `text` 属性就是我们之前读取过的字符串，而 `value` 属性就是把这个字符串通过 `Number 构造函数` 转化而成的数字值。
 
-现在，Lexer 已经完成了在解析数字过程中属于自己的任务。下面我们来看看 AST Builder。
+现在，Lexer 已经完成了在解析数字过程中属于自己的任务。下面我们来看看 AST 构建器。
 
 正如之前介绍的，AST 是一个嵌套的 JavaScript 对象，它使用类似树的形式来表示表达式。这棵树上的每一个节点都会有一个 `type` 属性来描述这个节点代表的语法结构。除了类型信息以外，节点上还会有该类型特定的一些属性，这些属性能提供更多关于这个节点的信息。
 
@@ -179,7 +179,7 @@ Lexer.prototype.readNumber = function() {
 
 > 实际上，我们现在还跳过了 AST 的另一层包裹。它跟含有多个 `statements`（声明）的表达式有关。我们将在本书后面的部分看到它是如何操作的。
 
-我们通过 AST Builder 的 `program` 方法来生成顶层的 Program 节点。它会作为整个 AST 构建过程的返回值：
+我们通过 AST 构建器的 `program` 方法来生成顶层的 Program 节点。它会作为整个 AST 构建过程的返回值：
 
 _src/parse.js_
 
@@ -204,9 +204,9 @@ function AST(lexer) {
 AST.Program = 'Program';
 ```
 
-之后我们会对所有 AST 节点类型引入类似的标记常量，然后在 AST Compiler 中根据它们来判断应该生成哪种类型的 JavaScript 代码。
+之后我们会对所有 AST 节点类型引入类似的标记常量，然后在 AST 编译器中根据它们来判断应该生成哪种类型的 JavaScript 代码。
 
-程序应该有程序体，在这种情况下程序体就是一个数字字面量而已。它的 `type` 就是 `AST.Literal`，而且它会由 AST Builder 的 `constant` 方法来生成：
+程序应该有程序体，在这种情况下程序体就是一个数字字面量而已。它的 `type` 就是 `AST.Literal`，而且它会由 AST 构建器的 `constant` 方法来生成：
 
 _src/parse.js_
 
@@ -216,5 +216,50 @@ AST.prototype.program = function() {
 };
 AST.prototype.constant = function() {
   return {type: AST.Literal, value: this.tokens[0].value};
+};
+```
+
+目前我们只需要访问第一个 token，并获取它的 `value` 属性。
+
+我们还需要添加这种节点类型的标记常量：
+
+_src/parse.js_
+
+```js
+AST.Program = 'Program';
+AST.Literal = 'Literal';
+```
+
+这样我们就得到了一个代表数字字面量的 AST 了，下面我们把注意力集中在 AST 编译器以及把这个 AST 转换为 JavaScript 函数上。
+
+AST 编译器的任务是遍历 AST 构建器生成的树，并根据树节点生成对应的 JavaScript 源代码。然后它会根据源代码来生成一个 JavaScript 函数。对于数字字面量来说，它生成的函数将会非常简单：
+
+```js
+function() {
+  return 42;
+}
+```
+
+在 AST 编译器中主要用到的 `compile` 函数，我们会引入一个 `state` 属性来保存我们在遍历中收集到的信息。目前，我们只收集一样东西，也就是最终生成函数的函数体内容：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  this.state = {body: []};
+};
+```
+
+一旦我们初始化好了 state，我们就可以开始对树进行遍历了，通过一个叫 `recurse` 的函数：
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // this.state = {body: []};
+  this.recurse(ast);
+};
+ASTCompiler.prototype.recurse = function(ast) {
+  
 };
 ```
