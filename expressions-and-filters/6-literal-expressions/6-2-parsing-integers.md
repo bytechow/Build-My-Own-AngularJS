@@ -260,6 +260,57 @@ ASTCompiler.prototype.compile = function(text) {
   this.recurse(ast);
 };
 ASTCompiler.prototype.recurse = function(ast) {
-  
+
 };
+```
+
+我们的目标是一旦 `recurse` 的调用结束了，`state.body` 会包含 JavaScript 语句，我们可以根据这些语句创建函数。而这个函数会成为我们的返回值：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  var ast = this.astBuilder.ast(text);
+  this.state = {body: []};
+  this.recurse(ast);
+  /* jshint -W054 */
+  return new Function(this.state.body.join(''));
+  /* jshint +W054 */
+};
+```
+
+我们使用 [Function 构造函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)来创建这个函数。这个构造函数接收 JavaScript 源代码，然后把它们动态编译为一个函数。这基本上就是 `eval` 的一种方式。JSHint 并不接受 `eval`，所以我们需要显式地告诉它，我们已经知道这种做法有危险，不需要再报警告了。（`W054` 是 JSHint 中的一个数字类型的错误代码，它代表“Function 构造函数也是 eval 的一种方式”）。
+
+最后我们需要再 `recurse` 函数中进行处理。我们希望在这里可以生成指定的 JavaScript 代码，并把这些代码放到 `this.state.body` 中去。
+
+顾名思义，`recurse` 方法会对树节点进行递归遍历。由于每个节点都有一个 `type`，不同类型的节点需要不同的处理，我们会使用一个 `switch` 语法来切换对不同节点类型的逻辑处理分支：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.recurse = function(ast) {
+  switch (ast.type) {
+    case AST.Program:
+    case AST.Literal:
+  }
+};
+```
+
+字面量是一个“叶子节点”，也就是只包含了值而没有子节点的节点。所以我们可以直接返回这个节点的值：
+
+_src/parse.js_
+
+```js
+case AST.Literal:
+  return ast.value
+```
+
+而对于 Program 节点来说，我们要进行一些额外处理。我们需要为表达式生成一个 return 语句。我们需要返回的是 Program 的 `body` 属性值，我们可以通过 `recurse` 来得到这这个属性值：
+
+_src/parse.js_
+
+```js
+case AST.Program:
+  this.state.body.push('return ', this.recurse(ast.body), ';');
+  break;
 ```
