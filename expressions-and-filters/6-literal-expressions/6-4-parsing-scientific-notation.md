@@ -44,3 +44,47 @@ it('can parse scientific notation with the + sign', function() {
   expect(fn()).toBe(42);
 });
 ```
+
+最后，系数与指数之间的分隔符也可能是大写的 `E`：
+
+_test/parse_spec.js_
+
+```js
+it('can parse upper case scientific notation', function() {
+  var fn = parse('.42E2');
+  expect(fn()).toBe(42);
+});
+```
+
+我们已经把所有科学记数法的规则都定义好了，又该如何实现它呢？最直接的方法就是先把字符变成小写，然后检查字符是否 `e`、`-` 或 `+`，是的话就把这个字符传递下去，最后依靠 JavaScript 的数字类型机制完成剩余的工作。这确实能让我们的单元测试通过：
+
+```js
+Lexer.prototype.readNumber = function() {
+  // var number = '';
+  // while (this.index < this.text.length) {
+  var ch = this.text.charAt(this.index).toLowerCase();
+  if (ch === '.' || ch === 'e' || ch === '-' ||
+      ch === '+' || this.isNumber(ch)) {
+  //     number += ch;
+  //   } else {
+  //     break;
+  //   }
+  //   this.index++;
+  // }
+  // this.tokens.push({
+  //   text: number,
+  //   value: Number(number)
+  // });
+};
+```
+
+你可能也猜到，事情并没有那么简单。虽然目前的代码能够正确处理科学记数法，但它对非法符号太“仁慈”了，会让类似下边这样残缺的数字字面量也能通过校验：
+
+_test/parse_spec.js_
+
+```js
+it('will not parse invalid scientific notation', function() {
+  expect(function() { parse('42e-'); }).toThrow();
+  expect(function() { parse('42e-a'); }).toThrow();
+});
+```
