@@ -57,6 +57,32 @@ Lexer.prototype.readString = function() {
     var ch = this.text.charAt(this.index);
 
     this.index++;
-  } 
+} 
+};
+```
+
+那我们在循环语句中要做些什么呢？有两件事：如果当前字符不是引号，我们就把它拼接到结果字符串中去。如果是引号，说明该字符串已经结束了，我们要把当前拼接好的字符串加入到 token 数组中去，然后结束循环。在循环结束以后如果依然处于读取到字符串的阶段，我们就会抛出一个异常，因为表达式结束这个字符串还未结束：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readString = function() {
+  // this.index++;
+  // var string = '';
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+    if (ch === '\'' || ch === '"') {
+      this.index++;
+      this.tokens.push({
+        text: string,
+        value: string
+      });
+      return;
+    } else {
+      string += ch;
+    }
+  //   this.index++;
+  // }
+  // throw 'Unmatched quote';
 };
 ```
