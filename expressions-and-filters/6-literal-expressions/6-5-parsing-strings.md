@@ -88,10 +88,45 @@ Lexer.prototype.readString = function() {
 };
 ```
 
-这对于解析字符串是一个良好的开始，但是我们还没有完成。单元测试还未能通过，这是因为目前这个 token 在 AST 处理结束时会作为一个字面量输出，它的值会原封不动地编译到最终的 JavaScript 函数中去。根据表达式 `‘abc’` 生成的函数就像下面这样：
+这对于解析字符串是一个良好的开始，但是我们还没有完成。单元测试还未能通过，这是因为目前这个 token 在 AST 处理结束时会作为一个字面量输出，它的值会原封不动地编译到最终的 JavaScript 函数中去。表达式 `'abc'` 生成的函数就像下面这样：
 
 ```js
 function() {
   return abc;
 }
+```
+
+我们可以发现，原本字符串两侧应该出现引号都不见了，因此函数转而会去尝试查找名称为 `abc` 的变量！
+
+我们的 AST 编译器需要能够_转义_字符串，以便让它们能在 JavaScript 函数中加上应有的引号。我们会使用一个名为 `escape` 的方法来干这个事情：
+
+_src/parse.js_
+
+```js
+case AST.Literal:
+  return this.escape(ast.value);
+```
+
+这个方法可以在一个变量的两侧加上引号，但这个变量必须是字符串：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.escape = function(value) {
+  if (_.isString(value)) {
+    return '\'' + value + '\'';
+  } else {
+    return value;
+  }
+};
+```
+
+既然我们使用了 `_.isString`，我们就得在 parse.js 中引入 LoDash 了：
+
+_src/parse.js_
+
+```js
+'use strict';
+
+var _ = require('lodash');
 ```
