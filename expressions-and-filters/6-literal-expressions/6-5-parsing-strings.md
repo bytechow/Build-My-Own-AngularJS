@@ -130,3 +130,64 @@ _src/parse.js_
 
 var _ = require('lodash');
 ```
+
+我们对于输入字符串的开始和结束的标志也太“宽容”了，因为我们现在允许使用与开始标识不同的引号来标记字符串的结束：
+
+_test/parse_spec.js_
+
+```js
+it('will not parse a string with mismatching quotes', function() {
+  expect(function() { parse('"abc\''); }).toThrow();
+});
+```
+
+我们需要保证标记字符串开始和结束的引号要一致才行。首先在 `lex` 函数中在调用 `readString` 方法时，我们需要把标记字符串开始的引号传递过去：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.lex = function(text) {
+  // this.text = text;
+  // this.index = 0;
+  // this.ch = undefined;
+  // this.tokens = [];
+  // while (this.index < this.text.length) {
+  //   this.ch = this.text.charAt(this.index);
+  //   if (this.isNumber(this.ch) ||
+  //     (this.ch === '.' && this.isNumber(this.peek()))) {
+  //     this.readNumber();
+  //   } else if (this.ch === '\'' || this.ch === '"') {
+      this.readString(this.ch);
+  //   } else {
+  //     throw 'Unexpected next character: ' + this.ch;
+  //   }
+  // }
+  // return this.tokens;
+};
+```
+
+现在在 `readString` 中，我们就可以直接用这个传入的引号字符来判断字符串是否结束了，而不再使用字面量 `'` 或 `"`：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readString = function(quote) {
+  // this.index++;
+  // var string = '';
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+    if (ch === quote) {
+      // this.index++;
+      // this.tokens.push({
+      //   text: string,
+      //   value: string
+      // });
+      // return;
+  //   } else {
+  //     string += ch;
+  //   }
+  //   this.index++;
+  // }
+  // throw 'Unmatched quote';
+};
+```
