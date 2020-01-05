@@ -243,3 +243,94 @@ Lexer.prototype.readString = function(quote) {
   // throw 'Unmatched quote';
 };
 ```
+
+进入转义模式以后，如果我们发现有单字符转义符，就要看一下它属于哪种单字符转义符，然后替换成对应的转义字符。我们会把要支持的转义字符都放到 `parse.js` 顶层作用域的一个对象常量中进行保存。它会包含我们上面单元测试中出现的引号字符：
+
+_src/parse.js_
+
+```js
+var ESCAPES = {'n':'\n', 'f':'\f', 'r':'\r', 't':'\t',
+               'v':'\v', '\'':'\'', '"':'"'};
+```
+
+然后在 `readString` 里，我们会从这个对象中查找是否有这个转义字符。如果有，我们就会替换成对应的转义字符，再把替换后的字符加入到结果字符穿中。如果没有找到，我们就把这个字符原封不动地加入到结果字符串中，直接忽略掉用于转义的反斜杠就好：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readString = function(quote) {
+  // this.index++;
+  // var string = '';
+  // var escape = false;
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+  //   if (escape) {
+      var replacement = ESCAPES[ch];
+      if (replacement) {
+        string += replacement;
+      } else {
+        string += ch;
+      }
+      escape = false;
+  //   } else if (ch === quote) {
+  //     this.index++;
+  //     this.tokens.push({
+  //       text: string,
+  //       value: string
+  //     });
+  //     return;
+  //   } else if (ch === '\\') {
+  //     escape = true;
+  //   } else {
+  //     string += ch;
+  //   }
+  //   this.index++;
+  // }
+  // throw 'Unmatched quote';
+};
+```
+
+在进入 AST 编译阶段之前，我们还需要解决几个问题。当 AST 编译器遇到像 `'` 和 `"` 这样的字面量时，它只会直接把它放到结果中，这样会产出一些非访的 JavaScript 代码。编译器的 `escape` 方法需要能够处理这些字符。我们可以在转义过程中加入一个正则进行转义：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.escape = function(value) {
+  // if (_.isString(value)) {
+    return '\'' +
+      value.replace(this.stringEscapeRegex, this.stringEscapeFn) +
+      '\'';
+  // } else {
+  //   return value;
+  // }
+};
+```
+
+需要进行转义，是除了空格、字母和数字以外的字符：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.stringEscapeRegex = /[^ a-zA-Z0-9]/g;
+```
+
+而在用于替换的函数中，我们会获取要转义字符的 Unicode 数字代码（利用 [charCodeAt](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/String/charCodeAt)），然后把它转成相对应的十六进制值（以 16 为基数）的 Unicode 转义序列，然后我们就可以安全地把这哥序列加入到要生成的 JavaScript 代码中：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.stringEscapeFn = function(c) {
+  return '\\u' + ('0000' + c.charCodeAt(0).toString(16)).slice(-4);
+};
+```
+
+最后，我们要考虑一下输入表达式本身含有转义序列的情况：
+
+_test/parse_test.js_
+
+```js
+it('will parse a string with unicode escapes', function() {
+  var fn = parse('"\\u00A0"');
+  expect(fn()).toEqual('\u00A0');
+});
+````
