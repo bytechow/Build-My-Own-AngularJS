@@ -191,3 +191,55 @@ Lexer.prototype.readString = function(quote) {
   // throw 'Unmatched quote';
 };
 ```
+
+就像 JavaScript 字符串，Angular 表达式字符串中也会有转义字符。我们需要支持的转义符有两种类型：
+
+1. 单字符转义符：换行符 `\n`，换页符 `\f`，回车符 `\r`，水平制表符 `\t`，垂直制表符 `\v`，单引号 `\'`，还有双引号 `\"`。
+2. Unicode 转义序列：这是以 `\u` 开头，后面跟着 4 个十六进制的字符代码。举个例子，`\u00A0` 表示一个不间断空格字符。
+
+我们先来看看如何处理单字符转义符。首先，我们应该能解析包含引号的字符串：
+
+_test/parse_spec.js_
+
+```js
+it('can parse a string with single quotes inside', function() {
+  var fn = parse("'a\\\'b'");
+  expect(fn()).toEqual('a\'b');
+});
+
+it('can parse a string with double quotes inside', function() {
+  var fn = parse('"a\\\"b"');
+  expect(fn()).toEqual('a\"b');
+});
+```
+
+我们要做的就是在解析过程中，一旦发现反斜杠 `\`，就进入“转义模式”，这样我们就可以对接下来的字符做特殊处理：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readString = function(quote) {
+  // this.index++;
+  // var string = '';
+  var escape = false;
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+    if (escape) {
+      
+    } else if (ch === quote) {
+      // this.index++;
+      // this.tokens.push({
+      //   text: string,
+      //   value: string
+      // });
+      // return;
+    } else if (ch === '\\') {
+      escape = true;
+  //   } else {
+  //     string += ch;
+  //   }
+  //   this.index++;
+  // }
+  // throw 'Unmatched quote';
+};
+```
