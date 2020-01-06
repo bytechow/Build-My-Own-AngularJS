@@ -1,11 +1,12 @@
 ### 解析字符串
+
 #### Parsing Strings
 
 处理完数字，接下来我们来处理一下字符串。要让语法分析器能够处理字符串，其实基本上跟处理数字一样简单，但还是要处理几种特殊情况。
 
 简单来说，表达式中的字符串就是用单引号或双引号括起来的字符序列：
 
-_test/parse_spec.js_
+_test/parse\_spec.js_
 
 ```js
 it('can parse a string in single quotes', function() {
@@ -29,7 +30,7 @@ Lexer.prototype.lex = function(text) {
   // this.index = 0;
   // this.ch = undefined;
   // this.tokens = [];
-  
+
   // while (this.index < this.text.length) {
   //   this.ch = this.text.charAt(this.index);
   //   if (this.isNumber(this.ch) ||
@@ -44,7 +45,7 @@ Lexer.prototype.lex = function(text) {
   // return this.tokens;
 };
 ```
- 
+
 从顶层结构上来说，`readString` 函数跟 `readNumber` 很类似，它会使用一个 `while` 循环来逐个读取表达式中的字符，从而构建出一个字符串，并把它放到一个本地变量中。与 `readNumber` 的一个重要区别是，在进入 `while` 循环之前，我们会将字符索引自增 1，让它能跳过开头的引号字符：
 
 _src/parse.js_
@@ -133,7 +134,7 @@ var _ = require('lodash');
 
 我们对于输入字符串的开始和结束的标志也太“宽容”了，因为我们现在允许使用与开始标识不同的引号来标记字符串的结束：
 
-_test/parse_spec.js_
+_test/parse\_spec.js_
 
 ```js
 it('will not parse a string with mismatching quotes', function() {
@@ -199,7 +200,7 @@ Lexer.prototype.readString = function(quote) {
 
 我们先来看看如何处理单字符转义符。首先，我们应该能解析包含引号的字符串：
 
-_test/parse_spec.js_
+_test/parse\_spec.js_
 
 ```js
 it('can parse a string with single quotes inside', function() {
@@ -225,7 +226,7 @@ Lexer.prototype.readString = function(quote) {
   // while (this.index < this.text.length) {
   //   var ch = this.text.charAt(this.index);
     if (escape) {
-      
+
     } else if (ch === quote) {
       // this.index++;
       // this.tokens.push({
@@ -326,11 +327,15 @@ ASTCompiler.prototype.stringEscapeFn = function(c) {
 
 最后，我们要考虑一下输入表达式本身含有转义序列的情况：
 
-_test/parse_test.js_
+_test/parse\_test.js_
 
 ```js
 it('will parse a string with unicode escapes', function() {
   var fn = parse('"\\u00A0"');
   expect(fn()).toEqual('\u00A0');
 });
-````
+`
+```
+
+
+
