@@ -337,5 +337,103 @@ it('will parse a string with unicode escapes', function() {
 `
 ```
 
+我们需要做的就是检查一下紧接着反斜杠的字符是不是 `u`，是的话，就把后面的 4 个字符都抓取出来，把它们转换为 16 进制的数字，然后查找对应数字代码的字符。根据数字代码查找字符，我们可以利用 JavaScript 内建的 `String.fromCharCode` 函数：
 
+_src/parse.js_
 
+```js
+Lexer.prototype.readString = function(quote) {
+  // this.index++;
+  // var string = '';
+  // var escape = false;
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+  //   if (escape) {
+      if (ch === 'u') {
+        var hex = this.text.substring(this.index + 1, this.index + 5);
+        this.index += 4;
+        string += String.fromCharCode(parseInt(hex, 16));
+      } else {
+        // var replacement = ESCAPES[ch];
+        // if (replacement) {
+        //   string += replacement;
+        // } else {
+        //   string += ch;
+        // }
+      }
+  //     escape = false;
+  //   } else if (ch === quote) {
+  //     this.index++;
+  //     this.tokens.push({
+  //       text: string,
+  //       value: string
+  //     });
+  //     return;
+  //   } else if (ch === '\\') {
+  //     escape = true;
+  //   } else {
+  //     string += ch;
+  //   }
+  //   this.index++;
+  // }
+  // throw 'Unmatched quote';
+};
+```
+
+最后，我们还要考虑紧跟着 `\u` 的字符编码是非法的情况。如果出现这种情况，我们应该抛出一个异常：
+
+_test/parse_spec.js_
+
+```js
+it('will not parse a string with invalid unicode escapes', function() {
+  expect(function() { parse('"\\u00T0"'); }).toThrow();
+});
+```
+
+我们会使用一个正则表达式来检验这 4 个字符是否都是由数字和字母 a-f 组成，也就是验证它们是否合法的十六进制数字。由于 unicode 转义序列都是不区分大小写的，所以我们也要同时支持传入大小写字母：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readString = function(quote) {
+  // this.index++;
+  // var string = '';
+  // var escape = false;
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+  //   if (escape) {
+  //     if (ch === 'u') {
+        var hex = this.text.substring(this.index + 1, this.index + 5);
+          if (!hex.match(/[\da-f]{4}/i)) {
+            throw 'Invalid unicode escape';
+          }
+  //         this.index += 4;
+  //       string += String.fromCharCode(parseInt(hex, 16));
+  //     } else {
+  //       var replacement = ESCAPES[ch];
+  //       if (replacement) {
+  //         string += replacement;
+  //       } else {
+  //         string += ch;
+  //       }
+  //     }
+  //     escape = false;
+  //   } else if (ch === quote) {
+  //     this.index++;
+  //     this.tokens.push({
+  //       text: string,
+  //       value: string
+  //     });
+  //     return;
+  //   } else if (ch === '\\') {
+  //     escape = true;
+  //   } else {
+  //     string += ch;
+  //   }
+  //   this.index++;
+  // }
+  // throw 'Unmatched quote';
+};
+```
+
+这样，我们就能解析字符串了！
