@@ -28,27 +28,27 @@ _src/parse.js_
 
 ```js
 Lexer.prototype.lex = function(text) {
-  this.text = text;
-  this.index = 0;
-  this.ch = undefined;
-  this.tokens = [];
+  // this.text = text;
+  // this.index = 0;
+  // this.ch = undefined;
+  // this.tokens = [];
 
-  while (this.index < this.text.length) {
-    this.ch = this.text.charAt(this.index);
-    if (this.isNumber(this.ch) ||
-      (this.ch === '.' && this.isNumber(this.peek()))) {
-      this.readNumber();
-    } else if (this.ch === '\'' || this.ch === '"') {
-      this.readString(this.ch);
-    } else if (this.isIdent(this.ch)) {
-      this.readIdent();
+  // while (this.index < this.text.length) {
+  //   this.ch = this.text.charAt(this.index);
+  //   if (this.isNumber(this.ch) ||
+  //     (this.ch === '.' && this.isNumber(this.peek()))) {
+  //     this.readNumber();
+  //   } else if (this.ch === '\'' || this.ch === '"') {
+  //     this.readString(this.ch);
+  //   } else if (this.isIdent(this.ch)) {
+  //     this.readIdent();
     } else if (this.isWhitespace(this.ch)) {
       this.index++;
-    } else {
-      throw 'Unexpected next character: ' + this.ch;
-    }
-  }
+  //   } else {
+  //     throw 'Unexpected next character: ' + this.ch;
+  //   }
+  // }
   
-  return this.tokens;
+  // return this.tokens;
 };
 ```
