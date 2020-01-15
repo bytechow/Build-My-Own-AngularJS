@@ -79,3 +79,69 @@ AST.prototype.expect = function(e) {
   }
 };
 ```
+
+注意，我们调用 `expect` 方法时也可以不传入任何参数，这时无论下一个字符是什么，它都会返回。
+
+`arrayDeclaration` 函数也是新增的。在这个函数里，我们会对与这个数组相关的 token 进行处理，并构建这个数组对应的 AST 节点。当程序进入到这个函数时，左方括号已经被“消费”了。由于我们目前只关注空数组，后面一个字符自然就是右方括号了：
+
+_src/parse.js_
+
+```js
+AST.prototype.arrayDeclaration = function() {
+  this.consume(']');
+};
+```
+
+这里用到的 `consume` 函数基本与 `expect` 函数一致，但有一个重要的区别：`consume` 会在无法找到指定字符时抛出异常。数组中的右方括号是必不可少的，所以我们需要进行严格的校验：
+
+_src/parse.js_
+
+```js
+AST.prototype.consume = function(e) {
+  var token = this.expect(e);
+  if (!token) {
+    throw 'Unexpected. Expecting: ' + e;
+  }
+  return token;
+};
+```
+
+如果没有抛出异常，我们就能得到一个合法的（空）数组，并且我们会返回一个对应的 AST 节点。数组会有属于自己的类型 `ArrayExpression`：
+
+```js
+AST.prototype.arrayDeclaration = function() {
+  this.consume(']');
+  return {type: AST.ArrayExpression};
+};
+```
+
+当然，我们需要引入这个类型：
+
+_src/parse.js_
+
+```js
+// AST.Program = 'Program';
+// AST.Literal = 'Literal';
+AST.ArrayExpression = 'ArrayExpression';
+```
+
+AST compiler 现在需要对这种新类型进行处理。目前，为了通过单元测试，我们就直接返回 `[]` ：
+
+_src/parse.js_
+
+
+```js
+ASTCompiler.prototype.recurse = function(ast) {
+  // switch (ast.type) {
+  //   case AST.Program:
+  //     this.state.body.push('return ', this.recurse(ast.body), ';');
+  //     break;
+  //   case AST.Literal:
+  //     return this.escape(ast.value);
+    case AST.ArrayExpression:
+      return '[]';
+  // }
+};
+```
+
+所以一个最基本的空数组是这样生成过的：Lexer 会把左方括号和右方括号作为 token，`AST.primary` 一旦发现出现了左方括号，就会交由 `AST.arrayDeclaration` 进行处理，`AST.arrayDeclaration` 会去查找右方括号，如果有则返回一个类型为 `ArrayExpression` 的 AST 节点。
