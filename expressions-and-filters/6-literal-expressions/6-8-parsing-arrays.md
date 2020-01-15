@@ -48,4 +48,34 @@ Lexer.prototype.lex = function(text) {
 };
 ```
 
-在 AST builder 中，我们也需要考虑怎么处理出现多个 token 的情况了。我们现在有两个 token ——`[` 和 `]`，这应该要在 AST 表示未一个数组节点。
+在 AST builder 中，我们也需要考虑怎么处理出现多个 token 的情况了。我们现在有两个 token ——`[` 和 `]`，这在 AST 应该表示一个数组节点。
+
+就像常量一样，数组是一个基本表达式（primary expressions），所以我们会在 `AST.primary` 方法中处理数组。一个基本表达式如果是以左方括号作为开头，我们就把它当作一个数组的声明：
+
+_src/parse.js_
+
+```js
+AST.prototype.primary = function() {
+  if (this.expect('[')) {
+    return this.arrayDeclaration();
+  } else if (this.constants.hasOwnProperty(this.tokens[0].text)) {
+  //   return this.constants[this.tokens[0].text];
+  // } else {
+  //   return this.constant();
+  // }
+};
+```
+
+这样要用到的 `expect` 函数我们还没有实现。它与目前需要处理多 token 的实际情况有关。`expect` 方法会检查下一个 token 是否是我们想要的，如果是，就返回这个 token。它同时会把这个 token 从 `this.tokens` 中移除掉，这样我们就能“前进”到下一个 token 了：
+
+_src/parse.js_
+
+```js
+AST.prototype.expect = function(e) { 
+  if (this.tokens.length > 0) {
+    if (this.tokens[0].text === e || !e) {
+      return this.tokens.shift(); 
+    }
+  }
+};
+```
