@@ -250,3 +250,58 @@ AST.prototype.arrayDeclaration = function() {
   // return { type: AST.ArrayExpression };
 };
 ```
+
+在这段代码生效之前，我们还需要早前在 AST 实现的 `primary` 和 `constant` 方法做一个重要的更改。它们将不再假设只会有一个 token，并且它们需要能被_消费_，这样我们才能继续处理下一个 token。
+
+在 `primary` 中，我们需要对常量值的 token 进行消费：
+
+```js
+AST.prototype.primary = function() {
+  // if (this.expect('[')) {
+  //   return this.arrayDeclaration();
+  // } else if (this.constants.hasOwnProperty(this.tokens[0].text)) {
+    return this.constants[this.consume().text];
+  // } else {
+  //   return this.constant();
+  // }
+};
+```
+
+在 `constant` 方法中也一样：
+
+_src/parse.js_
+
+```js
+AST.prototype.constant = function() {
+  return { type: AST.Literal, value: this.consume().value };
+};
+```
+
+AST builder 最后要做的就是把收集到的元素放到 `ArrayExpression` 节点中，这样我们才能在编译器中用到它：
+
+_src/parse.js_
+
+```js
+AST.prototype.arrayDeclaration = function() {
+  // var elements = [];
+  // if (!this.peek(']')) {
+  //   do {
+  //     elements.push(this.primary());
+  //   } while (this.expect(','));
+  // }
+  // this.consume(']');
+  return { type: AST.ArrayExpression, elements: elements };
+};
+```
+
+而在 compiler 中，我们需要对数组中的每一个元素进行递归处理，并保存生成的 JavaScript 表达式结果：
+
+_src/parse.js_
+
+```js
+case AST.ArrayExpression:
+  var elements = _.map(ast.elements, _.bind(function(element) {
+    return this.recurse(element);
+  }, this));
+// return '[]';
+```
