@@ -328,7 +328,7 @@ it('will parse an array with trailing commas', function() { var fn = parse('[1, 
 });
 ```
 
-要支持在数组的结尾加入逗号，我们需要对 AST builder 中的 `do...while` 循环进行修改以让它兼容这种情况。如果在循环中发现找到了右方括号，就需要提早结束循环：
+要支持在数组的结尾加入逗号，我们需要对 AST builder 中的 `do...while` 循环进行修改以让它兼容这种情况。如果在循环中发现找到了右方括号，就需要提前结束循环：
 
 _src/parse.js_
 
