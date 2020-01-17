@@ -305,3 +305,45 @@ case AST.ArrayExpression:
   }, this));
 // return '[]';
 ```
+
+我们可以把这些元素作为 JavaScript 表达式中的数组内容进行输出：
+
+_src/parse.js_
+
+```js
+case AST.ArrayExpression:
+  // var elements = _.map(ast.elements, _.bind(function(element) {
+  //   return this.recurse(element);
+  // }, this));
+  return '[' + elements.join(',') + ']';
+```
+
+Angular 表达式也支持在数组内容的最后加入逗号，也就是说，逗号后面不再有数组元素了。这也符合 JavaScript 的标准：
+
+_test/parse_spec.js_
+
+```js
+it('will parse an array with trailing commas', function() { var fn = parse('[1, 2, 3, ]');
+  expect(fn()).toEqual([1, 2, 3]);
+});
+```
+
+要支持在数组的结尾加入逗号，我们需要对 AST builder 中的 `do...while` 循环进行修改以让它兼容这种情况。如果在循环中发现找到了右方括号，就需要提早结束循环：
+
+_src/parse.js_
+
+```js
+AST.prototype.arrayDeclaration = function() {
+  // var elements = [];
+  // if (!this.peek(']')) {
+  //   do {
+      if (this.peek(']')) {
+        break;
+      }
+  //     elements.push(this.primary());
+  //   } while (this.expect(','));
+  // }
+  // this.consume(']');
+  // return { type: AST.ArrayExpression, elements: elements };
+};
+```
