@@ -151,7 +151,7 @@ it('will parse a non-empty object', function() {
 });
 ```
 
-就像构建数组的 AST 时一样，构建对象的 AST 也会用到 `do...while` 循环来对以逗号进行分隔的键（keys）和值（values）进行消费：
+就像构建数组的 AST 时一样，构建对象的 AST 也会用到 `do...while` 循环来对以逗号进行分隔的键（keys）和值（values）进行消耗：
 
 _src/parse.js_
 
