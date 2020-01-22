@@ -108,3 +108,59 @@ AST.prototype.primary = function() {
   // }
 };
 ```
+
+`object` 方法的结构跟 `arrayDeclaration` 基本一致。它会对对象字面量进行消费，包括右方括号，然后返回一个类型为 `ObjectExpression` 的 AST 节点：
+
+_src/parse.js_
+
+```js
+AST.prototype.object = function() { 
+  this.consume('}');
+  return {type: AST.ObjectExpression};
+};
+```
+
+同样地，这个类型也要先定义好：
+
+_src/parse.js_
+
+```js
+AST.Program = 'Program';
+AST.Literal = 'Literal';
+AST.ArrayExpression = 'ArrayExpression';
+AST.ObjectExpression = 'ObjectExpression';
+```
+
+而 AST 编译器的职责就是，如果在 `recurse` 中发现 `ObjectExpression` 节点，就返回一个对象字面量：
+
+_src/parse.js_
+
+```js
+case AST.ObjectExpression:
+  return '{}';
+```
+
+当对象非空时，它的键就会是一个标志符（identifiers）或字符串，它的值也可能会是另一个表达式。下面是一个 key 为字符串的测试用例：
+
+_test/parse_spec.js_
+
+```js
+it('will parse a non-empty object', function() {
+  var fn = parse('{"a key": 1, \'another-key\': 2}');
+  expect(fn()).toEqual({ 'a key': 1, 'another-key': 2 });
+});
+```
+
+就像构建数组的 AST 时一样，构建对象的 AST 也会用到 `do...while` 循环来对以逗号进行分隔的键（keys）和值（values）进行消费：
+
+_src/parse.js_
+
+```js
+AST.prototype.object = function() {
+  if (!this.peek('}')) {
+    do {} while (this.expect(','));
+  }
+  // this.consume('}');
+  // return { type: AST.ObjectExpression };
+};
+```
