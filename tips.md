@@ -6,3 +6,6 @@ increment the counter 递增计数器
 
 ## detect
 侦测
+
+## comsume
+消耗
