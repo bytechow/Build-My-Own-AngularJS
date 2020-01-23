@@ -164,3 +164,89 @@ AST.prototype.object = function() {
   // return { type: AST.ObjectExpression };
 };
 ```
+
+在循环体中，我们首先要把要消耗的常量字符读取进来。在此基础上，我们构建了另一个名为 `Property` 的 AST 节点：
+
+_src/parse.js_
+
+```js
+AST.prototype.object = function() {
+  // if (!this.peek('}')) {
+  //   do {
+      var property = { type: AST.Property };
+      property.key = this.constant();
+  //   } while (this.expect(','));
+  // }
+  // this.consume('}');
+  // return { type: AST.ObjectExpression };
+};
+```
+
+当然，我们也要对这种类型进行声明：
+
+_src/parse.js_
+
+```js
+// AST.Program = 'Program';
+// AST.Literal = 'Literal';
+// AST.ArrayExpression = 'ArrayExpression'; AST.ObjectExpression = 'ObjectExpression';
+AST.Property = 'Property';
+```
+
+然后，我们会对分隔键值的冒号字符进行消耗：
+
+_src/parse.js_
+
+```js
+AST.prototype.object = function() {
+  // if (!this.peek('}')) {
+  //   do {
+  //     var property = { type: AST.Property };
+  //     property.key = this.constant();
+      this.consume(':');
+  //   } while (this.expect(','));
+  // }
+  // this.consume('}');
+  // return { type: AST.ObjectExpression };
+};
+```
+
+最后我们需要对值进行消耗，我们需要把这个值看作另一个 primary AST 节点，然后添加到 property 节点中去：
+
+_src/parse.js_
+
+```js
+AST.prototype.object = function() {
+  // if (!this.peek('}')) {
+  //   do {
+  //     var property = { type: AST.Property };
+  //     property.key = this.constant();
+  //     this.consume(':');
+      property.value = this.primary();
+  //   } while (this.expect(','));
+  // }
+  // this.consume('}');
+  // return { type: AST.ObjectExpression };
+};
+```
+
+然后，我们会把循环中生成的属性收集起来，然后把它们都放到 `ObjectExpression` 节点上：
+
+_src/parse.js_
+
+```js
+AST.prototype.object = function() {
+  var properties = [];
+  // if (!this.peek('}')) {
+  //   do {
+  //     var property = { type: AST.Property };
+  //     property.key = this.constant();
+  //     this.consume(':');
+  //     property.value = this.primary();
+      properties.push(property);
+  //   } while (this.expect(','));
+  // }
+  // this.consume('}');
+  return { type: AST.ObjectExpression, properties: properties };
+};
+```
