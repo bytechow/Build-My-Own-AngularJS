@@ -250,3 +250,77 @@ AST.prototype.object = function() {
   return { type: AST.ObjectExpression, properties: properties };
 };
 ```
+
+编译时，我们会为每个属性生成对应的 JavaScript 代码，然后把它放到要生成的对象字面量中去：
+
+_src/parse.js_
+
+```js
+// case AST.ObjectExpression:
+  var properties = _.map(ast.properties, _.bind(function(property) {
+    
+  }, this));
+  return '{' + properties.join(',') + '}';
+```
+
+键是一个 `Constant` 节点，它的 `value` 是一个字符串，我们需要对这个字符串进行转义：
+
+_src/parse.js_
+
+```js
+// case AST.ObjectExpression:
+//   var properties = _.map(ast.properties, _.bind(function(property) {
+    var key = this.escape(property.key.value);
+    
+//   }, this));
+// return '{' + properties.join(',') + '}';
+```
+
+而属性值可能是任何类型的表达式，我们可以直接使用 `recurse` 进行处理。我们会在生成的键和值之间使用冒号进行分隔：
+
+_src/parse.js_
+
+```js
+case AST.ObjectExpression:
+  // var properties = _.map(ast.properties, _.bind(function(property) {
+  //   var key = this.escape(property.key.value);
+    var value = this.recurse(property.value);
+    return key + ':' + value;
+//   }, this));
+// return '{' + properties.join(',') + '}';
+```
+
+对象的键也并不总是字符串。它们也可能是（本身）没有引号的标志符：
+
+_test/parse_spec.js_
+
+```js
+it('will parse an object with identifier keys', function() {
+  var fn = parse('{a: 1, b: [2, 3], c: {d: 4}}');
+  expect(fn()).toEqual({ a: 1, b: [2, 3], c: { d: 4 } });
+});
+```
+
+这个单元测试没有通过，是因为 AST 消耗的对象键都是由 `readIdent` 生成的标志符 token，但实际上我们希望它们是常量。下面，我们先对 `readIndent` 做一点修改，以便对标识符 token 进行标记：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readIdent = function() {
+  // var text = '';
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+  //   if (this.isIdent(ch) || this.isNumber(ch)) {
+  //     text += ch;
+  //   } else {
+  //     break;
+  //   }
+  //   this.index++;
+  // }
+  // var token = {
+  //   text: text,
+    identifier: true
+  // };
+  // this.tokens.push(token);
+};
+```

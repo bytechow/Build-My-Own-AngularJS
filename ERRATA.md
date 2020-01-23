@@ -15,3 +15,5 @@ Angular scopes 实际上列出了五个内容，但却说是“four main areas�
 
 这里的 $postDigest 应该改为 $$postDigest
 
+## p225
+页中的 `test/parse.js` 需要改为 `test/parse_spec.js`
