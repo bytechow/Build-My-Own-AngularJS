@@ -324,3 +324,48 @@ Lexer.prototype.readIdent = function() {
   // this.tokens.push(token);
 };
 ```
+
+AST 构建器需要检查当前 token 是否带有这个标记，如果有则组成一个_标识符_节点，否则构建一个常量节点就好了：
+
+标识符节点是一种新节点，它的类型是 `Identifier`。这种节点的 `name` 属性值就是标识符 token 的文本值：
+
+_src/parse.js_
+
+```js
+AST.prototype.identifier = function() {
+  return {type: AST.Identifier, name: this.consume().text};
+};
+```
+
+我们需要引入一个叫 `Identifier` 的类型：
+
+_src/parse.js_
+
+```js
+// AST.Program = 'Program';
+// AST.Literal = 'Literal';
+// AST.ArrayExpression = 'ArrayExpression';
+// AST.ObjectExpression = 'ObjectExpression';
+// AST.Property = 'Property';
+AST.Identifier = 'Identifier';
+```
+
+后面我们还会在 AST 里的其他地方用到标识符节点，但现在它们仅存在于对象的键中。
+
+现在我们需要在 AST 编译器中检查对象的键是否是一个 `Identifier` 节点。这会影响到我们要用节点的哪个属性来访问实际要生成的键：
+
+_src/parse.js_
+
+```js
+case AST.ObjectExpression:
+  // var properties = _.map(ast.properties, _.bind(function(property) {
+    var key = property.key.type === AST.Identifier ?
+      property.key.name :
+      this.escape(property.key.value);
+//     var value = this.recurse(property.value);
+//     return key + ':' + value;
+//   }, this));
+// return '{' + properties.join(',') + '}';
+```
+
+现在，我们已经实现了对 Angular 表达式语言中所有类型的字面量的解析！
