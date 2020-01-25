@@ -110,6 +110,7 @@
   * [6-9 解析对象](expressions-and-filters/6-literal-expressions/6-9-parsing-objects.md)
   * [6-10 本章总结](expressions-and-filters/6-literal-expressions/6-10-summary.md)
 * [第7章 属性查找和函数调用表达式](expressions-and-filters/7-lookup-and-function-call-expressions/7-lookup-and-function-call-expressions.md)
+  * [7-1 简单的属性查找](expressions-and-filters/6-literal-expressions/7-1-simple-attribute-lookup.md)
 * [第8章 运算符表达式](expressions-and-filters/8-operator-expressions/8-operator-expressions.md)
 * [第9章 过滤器](expressions-and-filters/9-filters/9-filters.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
