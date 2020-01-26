@@ -111,7 +111,7 @@ _src/parse.js_
 ```js
 case AST.Identifier:
   this.if_('s', '');
-  return this.nonComputedMember('s', ast.name);
+  // return this.nonComputedMember('s', ast.name);
 ```
 
 下一步，我们需要在 `if` 代码块的前面加入一个变量，并在 if 代码块中对作用域属性进行赋值，最后在这个 `recurse` 调用时返回这个变量的值：
@@ -134,3 +134,96 @@ ASTCompiler.prototype.assign = function(id, value) {
   return id + '=' + value + ';';
 };
 ```
+
+我们会在 `if` 语句中使用这个赋值语句：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // this.state.body.push('var v0;');
+  this.if_('s', this.assign('v0', this.nonComputedMember('s', ast.name)));
+  // return 'v0';
+```
+
+当然，还有很多表达式是要用到多个变量，生成变量名称时要保证不产生冲突是比较困难。为此，我们要引入一个运行中的计数器，它是构成唯一 ID 的基础。我们会把它初始化为 0：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  this.state = { body: [], nextId: 0 };
+  // this.recurse(ast);
+  // /* jshint -W054 */
+  // return new Function('s', this.state.body.join('')); /* jshint +W054 */
+};
+```
+
+然后我们也会创建一个叫 `nextId` 的方法，它会生成一个变量名称，同时让计数器自增：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.nextId = function() {
+  var id = 'v' + (this.state.nextId++);
+  return id;
+};
+```
+
+然后我们会在检索标识符使用这个函数：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  var intoId = this.nextId();
+  this.state.body.push('var ', intoId, ';');
+  this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
+  return intoId;
+```
+
+最后，`var` 声明不应当真的成为标识符查找过程的一部分。在 JavaScript 中，变量声明会[自动提升到函数的最前面](https://developer.mozilla.org/en-US/docs/Glossary/Hoisting)，那如果我们一开始就这样做的话不就更好了吗。所以，我们会在编译状态中引入 `vars` 数组：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  this.state = { body: [], nextId: 0, vars: [] };
+  // this.recurse(ast);
+  //  jshint -W054 
+  // return new Function('s', this.state.body.join('')); /* jshint +W054 */
+};
+```
+
+每次调用 `nextId` 的时候，就会生成一个变量名称：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // this.state = { body: [], nextId: 0, vars: [] };
+  // this.recurse(ast);
+  /* jshint -W054 */
+  return new Function('s', (this.state.vars.length ?
+    'var ' + this.state.vars.join(',') + ';' :
+    ''
+  ) + this.state.body.join(''));
+  /* jshint +W054 */
+};
+```
+
+现在，我们不再需要在处理标识符的分支加入 `var` 语句了：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  var intoId = this.nextId();
+  this.if_('s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
+  return intoId;
+```
+
+现在我们就有了一个可以在表达式函数中引入任意数量变量的机制。这种机制在之后会变得非常有用。
