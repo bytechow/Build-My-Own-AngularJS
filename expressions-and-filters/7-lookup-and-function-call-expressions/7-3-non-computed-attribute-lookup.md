@@ -1,9 +1,10 @@
 ### 非计算的属性查找
+
 #### Non-Computed Attribute Lookup
 
 除了引用作用域属性，我们还可以用点运算符查找嵌套数据结构中的、更深层的内容：
 
-_test/parse_spec.js_
+_test/parse\_spec.js_
 
 ```js
 it('looks up a 2-part identifier path from the scope', function() {
@@ -18,7 +19,7 @@ it('looks up a 2-part identifier path from the scope', function() {
 
 一般来说，属性查找表达式不一定都是由标识符组成。它也可能是其他类型的表达式，比如对象字面量：
 
-_test/parse_spec.js_
+_test/parse\_spec.js_
 
 ```js
 it('looks up a member from an object', function() {
@@ -58,7 +59,7 @@ AST.prototype.primary = function() {
     primary = this.constant();
   // }
   if (this.expect('.')) {
-    
+
   }
   return primary;
 };
@@ -107,3 +108,6 @@ _src/parse.js_
 // AST.ThisExpression = 'ThisExpression';
 AST.MemberExpression = 'MemberExpression';
 ```
+
+
+
