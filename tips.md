@@ -9,3 +9,6 @@ increment the counter 递增计数器
 
 ## comsume
 消耗
+
+## alternative
+可选的
