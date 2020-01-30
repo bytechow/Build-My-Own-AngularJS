@@ -1,4 +1,4 @@
-### 非计算的属性查找
+### 非计算属性查找
 
 #### Non-Computed Attribute Lookup
 
