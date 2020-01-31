@@ -178,3 +178,66 @@ while ((next = this.expect('.', '['))) {
   }
 }
 ```
+
+注意，方括号出现在不同位置就会有不同的解析过程。如果方括号是 primary 表达式的第一个字符，它就代表要定义一个数组。如果前面还有东西，那就是属性访问了。
+
+下面来说说 AST 编译器，针对两种不同的 `AST.MemberExpression`，我们需要生成不同的代码：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object);
+  if (ast.computed) {
+    
+  } else {
+    // this.if_(left,
+    //   this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+  }
+  // return intoId;
+```
+
+因为计算属性查找本身是一个任意的表达式，因此我们需要先对它进行递归处理：
+
+```js
+case AST.MemberExpression:
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object);
+  // if (ast.computed) {
+    var right = this.recurse(ast.property);
+  // } else {
+  //   this.if_(left,
+  //     this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+  // }
+  // return intoId;
+```
+
+这样我们就能知道要查找的计算属性的结果了。然后，我们可以进行实际的查找过程，并将查找结果作为成员表达式的结果：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object);
+  // if (ast.computed) {
+  //   var right = this.recurse(ast.property);
+    this.if_(left,
+      this.assign(intoId, this.computedMember(left, right)));
+  // } else {
+  //   this.if_(left,
+  //     this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+  // }
+  // return intoId;
+```
+
+要完成计算属性查找，最后一块拼图就是新方法 `computedMember`：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.computedMember = function(left, right) {
+  return '(' + left + ')[' + right + ']';
+};
+```
