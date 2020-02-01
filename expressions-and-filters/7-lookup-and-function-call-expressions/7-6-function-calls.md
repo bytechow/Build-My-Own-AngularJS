@@ -73,3 +73,91 @@ _src/parse.js_
 // AST.MemberExpression = 'MemberExpression';
 AST.CallExpression = 'CallExpression';
 ```
+
+现在，我们准备要把函数调用表达式编译成 JavaScript 代码。首先，我们需要对 `callee` 进行递归处理，获得要调用的函数。然后生成调用函数的代码，只有在函数存在时才会调用函数：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  var callee = this.recurse(ast.callee);
+  return callee + '&&' + callee + '()';
+```
+
+当然，大部分函数调用并不会像上面我们看到的那么简单。调用函数的同时，我们经常会传入参数，但目前我们”幼稚“的函数实现对此一无所知。
+
+表达式应该支持处理简单的参数，比如整数：
+
+_test/parse_spec.js_
+
+```js
+it('parses a function call with a single number argument', function() {
+  var fn = parse('aFunction(42)');
+  expect(fn({aFunction: function(n) { return n; }})).toBe(42);
+});
+```
+
+我们也应该能够处理来源于 scope 的参数：
+
+_test/parse_spec.js_
+
+```js
+it('parses a function call with a single identifier argument', function() {
+  var fn = parse('aFunction(n)');
+  expect(fn({n: 42, aFunction: function(arg) { return arg; }})).toBe(42);
+});
+```
+
+有些参数本身就是函数调用：
+
+_test/parse_spec.js_
+
+```js
+it('parses a function call with a single function call argument', function() {
+  var fn = parse('aFunction(argFn())');
+  expect(fn({
+    argFn: _.constant(42),
+    aFunction: function(arg) { return arg; }
+  })).toBe(42);
+});
+```
+
+当然，如果是用逗号分隔的多个参数，参数也可能是以上各种情况的组合：
+
+_test/parse_spec.js_
+
+```js
+it('parses a function call with multiple arguments', function() {
+  var fn = parse('aFunction(37, n, argFn())');
+  expect(fn({
+    n: 3,
+    argFn: _.constant(2),
+    aFunction: function(a1, a2, a3) { return a1 + a2 + a3; }
+  })).toBe(42);
+});
+```
+
+由于加上了上述单元测试，我们也需要在 `parse_spec.js` 中加入 LoDash 了：
+
+_test/parse_spec.js_
+
+```js
+// 'use strict';
+
+var _ = require('lodash');
+// var parse = require('../src/parse');
+```
+
+在 AST 构建器中，我们需要对在括号中的参数进行解析。我们会使用一个叫 `parseArguments` 的新方法来完成这项任务：
+
+_src/parse.js_
+
+```js
+} else if (next.text === '(') { 
+  primary = {
+    // type: AST.CallExpression,
+    // callee: primary,
+    arguments: this.parseArguments()
+  }; 
+  // this.consume(')');
+```
