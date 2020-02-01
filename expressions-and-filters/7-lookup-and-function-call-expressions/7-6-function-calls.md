@@ -161,3 +161,45 @@ _src/parse.js_
   }; 
   // this.consume(')');
 ```
+
+这个方法会一直收集 primary 表达式，直到出现一个右圆括号，这跟我们处理数组字面量时的方法完全一样，但我们不支持在参数尾部加入逗号：
+
+_src/parse.js_
+
+```js
+AST.prototype.parseArguments = function() {
+  var args = [];
+  if (!this.peek(')')) {
+    do {
+      args.push(this.primary());
+    } while (this.expect(','));
+  }
+  return args;
+};
+```
+
+当我们把这些参数表达式编译为 JavaScript 代码时，我们可以对每一个参数进行递归处理，并把处理结果放到一个数组中保存起来：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  // var callee = this.recurse(ast.callee);
+  var args = _.map(ast.arguments, _.bind(function(arg) {
+    return this.recurse(arg);
+  }, this));
+  // return callee + '&&' + callee + '()';
+```
+
+然后，我们可以把这些参数表达式进行连接，然后加入到要生成的函数调用语句中去：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  // var callee = this.recurse(ast.callee);
+  // var args = _.map(ast.arguments, _.bind(function(arg) {
+  //   return this.recurse(arg);
+  // }, this));
+  return callee + '&&' + callee + '(' + args.join(',') + ')';
+```
