@@ -145,3 +145,55 @@ case AST.MemberExpression:
   // }
   // return intoId;
 ```
+
+现在我们就能正确地生成调用方法的代码，然后测试套件就能通过了。
+
+与方法调用密切相关的一个特性与非方法函数的 `this` 有关。当你在 Angular 表达式中调用一个单独的函数时，它的 `this` 实际上会被绑定到 Scope 对象上：
+
+```js
+it('binds bare functions to the scope', function() {
+  var scope = {
+    aFunction: function() {
+      return this;
+    }
+  };
+  var fn = parse('aFunction()');
+  expect(fn(scope)).toBe(scope);
+});
+```
+
+这里有一个例外情况，当函数是放到表达式的本地变量而非 Scope 时，`this` 会指向本地变量：
+
+_test/parse_spec.js_
+
+```js
+it('binds bare functions on locals to the locals', function() {
+  var scope = {};
+  var locals = {
+    aFunction: function() {
+      return this;
+    }
+  };
+  var fn = parse('aFunction()');
+  expect(fn(scope, locals)).toBe(locals);
+});
+```
+
+我们可以通过在 `Identifier` 表达式中对上下文也进行赋值来实现。这里的上下文不是 `l` 就是 `s`，名称是标识符的名称，而 `computed` 属性总是 `false`：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // intoId = this.nextId();
+  // this.if_(this.getHasOwnProperty('l', ast.name),
+  //   this.assign(intoId, this.nonComputedMember('l', ast.name)));
+  // this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + ' && s',
+  //   this.assign(intoId, this.nonComputedMember('s', ast.name)));
+  if (context) {
+    context.context = this.getHasOwnProperty('l', ast.name) + '?l:s';
+    context.name = ast.name;
+    context.computed = false;
+  }
+  // return intoId;
+```
