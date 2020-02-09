@@ -312,7 +312,7 @@ case AST.MemberExpression:
   // ...
 ```
 
-这个传递路径的终点是一个 `Identifier` 表达式，它应在 scope 上找到不到对象时生成一个空对象，并使用这个空对象来初始化缺失的对象。我们只会在 scope 和 locals 上都无法找到对象时才那么做：
+这个传递路径的终点是一个 `Identifier` 表达式，它应在 scope 上找到不到对象时生成一个空对象，并使用这个空对象来初始化缺失的对象。我们只会在 scope（作用域）和 locals（本地变量）上都无法找到对象时才那么做：
 
 _src/parse.js_
 
