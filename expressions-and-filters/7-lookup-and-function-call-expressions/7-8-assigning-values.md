@@ -167,3 +167,170 @@ AST.prototype.object = function() {
   // return { type: AST.ObjectExpression, properties: properties };
 };
 ```
+
+对函数参数来说也一样：
+
+_src/parse.js_
+
+```js
+AST.prototype.parseArguments = function() {
+  // var args = [];
+  // if (!this.peek(')')) {
+  //   do {
+      args.push(this.assignment());
+  //   } while (this.expect(','));
+  // }
+  // return args;
+};
+```
+
+在 AST 编译器中，我们会先对赋值语句的左侧部分进行处理———也就是要被赋值的标识符或是属性成员。当递归时，我们会使用上一节中加入的 context 属性来存储上下文信息：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  var leftContext = {};
+  this.recurse(ast.left, leftContext);
+```
+
+根据赋值语句的左边是否计算属性，生成的左侧表达式也会不一样：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  // var leftContext = {};
+  // this.recurse(ast.left, leftContext);
+  var leftExpr;
+  if (leftContext.computed) {
+    leftExpr = this.computedMember(leftContext.context, leftContext.name);
+  } else {
+    leftExpr = this.nonComputedMember(leftContext.context, leftContext.name);
+  }
+```
+
+赋值表达式本身，就是左右两边的表达式的结合，中间使用 `=` 分割：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  // var leftContext = {};
+  // this.recurse(ast.left, leftContext);
+  // var leftExpr;
+  // if (leftContext.computed) {
+  //   leftExpr = this.computedMember(leftContext.context, leftContext.name);
+  // } else {
+  //   leftExpr = this.nonComputedMember(leftContext.context, leftContext.name);
+  // }
+  return this.assign(leftExpr, this.recurse(ast.right));
+```
+
+Angular 表达式中嵌套赋值的有趣之处在于，如果路径中的某些对象不存在，则它们是_即时_（on the fly）创建的：
+
+_test/parse_spec.js_
+
+```js
+it('creates the objects in the assignment path that do not exist', function() {
+  var fn = parse('some["nested"].property.path = 42');
+  var scope = {};
+  fn(scope);
+  expect(scope.some.nested.property.path).toBe(42);
+});
+```
+
+这与 JavaScript 的功能形成了鲜明的对比。在 JavaScript 中，当 `some` 不存在是，`some["nested"]` 会报错。而 Angular 表达式引擎会令人愉快地进行赋值。
+
+我们可以通过调用 `recurse` 传递第三个参数来实现这一效果，它会让 `recurse` 函数在发现对象缺失时自动进行创建：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  // var leftContext = {};
+  this.recurse(ast.left, leftContext, true);
+  // ...
+```
+
+在 `recurse` 中，我们会接收到这个参数：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.recurse = function(ast, context, create) {
+  // ...
+};
+```
+
+在 `MemberExpressions` 里如果我们明确要求创建缺失的对象，就会加入一个检查。如果确实遇到确实的对象，我们会初始化这个对象为空对象。我们需要分别处理计算属性和非计算属性：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object);
+  // if (context) {
+  //   context.context = left;
+  // }
+  // if (ast.computed) {
+  //   var right = this.recurse(ast.property);
+    if (create) {
+      this.if_(this.not(this.computedMember(left, right)),
+        this.assign(this.computedMember(left, right), '{}'));
+    }
+  //   this.if_(left,
+  //     this.assign(intoId, this.computedMember(left, right)));
+  //   if (context) {
+  //     context.name = right;
+  //     context.computed = true;
+  //   }
+  // } else {
+    if (create) {
+      this.if_(this.not(this.nonComputedMember(left, ast.property.name)),
+        this.assign(this.nonComputedMember(left, ast.property.name), '{}'));
+    }
+  //   this.if_(left,
+  //     this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+  //   if (context) {
+  //     context.name = ast.property.name;
+  //     context.computed = false;
+  //   }
+  // }
+  // return intoId;
+```
+
+这就能处理在赋值之前的最后一个成员表达式，但对于单元测试中出现的嵌套访问，我们需要把 `create` 标识传递到下一个左侧表达式的处理中去：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  intoId = this.nextId();
+  var left = this.recurse(ast.object, undefined, create);
+  // ...
+```
+
+这个传递路径的终点是一个 `Identifier` 表达式，它应在 scope 上找到不到对象时生成一个空对象，并使用这个空对象来初始化缺失的对象。我们只会在 scope 和 locals 上都无法找到对象时才那么做：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // intoId = this.nextId();
+  // this.if_(this.getHasOwnProperty('l', ast.name),
+  //   this.assign(intoId, this.nonComputedMember('l', ast.name)));
+  if (create) {
+    this.if_(this.not(this.getHasOwnProperty('l', ast.name)) +
+      ' && s && ' + this.not(this.getHasOwnProperty('s', ast.name)),
+      this.assign(this.nonComputedMember('s', ast.name), '{}'));
+  }
+  // this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + ' && s', this.assign(intoId, this.nonComputedMember('s', ast.name)));
+  // if (context) {
+  //   context.context = this.getHasOwnProperty('l', ast.name) + '?l:s';
+  //   context.name = ast.name;
+  //   context.computed = false;
+  // }
+  // return intoId;
+```
