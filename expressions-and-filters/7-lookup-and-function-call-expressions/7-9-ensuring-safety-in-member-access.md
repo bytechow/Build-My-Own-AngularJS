@@ -11,7 +11,58 @@
 aFunction.constructor('return window;')()
 ```
 
-除了 Function 构造函数，还有一些常见的对象可能会引发安全问题，因为访问他们可能会产生难以预测的广泛影响：
+除了 Function 构造函数，还有一些常见的对象也可能会引发安全问题，允许访问它们可能会产生难以预测的影响：
 
+- `__proto__` 是一个[非标准的、已被弃用的对象原型访问器](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto)。它不仅允许读取原型，还可以对原型进行设置，这种特性使得它也存在潜在危险。
 
+- `__defineGetter__, __lookupGetter__, __defineSetter__,`and`__lookupSetter__` 是[根据 getter 和 setter 函数来对对象属性进行定义的非标准函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__defineGetter__)。由于它们并不是标准的 API，并不被所有的浏览器支持，且它们也有重新定义全局属性的可能性，Angular 会直接在表达式中禁止访问这些函数。
 
+下面我们来加入单元测试，确保在表达式中不能访问以上六个成员：
+
+_test/parse_spec.js_
+
+```js
+it('does not allow calling the function constructor', function() {
+  expect(function() {
+    var fn = parse('aFunction.constructor("return window;")()');
+    fn({ aFunction: function() {} });
+  }).toThrow();
+});
+
+it('does not allow accessing __proto__', function() {
+  expect(function() {
+    var fn = parse('obj.__proto__');
+    fn({ obj: {} });
+  }).toThrow();
+});
+
+it('does not allow calling __defineGetter__', function() {
+  expect(function() {
+    var fn = parse('obj.__defineGetter__("evil", fn)');
+    fn({ obj: {}, fn: function() {} });
+  }).toThrow();
+});
+
+it('does not allow calling __defineSetter__', function() {
+  expect(function() {
+    var fn = parse('obj.__defineSetter__("evil", fn)');
+    fn({ obj: {}, fn: function() {} });
+  }).toThrow();
+});
+
+it('does not allow calling __lookupGetter__', function() {
+  expect(function() {
+    var fn = parse('obj.__lookupGetter__("evil")');
+    fn({ obj: {} });
+  }).toThrow();
+});
+
+it('does not allow calling __lookupSetter__', function() {
+  expect(function() {
+    var fn = parse('obj.__lookupSetter__("evil")');
+    fn({ obj: {} });
+  }).toThrow();
+});
+```
+
+针对这类攻击，我们将要采取的安全措施是禁止访问对象上任何具有上述成员名称的属性。
