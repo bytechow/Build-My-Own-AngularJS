@@ -65,4 +65,66 @@ it('does not allow calling __lookupSetter__', function() {
 });
 ```
 
-针对这类攻击，我们将要采取的安全措施是禁止访问对象上任何具有上述成员名称的属性。
+针对这类攻击，我们将要采取的安全措施是禁止访问对象上任何具有上述成员名称的属性。要实现这个效果，我们要引入一个帮助函数，这个函数可以检查对象成员名称，若有发现名称对应的对象成员已被禁止访问，就会抛出一个异常：
+
+_src/parse.js_
+
+```js
+function ensureSafeMemberName(name) {
+  if (name === 'constructor' || name === '__proto__' ||
+    name === '__defineGetter__' || name === '__defineSetter__' ||
+    name === '__lookupGetter__' || name === '__lookupSetter__') {
+    throw 'Attempting to access a disallowed field in Angular expressions!';
+  }
+}
+```
+
+现在我们需要在 AST 编译器几处地方使用这个函数。在针对标识符（identifier）的处理分支中，我们会把标识符的名称作为这个函数的参数进行调用：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  ensureSafeMemberName(ast.name);
+// ...
+```
+
+在非计算属性访问中，我们会对属性名称进行检查：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // ensureSafeMemberName(ast.name);
+  // // ...
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object, undefined, create);
+  // if (context) {
+  //   context.context = left;
+  // }
+  // if (ast.computed) {
+  //   var right = this.recurse(ast.property);
+  //   if (create) {
+  //     this.if_(this.not(this.computedMember(left, right)), this.assign(this.computedMember(left, right), '{}'));
+  //   }
+  //   this.if_(left,
+  //     this.assign(intoId, this.computedMember(left, right)));
+  //   if (context) {
+  //     context.name = right;
+  //     context.computed = true;
+  //   }
+  // } else {
+    ensureSafeMemberName(ast.property.name);
+  //   if (create) {
+  //     this.if_(this.not(this.nonComputedMember(left, ast.property.name)),
+  //       this.assign(this.nonComputedMember(left, ast.property.name), '{}'));
+  //   }
+  //   this.if_(left,
+  //     this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+  //   if (context) {
+  //     context.name = ast.property.name;
+  //     context.computed = false;
+  //   }
+  // }
+  // return intoId;
+```
