@@ -129,4 +129,87 @@ case AST.Identifier:
   // return intoId;
 ```
 
-在对计算属性成员进行访问时，我们需要做一些额外的工作，因为我们在解析时还不知道属性名称。当需要对表达式进行求值时，我们要在运行时调用 `ensureSafeMemberName`
+在对计算属性成员进行访问时，我们需要做一些额外的工作，因为我们在解析时还不知道属性名称。当需要对表达式进行求值时，我们要在运行时调用 `ensureSafeMemberName`。
+
+首先，我们需要确保在运行时表达式可以访问到 `ensureSafeMemberName`。首先，我们需要生成的函数代码进行重构，让它不再是表达式函数本身，而是一个会返回表达式函数的函数：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // this.state = { body: [], nextId: 0, vars: [] };
+  // this.recurse(ast);
+  var fnString = 'var fn=function(s,l){' + (this.state.vars.length ?
+    'var ' + this.state.vars.join(',') + ';' : ''
+  ) + this.state.body.join('') + '}; return fn;';
+  /* jshint -W054 */
+  return new Function(fnString)();
+  /* jshint +W054 */
+};
+```
+
+有了这个高阶函数以后，我们可以传递一些参数给它，这样生成的代码可以通过闭包访问到这些参数。这时，我们就可以传递 `ensureSafeMemberName` 作为它的参数，这样表达式函数就可以在运行时用上这个函数：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // this.state = { body: [], nextId: 0, vars: [] };
+  // this.recurse(ast);
+  // var fnString = 'var fn=function(s,l){' + (this.state.vars.length ?
+  //   'var ' + this.state.vars.join(',') + ';' :
+  //   ''
+  // ) + this.state.body.join('') + '}; return fn;';
+  /* jshint -W054 */
+  return new Function('ensureSafeMemberName', fnString)(ensureSafeMemberName);
+  /* jshint +W054 */
+```
+
+下一步，我们会对计算属性访问表达式的右侧内容生成一个对这个函数的调用：
+
+```js
+case AST.MemberExpression:
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object, undefined, create);
+  // if (context) {
+  //   context.context = left;
+  // }
+  // if (ast.computed) {
+  //   var right = this.recurse(ast.property);
+    this.addEnsureSafeMemberName(right);
+  //   if (create) {
+  //     this.if_(this.not(this.computedMember(left, right)),
+  //       this.assign(this.computedMember(left, right), '{}'));
+  //   }
+  //   this.if_(left,
+  //     this.assign(intoId, this.computedMember(left, right)));
+  //   if (context) {
+  //     context.name = right;
+  //     context.computed = true;
+  //   }
+  // } else {
+  //   ensureSafeMemberName(ast.property.name);
+  //   if (create) {
+  //     this.if_(this.not(this.nonComputedMember(left, ast.property.name)), this.assign(this.nonComputedMember(left, ast.property.name), '{}'));
+  //   }
+  //   this.if_(left,
+  //     this.assign(intoId, this.nonComputedMember(left, ast.property.name)));
+  //   if (context) {
+  //     context.name = ast.property.name;
+  //     context.computed = false;
+  //   }
+  // }
+  // return intoId;
+```
+
+`addEnsureSafeMemberName` 函数还未定义好。它会生成一个对 `ensureSafeMemberName` 的调用：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.addEnsureSafeMemberName = function(expr) {
+  this.state.body.push('ensureSafeMemberName(' + expr + ');');
+};
+```
