@@ -57,3 +57,179 @@ ASTCompiler.prototype.compile = function(text) {
   /* jshint +W054 */
 };
 ```
+
+现在，我们就可以对成员访问的结果调用 `ensureSafeObject` 了：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  // intoId = this.nextId();
+  // var left = this.recurse(ast.object, undefined, create);
+  // if (context) {
+  //   context.context = left;
+  // }
+  // if (ast.computed) {
+  //   var right = this.recurse(ast.property);
+  //   this.addEnsureSafeMemberName(right);
+  //   if (create) {
+  //     this.if_(this.not(this.computedMember(left, right)), this.assign(this.computedMember(left, right), '{}'));
+  //   }
+  //   this.if_(left,
+  //     this.assign(intoId,
+        'ensureSafeObject(' + this.computedMember(left, right) + ')'));
+  //   if (context) {
+  //     context.name = right;
+  //     context.computed = true;
+  //   }
+  // } else {
+  //   ensureSafeMemberName(ast.property.name);
+  //   if (create) {
+  //     this.if_(this.not(this.nonComputedMember(left, ast.property.name)), this.assign(this.nonComputedMember(left, ast.property.name), '{}'));
+  //   }
+  //   this.if_(left,
+  //     this.assign(intoId,
+        'ensureSafeObject(' +
+        this.nonComputedMember(left, ast.property.name) + ')'));
+  //   if (context) {
+  //     context.name = ast.property.name;
+  //     context.computed = false;
+  //   }
+  // }
+  // return intoId;
+```
+
+另外，我们也不允许把存在安全隐患的对象作为函数参数传入：
+
+_test/parse_spec.js_
+
+```js
+it('does not allow passing window as function argument', function() {
+  var fn = parse('aFunction(wnd)');
+  expect(function() {
+    fn({aFunction: function() { }, wnd: window});
+  }).toThrow();
+});
+```
+
+我们需要把每一个函数表达式包裹到 `ensureSafeObject` 中：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  // var callContext = {};
+  // var callee = this.recurse(ast.callee, callContext);
+  var args = _.map(ast.arguments, _.bind(function(arg) {
+    return 'ensureSafeObject(' + this.recurse(arg) + ')';
+  }, this));
+  // ...
+```
+
+假如 `window` 被挂载到 scope 上时，我们也不允许调用 `window` 上的函数：
+
+_test/parse_spec.js_
+
+```js
+it('does not allow calling methods on window', function() { var fn = parse('wnd.scrollTo(0)');
+  expect(function() {
+    fn({wnd: window});
+  }).toThrow();
+});
+```
+
+在这种情况下，我们需要检查方法调用的上下文：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  // var callContext = {};
+  // var callee = this.recurse(ast.callee, callContext);
+  // var args = _.map(ast.arguments, _.bind(function(arg) {
+  //   return 'ensureSafeObject(' + this.recurse(arg) + ')';
+  // }, this));
+  // if (callContext.name) {
+    this.addEnsureSafeObject(callContext.context);
+  //   if (callContext.computed) {
+  //     callee = this.computedMember(callContext.context, callContext.name);
+  //   } else {
+  //     callee = this.nonComputedMember(callContext.context, callContext.name);
+  //   }
+  // }
+  // return callee + '&&' + callee + '(' + args.join(',') + ')';
+```
+
+`addEnsureSafeObject` 是一个新函数，我们得先定义好：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.addEnsureSafeObject = function(expr) {
+  this.state.body.push('ensureSafeObject(' + expr + ');');
+};
+```
+
+我们不仅要禁止调用 `window` 上的方法，还要禁止调用会返回 `window` 的函数：
+
+_src/parse.js_
+
+```js
+it('does not allow functions to return window', function() {
+  var fn = parse('getWnd()');
+  expect(function() { fn({ getWnd: _.constant(window) }); }).toThrow();
+});
+```
+
+这次我们就需要把函数调用的结果值包裹到 `ensureSafeObject` 里去了：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  // var callContext = {};
+  // var callee = this.recurse(ast.callee, callContext);
+  // var args = _.map(ast.arguments, _.bind(function(arg) {
+  //   return 'ensureSafeObject(' + this.recurse(arg) + ')';
+  // }, this));
+  // if (callContext.name) {
+  //   this.addEnsureSafeObject(callContext.context);
+  //   if (callContext.computed) {
+  //     callee = this.computedMember(callContext.context, callContext.name);
+  //   } else {
+  //     callee = this.nonComputedMember(callContext.context, callContext.name);
+  //   }
+  // }
+  return callee + '&&ensureSafeObject(' + callee + '(' + args.join(',') + '))';
+```
+
+我们不允许把一个不安全的对象添加到 scope 上：
+
+_src/parse.js_
+
+```js
+it('does not allow assigning window', function() {
+  var fn = parse('wnd = anObject');
+  expect(function() {
+    fn({ anObject: window });
+  }).toThrow();
+});
+```
+
+这意味着，我们也需要对赋值语句的右侧内容进行包裹：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  // var leftContext = {};
+  // this.recurse(ast.left, leftContext, true);
+  // var leftExpr;
+  // if (leftContext.computed) {
+  //   leftExpr = this.computedMember(leftContext.context, leftContext.name);
+  // } else {
+  //   leftExpr = this.nonComputedMember(leftContext.context, leftContext.name);
+  // }
+  // return this.assign(leftExpr,
+    'ensureSafeObject(' + this.recurse(ast.right) + ')');
+```
