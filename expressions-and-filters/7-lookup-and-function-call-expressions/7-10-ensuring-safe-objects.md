@@ -233,3 +233,83 @@ case AST.AssignmentExpression:
   // return this.assign(leftExpr,
     'ensureSafeObject(' + this.recurse(ast.right) + ')');
 ```
+
+最后，我们不允许通过标识符的方式把不安全的对象直接挂载在到 scope 上：
+
+_test/parse_spec.js_
+
+```js
+it('does not allow referencing window', function() {
+  var fn = parse('wnd');
+  expect(function() {
+    fn({ wnd: window });
+  }).toThrow();
+});
+```
+
+我们需要为标识符也生成安全检查：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // ensureSafeMemberName(ast.name);
+  // intoId = this.nextId();
+  // this.if_(this.getHasOwnProperty('l', ast.name),
+  //   this.assign(intoId, this.nonComputedMember('l', ast.name)));
+  // if (create) {
+  //   this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + ' && s && ' +
+  //     this.not(this.getHasOwnProperty('s', ast.name)), this.assign(this.nonComputedMember('s', ast.name), '{}'));
+  // }
+  // this.if_(this.not(this.getHasOwnProperty('l', ast.name)) + ' && s',
+  //   this.assign(intoId, this.nonComputedMember('s', ast.name)));
+  // if (context) {
+  //   context.context = this.getHasOwnProperty('l', ast.name) + '?l:s';
+  //   context.name = ast.name;
+  //   context.computed = false;
+  // }
+  this.addEnsureSafeObject(intoId);
+  // return intoId;
+```
+
+这样我们就囊括所有的情况了。但事实上，`window` 并不是唯一一个我们需要注意的“危险”对象。另一个类似的对象是 DOM 元素。如果攻击着可以访问到 DOM 元素，就可能利用它来遍历并修改网页内容，因此我们也需要禁止对 DOM 元素的访问：
+
+_test/parse_spec.js_
+
+```js
+it('does not allow calling functions on DOM elements', function() {
+  var fn = parse('el.setAttribute("evil", "true")');
+  expect(function() { fn({el: document.documentElement}); }).toThrow();
+});
+```
+
+AngularJS 会使用下面这个检查条件来检查表达式是否是“无 DOM 元素的”：
+
+_src/parse.js_
+
+```js
+function ensureSafeObject(obj) {
+  // if (obj) {
+  //   if (obj.window === obj) {
+  //     throw 'Referencing window in Angular expressions is disallowed!';
+    } else if (obj.children &&
+      (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
+      throw 'Referencing DOM nodes in Angular expressions is disallowed!';
+  //   }
+  // }
+  // return obj;
+}
+```
+
+第三种危险对象是我们的老朋友，函数构造器。虽然我们已经能保证使用者无法通过函数 `constructor` 属性来访问到构造器，但他们依然可以为函数构造器定义一个别名：
+
+_src/parse.js_
+
+```js
+it('does not allow calling the aliased function constructor', function() {
+  var fn = parse('fnConstructor("return window;")');
+  expect(function() {
+    fn({ fnConstructor: (function() {}).constructor });
+  }).toThrow();
+});
+```
