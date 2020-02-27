@@ -313,3 +313,4 @@ it('does not allow calling the aliased function constructor', function() {
   }).toThrow();
 });
 ```
+
