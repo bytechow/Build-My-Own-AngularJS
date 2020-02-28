@@ -314,3 +314,57 @@ it('does not allow calling the aliased function constructor', function() {
 });
 ```
 
+对这种的情况的处理要比对 `window` 和 DOM 元素的处理简单得多：函数的 `constructor` 属性也是一个函数，所以它也会有一个 `contructor` 属性指向自身。
+
+_src/parse.js_
+
+```js
+function ensureSafeObject(obj) {
+  // if (obj) {
+  //   if (obj.window === obj) {
+  //     throw 'Referencing window in Angular expressions is disallowed!';
+  //   } else if (obj.children &&
+  //     (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
+  //     throw 'Referencing DOM nodes in Angular expressions is disallowed!';
+    } else if (obj.constructor === obj) {
+      throw 'Referencing Function in Angular expressions is disallowed!';
+  //   }
+  // }
+  // return obj;
+}
+```
+
+第四个，也是最后一个我们要关注的危险对象就是 `Object` 这个对象。除了作为原始对象的构造函数以外，它还包含许多辅助函数，比如 `Object.defineProperty(), Object.freeze(), Object.getOwnPropertyDescriptor() 和 Object.setPrototypeOf()`。我们要关心的正是 `Object` 的后一种角色。如果攻击者可以访问到这些函数的其中之一，就可能会成为危险之源。因此，我们会完全禁止对 _Object_ 的访问：
+
+_test/parse_spec.js_
+
+```js
+it('does not allow calling functions on Object', function() {
+  var fn = parse('obj.create({})');
+  expect(function() {
+    fn({ obj: Object });
+  }).toThrow();
+});
+```
+
+我只需要检查这个对象是否 `Object` 就可以了：
+
+_src/parse.js_
+
+```js
+function ensureSafeObject(obj) {
+  // if (obj) {
+  //   if (obj.window === obj) {
+  //     throw 'Referencing window in Angular expressions is disallowed!';
+  //   } else if (obj.children &&
+  //     (obj.nodeName || (obj.prop && obj.attr && obj.find))) {
+  //     throw 'Referencing DOM nodes in Angular expressions is disallowed!';
+  //   } else if (obj.constructor === obj) {
+  //     throw 'Referencing Function in Angular expressions is disallowed!';
+    } else if (obj === Object) {
+      throw 'Referencing Object in Angular expressions is disallowed!';
+  //   }
+  // }
+  // return obj;
+}
+```
