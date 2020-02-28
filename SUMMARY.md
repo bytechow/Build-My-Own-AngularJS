@@ -120,6 +120,7 @@
   * [7-8 赋值语句](expressions-and-filters/7-lookup-and-function-call-expressions/7-8-assigning-values.md)
   * [7-9 在访问对象成员时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-9-ensuring-safety-in-member-access.md)
   * [7-10 在访问对象时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-10-ensuring-safe-objects.md)
+  * [7-11 在调用函数时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-11-ensuring-safe-functions.md)
 * [第8章 运算符表达式](expressions-and-filters/8-operator-expressions/8-operator-expressions.md)
 * [第9章 过滤器](expressions-and-filters/9-filters/9-filters.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
