@@ -347,7 +347,7 @@ it('does not allow calling functions on Object', function() {
 });
 ```
 
-我只需要检查这个对象是否 `Object` 就可以了：
+我们只需要检查这个对象是否 `Object` 就可以了：
 
 _src/parse.js_
 
