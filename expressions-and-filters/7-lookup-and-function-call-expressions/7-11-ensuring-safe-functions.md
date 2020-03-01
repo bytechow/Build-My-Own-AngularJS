@@ -87,3 +87,36 @@ ASTCompiler.prototype.compile = function(text) {
   /* jshint +W054 */
 };
 ```
+
+然后，我们就可以生成对函数调用表达式的调用：
+
+```js
+case AST.CallExpression:
+  // var callContext = {};
+  // var callee = this.recurse(ast.callee, callContext);
+  // var args = _.map(ast.arguments, _.bind(function(arg) {
+  //   return 'ensureSafeObject(' + this.recurse(arg) + ')';
+  // }, this));
+  // if (callContext.name) {
+  //   this.addEnsureSafeObject(callContext.context);
+  //   if (callContext.computed) {
+  //     callee = this.computedMember(callContext.context, callContext.name);
+  //   } else {
+  //     callee = this.nonComputedMember(callContext.context, callContext.name);
+  //   }
+  // }
+  this.addEnsureSafeFunction(callee);
+  // return callee + '&&ensureSafeObject(' + callee + '(' + args.join(',') + '))';
+```
+
+当然，我们还要先加入 `addEnsureSafeFunction` 辅助函数：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.addEnsureSafeFunction = function(expr) {
+  this.state.body.push('ensureSafeFunction(' + expr + ');');
+};
+```
+
+这就是 Angular 规避注入攻击的方式。虽然这些安全措施谈不上十全十美，而且几乎可以肯定还有几种方法可以在作用域上添加危险的属性。但是，在攻击者可以利用这些危险属性的前提是，应用程序开发人员必须首先将这些危险属性放到作用域中，这大大降低了与此相关的风险，而他们也不应该这样做。
