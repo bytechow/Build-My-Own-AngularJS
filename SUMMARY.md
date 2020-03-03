@@ -123,6 +123,7 @@
   * [7-11 在调用函数时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-11-ensuring-safe-functions.md)
   * [7-12 本章总结](expressions-and-filters/7-lookup-and-function-call-expressions/7-12-summary.md)
 * [第8章 运算符表达式](expressions-and-filters/8-operator-expressions/8-operator-expressions.md)
+  * [8-1 一元运算符](expressions-and-filters//8-operator-expressions/8-1-unary-operators.md)
 * [第9章 过滤器](expressions-and-filters/9-filters/9-filters.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
