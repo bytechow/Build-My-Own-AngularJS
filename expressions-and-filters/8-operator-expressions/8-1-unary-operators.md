@@ -153,3 +153,117 @@ _src/parse.js_
 case AST.UnaryExpression:
   return ast.operator + '(' + this.recurse(ast.argument) + ')';
 ```
+
+Angular 里面的一元算术运算符跟 JavaScript 原有的一元运算符是不一样的，Angular 的一元运算符会把 undefined 的值当作 0，而 JavaScript 会把它当作 `NaN`：
+
+_test/parse_spec.js_
+
+```js
+it('replaces undefined with zero for unary +', function() { expect(parse('+a')({})).toBe(0);
+});
+```
+
+我们会使用一个名为 `ifDefined` 的新方法来处理一元运算符表达式，这个方法会接收两个参数：一个表达式，另一个就是在值为 undefined 时要替换的值。在这种情况下，这个替换值就是 `0`：
+
+_src/parse.js_
+
+```js
+case AST.UnaryExpression:
+  return ast.operator +
+    '(' + this.ifDefined(this.recurse(ast.argument), 0) + ')';
+```
+
+`ifDefined`方法会根据传入的两个参数，生成一个在运行时调用 `ifDefined` 函数的 JavaScript 表达式：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.ifDefined = function(value, defaultValue) {
+  return 'ifDefined(' + value + ',' + this.escape(defaultValue) + ')';
+};
+```
+
+这个函数会被传递到要生成的 JavaScript 函数中去：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // this.state = { body: [], nextId: 0, vars: [] };
+  // this.recurse(ast);
+  // var fnString = 'var fn=function(s,l){' + (this.state.vars.length ?
+  //   'var ' + this.state.vars.join(',') + ';' :
+  //   ''
+  // ) + this.state.body.join('') + '}; return fn;';
+  // /* jshint -W054 */
+  // return new Function(
+  //   'ensureSafeMemberName',
+  //   'ensureSafeObject',
+  //   'ensureSafeFunction',
+    'ifDefined',
+    // fnString)(
+    // ensureSafeMemberName,
+    // ensureSafeObject,
+    // ensureSafeFunction,
+    ifDefined);
+  /* jshint +W054 */
+};
+```
+
+最后，如果 `ifDefined` 返回的实际值已经定义了，那就会直接返回这个值本身，否则就返回默认值：
+
+_src/parse.js_
+
+```js
+function ifDefined(value, defaultValue) {
+  return typeof value === 'undefined' ? defaultValue : value;
+}
+```
+
+> 这里我们不用 LoDash 的原因是，LoDash 在运行时可能还未能被访问。
+
+这样我们就能顺利处理 `+` 了。我们来介绍下一个一元运算符，它更有趣，因为它确实（对运算结果）产生了影响：
+
+_test/parse_spec.js_
+
+```js
+it('parses a unary !', function() {
+  expect(parse('!true')()).toBe(false);
+  expect(parse('!42')()).toBe(false);
+  expect(parse('!a')({a: false})).toBe(true);
+  expect(parse('!!a')({a: false})).toBe(false);
+});
+```
+
+Angular 表达式中非运算符与 JavaScript 保持一致。上面测试中的最后一个验证（expection）就展示了我们可以连续使用多个非运算符。
+
+我们需要把这个运算符也加入到 `OPERATORS` 中：
+
+_src/parse.js_
+
+```js
+var OPERATORS = {
+  '+': true,
+  '!': true
+};
+```
+
+在 AST 构建器的 `unary` 方法中，我们要可以处理 `+` 或 `!`。同时，我们要用实际传入的运算符代替之前硬编码进去的 `+`：
+
+_src/parse.js_
+
+```js
+AST.prototype.unary = function() {
+  var token;
+  if ((token = this.expect('+', '!'))) {
+    return {
+      type: AST.UnaryExpression,
+      operator: token.text,
+      argument: this.primary()
+    };
+  } else {
+    return this.primary();
+  }
+};
+```
