@@ -18,3 +18,6 @@ increment the counter 递增计数器
 
 ## primary expression
 基本表达式
+
+## emit
+发出

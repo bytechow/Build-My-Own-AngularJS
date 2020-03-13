@@ -267,3 +267,127 @@ AST.prototype.unary = function() {
   }
 };
 ```
+
+这可以部分修复我们的测试用例，我们不需要对 AST 编译器做任何修改就可以实现这个功能。但这个测试依然无法通过，因为我们还不支持在一行里连续使用 `!`。解决办法是把另一个一元表达式作为 `unary` 的参数：
+
+_src/parse.js_
+
+```js
+AST.prototype.unary = function() {
+  // var token;
+  // if ((token = this.expect('+', '!'))) {
+  //   return {
+  //     type: AST.UnaryExpression,
+  //     operator: token.text,
+      argument: this.unary()
+  //   };
+  // } else {
+  //   return this.primary();
+  // }
+};
+```
+
+第三个，也是最后一个我们要支持的一元运算符是 `-`，用于对数字进行取反操作：
+
+_test/parse_spec.js_
+
+```js
+it('parses a unary -', function() {
+  expect(parse('-42')()).toBe(-42);
+  expect(parse('-a')({ a: -42 })).toBe(42);
+  expect(parse('--a')({ a: -42 })).toBe(-42);
+  expect(parse('-a')({})).toBe(0);
+});
+```
+
+首先我们还是得把这个运算符加入到 `OPERATORS` 对象中去：
+
+_src/parse.js_
+
+```js
+var OPERATORS = {
+  '+': true,
+  '!': true,
+  '-': true
+};
+```
+
+然后我们要在 AST 构建器的 unary 方法允许接收这个符号：
+
+_src/parse.js_
+
+```js
+AST.prototype.unary = function() {
+  // var token;
+  if ((token = this.expect('+', '!', '-'))) {
+  //   return {
+  //     type: AST.UnaryExpression,
+  //     operator: token.text,
+  //     argument: this.unary()
+  //   };
+  // } else {
+  //   return this.primary();
+  // }
+};
+```
+
+在我们往操作符对象中增加匹配字符时，其实无意中给字符串表达式引入了一个 bug。如果一个字符串也出现了一个惊叹号——这个惊叹在字符串以外是作为一个操作符存在的：
+
+_test/parse_spec.js_
+
+```js
+it('parses a ! in a string', function() {
+  expect(parse('"!"')()).toBe('!');
+});
+```
+
+这时，字符串 token 将包含一个值为 `!` 的 `text` 属性，但 AST 构建器会把它当作是一个操作符！我们不应该允许这种事件发生。
+
+我们需要修改字符串 token，使其文本属性不仅仅包含字符串中的字符，而是包含整个原始字符串（包括周围的引号）。这样就不会跟操作符混淆了。我们将在 Lexer 中的 `readString` 方法中把原始字符串赋值到 `rawString` 变量中：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.readString = function(quote) {
+  // this.index++;
+  // var string = '';
+  var rawString = quote;
+  // var escape = false;
+  // while (this.index < this.text.length) {
+  //   var ch = this.text.charAt(this.index);
+    rawString += ch;
+  //   if (escape) {
+  //     if (ch === 'u') {
+  //       var hex = this.text.substring(this.index + 1, this.index + 5);
+  //       if (!hex.match(/[\da-f]{4}/i)) {
+  //         throw 'Invalid unicode escape';
+  //       }
+  //       this.index += 4;
+  //       string += String.fromCharCode(parseInt(hex, 16));
+  //     } else {
+  //       var replacement = ESCAPES[ch];
+  //       if (replacement) {
+  //         string += replacement;
+  //       } else {
+  //         string += ch;
+  //       }
+  //     }
+  //     escape = false;
+  //   } else if (ch === quote) {
+  //     this.index++;
+  //     this.tokens.push({
+        text: rawString,
+  //       value: string
+  //     });
+  //     return;
+  //   } else if (ch === '\\') {
+  //     escape = true;
+  //   } else {
+  //     string += ch;
+  //   }
+  //   this.index++;
+  // }
+};
+```
+
+这样我们就完成了对一元运算符的处理了！
