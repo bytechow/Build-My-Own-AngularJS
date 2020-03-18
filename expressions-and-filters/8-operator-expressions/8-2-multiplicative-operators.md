@@ -1,7 +1,7 @@
 ### 二元运算符
 #### Multiplicative Operators
 
-在一元运算符以后，拥有更高优先级的操作符实二元运算符：乘法，除法和取余。不出所料，它们的工作原理都与 JavaScript 一样：
+在一元运算符以后，拥有更高优先级的是二元运算符：乘法，除法和取余。不出所料，它们的工作原理都与 JavaScript 一样：
 
 ```js
 it('parses a multiplication', function() { expect(parse('21 * 2')()).toBe(42);
