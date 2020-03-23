@@ -151,3 +151,103 @@ AST.prototype.assignment = function() {
   return left;
 };
 ```
+
+要支持这些函数，我们还需要在 `Lexer.lex` 中做些改变。在本章开头，我们已经加入了一个条件分支来通过 `OPERATORS` 对象查找运算符。但目前在这个对象中的运算符都只包含一个字符而已。现在我需要需要处理的运算符有两个字符，比如 `==`，或甚至三个字符，比如 `===`。因此在这个条件分支，我们需要支持这些多字符运算符。它会首先看看后面三个字符是否能匹配到第一个运算符，然后看第一个字符和第二个字符组合后是否匹配到一个运算符，然后看看这三个字符的组合是否匹配到一个运算符：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.lex = function(text) {
+  // this.text = text;
+  // this.index = 0;
+  // this.ch = undefined;
+  // this.tokens = [];
+  // while (this.index < this.text.length) {
+  //   this.ch = this.text.charAt(this.index);
+  //   if (this.isNumber(this.ch) ||
+  //     (this.is('.') && this.isNumber(this.peek()))) {
+  //     this.readNumber();
+  //   } else if (this.is('\'"')) {
+  //     this.readString(this.ch);
+  //   } else if (this.is('[],{}:.()=')) {
+  //     this.tokens.push({
+  //       text: this.ch
+  //     });
+  //     this.index++;
+  //   } else if (this.isIdent(this.ch)) {
+  //     this.readIdent();
+  //   } else if (this.isWhitespace(this.ch)) {
+  //     this.index++;
+  //   } else {
+      var ch = this.ch;
+      var ch2 = this.ch + this.peek();
+      var ch3 = this.ch + this.peek() + this.peek(2);
+      var op = OPERATORS[ch];
+      var op2 = OPERATORS[ch2];
+      var op3 = OPERATORS[ch3];
+      if (op || op2 || op3) {
+        var token = op3 ? ch3 : (op2 ? ch2 : ch);
+        this.tokens.push({ text: token });
+        this.index += token.length;
+  //     } else {
+  //       throw 'Unexpected next character: ' + this.ch;
+  //     }
+  //   }
+  // }
+  //
+  // return this.tokens;
+};
+```
+
+我需要对这段代码使用到的 `Lexer.peek` 方法进行修改，让它不仅能查看后面一个字符，还能指定把从当前索引开始后多少位的字符串都截取出来。它会接收一个可选参数 `n`，可选参数的默认值为 `1`：
+
+_src/parse.js_
+
+```js
+Lexer.prototype.peek = function(n) {
+  n = n || 1;
+  return this.index + n < this.text.length ?
+    this.text.charAt(this.index + n) :
+    false;
+};
+```
+
+但现在相等性运算符的测试还未能通过，尽管我们看上去已经准备好了一切。问题是，在上一个章节中我们把等号 `=` 看作是一个文本 token，以便用于处理赋值表达式。而现在，当 Lexer 看到 `==` 中的第一个 `=` 时，就会弹出它，而不管它是否是其他运算符的一部分。
+
+我们要做的首先是把 `=` 从文本 Token 集合中移除掉，也就是从：
+
+```js
+} else if (this.is('[],{}:.()=')) {
+```
+
+变成：
+
+```js
+} else if (this.is('[],{}:.()')) {
+```
+
+然后，我们需要往运算符集合中加入单个的等号运算符：
+
+_src/parse.js_
+
+```js
+var OPERATORS = {
+  // '+': true,
+  // '-': true,
+  // '!': true,
+  // '*': true,
+  // '/': true,
+  // '%': true,
+  '=': true,
+  // '==': true,
+  // '!=': true,
+  // '===': true,
+  // '!==': true,
+  // '<': true,
+  // '>': true,
+  // '<=': true,
+  // '>=': true
+};
+```
+
+现在等号会被作为一个运算符 token 弹出，而不是文本 token。它仍然会被构建到一个赋值节点中去，由于这两种 token 都会有一个值为 `=` 的文本属性，这是 AST 构建器感兴趣的地方。
