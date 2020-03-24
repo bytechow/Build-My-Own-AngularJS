@@ -84,3 +84,123 @@ _test/parse_spec.js_
 it('parses OR with a lower precedence than equality', function() { expect(parse('1 === 2 || 2 === 2')()).toBeTruthy();
 });
 ```
+
+现在我们知道，开发的这些操作符都是有一套固定套路的。在 `OPERATORS` 对象中我们会多增加两个实体：
+
+_src/parse.js_
+
+```js
+var OPERATORS = {
+  // '+': true,
+  // '-': true,
+  // '!': true,
+  // '*': true,
+  // '/': true,
+  // '%': true,
+  // '=': true,
+  // '==': true,
+  // '!=': true,
+  // '===': true,
+  // '!==': true,
+  // '<': true,
+  // '>': true,
+  // '<=': true,
+  // '>=': true,
+  '&&': true,
+  '||': true
+};
+```
+
+在 AST 构建器中，我们会增加两个新函数来构建 `LogicalExpression` 运算符——一个是处理逻辑或（OR），而另一个是处理逻辑并（AND）的：
+
+_src/parse.js_
+
+```js
+AST.prototype.logicalOR = function() {
+  var left = this.logicalAND();
+  var token;
+  while ((token = this.expect('||'))) {
+    left = {
+      type: AST.LogicalExpression,
+      left: left,
+      operator: token.text,
+      right: this.logicalAND()
+    };
+  }
+  return left;
+};
+AST.prototype.logicalAND = function() {
+  var left = this.equality();
+  var token;
+  while ((token = this.expect('&&'))) {
+    left = {
+      type: AST.LogicalExpression,
+      left: left,
+      operator: token.text,
+      right: this.equality()
+    };
+  }
+  return left;
+};
+```
+
+这里有一个新的节点类型 `LogicalExpression`：
+
+_src/parse.js_
+
+```js
+AST.Program = 'Program';
+AST.Literal = 'Literal';
+AST.ArrayExpression = 'ArrayExpression';
+AST.ObjectExpression = 'ObjectExpression';
+AST.Property = 'Property';
+AST.Identifier = 'Identifier';
+AST.ThisExpression = 'ThisExpression';
+AST.LocalsExpression = 'LocalsExpression';
+AST.MemberExpression = 'MemberExpression';
+AST.CallExpression = 'CallExpression';
+AST.AssignmentExpression = 'AssignmentExpression';
+AST.UnaryExpression = 'UnaryExpression';
+AST.BinaryExpression = 'BinaryExpression';
+AST.LogicalExpression = 'LogicalExpression';
+```
+
+由于我们是按照优先级顺序从低往高的次序逐个调用的，对逻辑表达式的处理会紧跟在 `assignment` 之后执行：
+
+_src/parse.js_
+
+```js
+AST.prototype.assignment = function() {
+  var left = this.logicalOR();
+  // if (this.expect('=')) {
+    var right = this.logicalOR();
+  //   return { type: AST.AssignmentExpression, left: left, right: right };
+  // }
+  // return left;
+};
+```
+
+在 AST 编译器中，我们会新建一个 `AST.LogicalExpression` 分支，在这个分支里面，我们会先对左侧内容进行递归，并把递归结果保存起来作为整个表达式的结果：
+
+_src/parse.js_
+
+```js
+case AST.LogicalExpression:
+  intoId = this.nextId();
+  this.state.body.push(this.assign(intoId, this.recurse(ast.left)));
+  return intoId;
+```
+
+然后它会判断左侧内容的运算结果，如果运算符是 `&&` 且运算结果为真（truthy），或运算符是 `||` 且运算结果为假（falsy），才会去执行对右侧内容的运算。如果对右侧内容执行了运算，则右侧内容运算结果值会成为整个表达式的结果值：
+
+_src/parse.js_
+
+```js
+case AST.LogicalExpression:
+  // intoId = this.nextId();
+  // this.state.body.push(this.assign(intoId, this.recurse(ast.left)));
+  this.if_(ast.operator === '&&' ? intoId : this.not(intoId), this.assign(intoId, this.recurse(ast.right)));
+  // return intoId;
+```
+
+这里我们只需要使用之前实现的 `if` 方法就可以同时处理 `&&` 和 `||` 了！虽然逻辑并和逻辑或运算符本质上是二元运算符，但由于它们会发生这种“短路”现象，我们才不把它们视作 `BinaryExpression` 进行处理。
