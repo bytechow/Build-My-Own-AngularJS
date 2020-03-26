@@ -128,6 +128,7 @@
   * [8-3 加法类运算符](expressions-and-filters//8-operator-expressions/8-3-additive-operators.md)
   * [8-4 关系和相等运算符](expressions-and-filters//8-operator-expressions/8-4-relational-and-equality-operators.md)
   * [8-5 逻辑并和逻辑非运算符](expressions-and-filters//8-operator-expressions/8-5-logical-operators-and-and-or.md)
+  * [8-6 三元运算符](expressions-and-filters//8-operator-expressions/8-6-the-ternary-operator.md)
 * [第9章 过滤器](expressions-and-filters/9-filters/9-filters.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
