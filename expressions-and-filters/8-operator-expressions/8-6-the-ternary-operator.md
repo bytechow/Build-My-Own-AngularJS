@@ -93,3 +93,57 @@ _src/parse.js_
 // AST.LogicalExpression = 'LogicalExpression';
 AST.ConditionalExpression = 'ConditionalExpression';
 ```
+
+现在，我们又要将 `assignment` 方法调用的运算符换成 `ternary` 了：
+
+_src/parse.js_
+
+```js
+AST.prototype.assignment = function() {
+  var left = this.ternary();
+  // if (this.expect('=')) {
+    var right = this.ternary();
+  //   return { type: AST.AssignmentExpression, left: left, right: right };
+  // }
+  // return left;
+};
+```
+
+当编译 `ConditionalExpression` 是，它首先会把测试表达式的值保存到一个变量中：
+
+_src/parse.js_
+
+```js
+case AST.ConditionalExpression:
+  var testId = this.nextId();
+  this.state.body.push(this.assign(testId, this.recurse(ast.test)));
+```
+
+之后，它会根据这个测试表达式的值决定执行第一个表达式，还是第二个表达式。无论如何，这两个表达式其中一个的值会作为这个三元运算符的结果值返回：
+
+_src/parse.js_
+
+```js
+case AST.ConditionalExpression:
+  intoId = this.nextId();
+  var testId = this.nextId();
+  this.state.body.push(this.assign(testId, this.recurse(ast.test)));
+  this.if_(testId,
+    this.assign(intoId, this.recurse(ast.consequent)));
+  this.if_(this.not(testId),
+    this.assign(intoId, this.recurse(ast.alternate)));
+  return intoId;
+```
+
+最终的优先级排序，其实就是方法调用次序的逆序：
+
+1. 基本表达式：属性查找、函数调用、方法调用。
+2. 一元运算符表达式：`+a`、`-a`、`!a`。
+3. 乘法类算术运算表达式：`a * b`、`a / b` 和 `a % b`。
+4. 加法类算术运算表达式：`a + b`、`a - b`。
+5. 关系运算符表达式：`a < b`、`a > b`、`a <= b` 和 `a >= b`。
+6. 相等性判断表达式：`a == b`、`a != b`、`a === b` 和 `a !== b`。
+7. 逻辑并运算符：`a && b`。
+8. 逻辑或运算符：`a || b`。
+9. 三元运算符表达式：`a ? b : c`。
+10. 赋值表达式：`a = b`。
