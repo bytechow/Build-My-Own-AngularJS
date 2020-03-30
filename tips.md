@@ -20,4 +20,7 @@ increment the counter 递增计数器
 基本表达式
 
 ## emit
-发出
+发出（抛出）
+
+## cut through
+绕过
