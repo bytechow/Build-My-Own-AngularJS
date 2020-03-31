@@ -92,7 +92,7 @@
   * [5-14 广播作用域被移除的事件](scopes/5-scope-events/5-14-broadcasting-scope-removal.md)
   * [5-15 禁用已销毁作用域上的 listener](scopes/5-scope-events/5-15-disabling-listeners-on-destroyed-scopes.md)
   * [5-16 异常处理](scopes/5-scope-events/5-16-handling-exceptions.md)
-  * [5-17 本章总结](scopes/5-scope-events/5-17-summary.md)
+  * [5-17 本章小结](scopes/5-scope-events/5-17-summary.md)
 
 ## 二、表达式和过滤器
 
@@ -108,7 +108,7 @@
   * [6-7 解析空白字符](expressions-and-filters/6-literal-expressions/6-7-parsing-whitespace.md)
   * [6-8 解析数组](expressions-and-filters/6-literal-expressions/6-8-parsing-arrays.md)
   * [6-9 解析对象](expressions-and-filters/6-literal-expressions/6-9-parsing-objects.md)
-  * [6-10 本章总结](expressions-and-filters/6-literal-expressions/6-10-summary.md)
+  * [6-10 本章小结](expressions-and-filters/6-literal-expressions/6-10-summary.md)
 * [第7章 属性查找和函数调用表达式](expressions-and-filters/7-lookup-and-function-call-expressions/7-lookup-and-function-call-expressions.md)
   * [7-1 简单的属性查找](expressions-and-filters/7-lookup-and-function-call-expressions/7-1-simple-attribute-lookup.md)
   * [7-2 解析 this](expressions-and-filters/7-lookup-and-function-call-expressions/7-2-parsing-this.md)
@@ -121,7 +121,7 @@
   * [7-9 在访问对象成员时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-9-ensuring-safety-in-member-access.md)
   * [7-10 在访问对象时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-10-ensuring-safe-objects.md)
   * [7-11 在调用函数时启用安全策略](expressions-and-filters/7-lookup-and-function-call-expressions/7-11-ensuring-safe-functions.md)
-  * [7-12 本章总结](expressions-and-filters/7-lookup-and-function-call-expressions/7-12-summary.md)
+  * [7-12 本章小结](expressions-and-filters/7-lookup-and-function-call-expressions/7-12-summary.md)
 * [第8章 运算符表达式](expressions-and-filters/8-operator-expressions/8-operator-expressions.md)
   * [8-1 一元运算符](expressions-and-filters//8-operator-expressions/8-1-unary-operators.md)
   * [8-2 乘法类运算符](expressions-and-filters//8-operator-expressions/8-2-multiplicative-operators.md)
@@ -131,6 +131,7 @@
   * [8-6 三元运算符](expressions-and-filters//8-operator-expressions/8-6-the-ternary-operator.md)
   * [8-7 使用括号来调整优先级顺序](expressions-and-filters//8-operator-expressions/8-7-altering-the-precedence-order-with-parentheses.md)
   * [8-8 语句](expressions-and-filters//8-operator-expressions/8-8-statements.md)
+  * [8-9 本章小结](expressions-and-filters//8-operator-expressions/8-8-statements.md)
 * [第9章 过滤器](expressions-and-filters/9-filters/9-filters.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
