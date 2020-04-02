@@ -4,6 +4,6 @@
 
 我们可以使用类似 Unix 风格的管道符号来启用一个过滤器。举个例子，Angular 内置的 `uppercase` 过滤器就会接收一个字符串，把把字母串中所有字母变成大写：
 
-```unix
+```sh
 myExpression | uppercase
 ```
