@@ -47,3 +47,4 @@ function filter(name) {
 module.exports = { register: register, filter: filter };
 ```
 
+注册函数还支持在调用时使用注册多个过滤器的简写。
