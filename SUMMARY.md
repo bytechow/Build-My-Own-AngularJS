@@ -133,7 +133,7 @@
   * [8-8 语句](expressions-and-filters//8-operator-expressions/8-8-statements.md)
   * [8-9 本章小结](expressions-and-filters/8-operator-expressions/8-9-summary.md)
 * [第9章 过滤器](expressions-and-filters/9-filters/9-filters.md)
-  * [9-1 注册过滤器](expressions-and-filters/8-operator-expressions/9-1-filter-registration.md)
+  * [9-1 注册过滤器](expressions-and-filters/9-filters/9-1-filter-registration.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
 ## 三、模块与依赖注入
