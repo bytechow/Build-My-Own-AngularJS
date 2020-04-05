@@ -47,4 +47,56 @@ function filter(name) {
 module.exports = { register: register, filter: filter };
 ```
 
-注册函数还支持在调用时使用注册多个过滤器的简写。
+注册函数还支持使用简写形式一次性注册多个过滤器。我们只需要传递一个对象即可，这个对象的键是过滤器名称，值是名称对应的过滤器工厂函数：
+
+_test/filter_spec.js_
+
+```js
+it('allows registering multiple filters with an object', function() {
+  var myFilter = function() {};
+  var myOtherFilter = function() {};
+  register({
+    my: function() {
+      return myFilter;
+    },
+    myOther: function() {
+      return myOtherFilter;
+    }
+  });
+  
+  expect(filter('my')).toBe(myFilter);
+  expect(filter('myOther')).toBe(myOtherFilter);
+});
+```
+
+在实际开发中，只要我们发现第一个参数是对象，就对对象中的每一个键值对递归调用 `register` 方法：
+
+_src/filter.js_
+
+```js
+'use strict';
+
+var _ = require('lodash');
+
+var filters = {};
+
+function register(name, factory) {
+  if (_.isObject(name)) {
+    return _.map(name, function(factory, name) {
+      return register(name, factory);
+    });
+  } else {
+    var filter = factory();
+    filters[name] = filter;
+    return filter;
+  }
+}
+
+function filter(name) {
+  return filters[name];
+}
+
+module.exports = { register: register, filter: filter };
+```
+
+这样我们就完成了过滤器服务的注册流程。如前所述，一旦我们实现了依赖注入系统，就会对这个注册流程进行调整。
