@@ -136,6 +136,7 @@
   * [9-1 注册过滤器](expressions-and-filters/9-filters/9-1-filter-registration.md)
   * [9-2 过滤器表达式](expressions-and-filters/9-filters/9-2-filter-expressions.md)
   * [9-3 链式调用过滤器的表达式](expressions-and-filters/9-filters/9-3-filter-chain-expressions.md)
+  * [9-4 额外的过滤器参数](expressions-and-filters/9-filters/9-4-additional-filter-arguments.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
 ## 三、模块与依赖注入
