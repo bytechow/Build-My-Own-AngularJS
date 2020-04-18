@@ -1,9 +1,10 @@
 ### 链式调用过滤器的表达式
+
 #### Filter Chain Expressions
 
 过滤器还有一个重要的特性，就是它支持链式调用。这意味着，我们可以使用多个过滤器，中间使用管道符号分割：
 
-_test/parse_spec.js_
+_test/parse\_spec.js_
 
 ```js
 it('can parse filter chain expressions', function() {
@@ -42,3 +43,6 @@ AST.prototype.filter = function() {
   // return left;
 };
 ```
+
+
+
