@@ -138,6 +138,7 @@
   * [9-3 链式调用过滤器的表达式](expressions-and-filters/9-filters/9-3-filter-chain-expressions.md)
   * [9-4 额外的过滤器参数](expressions-and-filters/9-filters/9-4-additional-filter-arguments.md)
   * [9-5 Filter 过滤器](expressions-and-filters/9-filters/9-5-the-filter-filter.md)
+  * [9-6 使用判定函数进行过滤](expressions-and-filters/9-filters/9-6-filtering-with-predicate-functions.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
 ## 三、模块与依赖注入
