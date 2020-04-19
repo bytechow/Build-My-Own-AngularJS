@@ -73,4 +73,4 @@ register('filter', require('./filter_filter'));
 // module.exports = { register: register, filter: filter };
 ```
 
-注册完以后，我们就可以来看看 filter 过滤器具体能干什么了。
+注册完以后，下面我们来看看 filter 过滤器具体能干什么。
