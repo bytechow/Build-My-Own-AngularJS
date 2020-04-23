@@ -140,7 +140,7 @@ function comparator(actual, expected) {
 }
 ```
 
-如果在数组中有 `undefined` 的元素值，这个值也不应该匹配到字符串 `undefined`：
+如果在数组中有 `undefined` 的元素值，这个值也不应该匹配到字符串 `'undefined'`：
 
 _test/filter_filter_spec.js_
 
