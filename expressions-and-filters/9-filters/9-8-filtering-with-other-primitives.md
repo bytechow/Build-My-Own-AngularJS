@@ -150,3 +150,21 @@ it('does not match undefined values', function() {
   expect(fn({ arr: [undefined, 'undefined'] })).toEqual(['undefined']);
 });
 ```
+
+我们设定的规则是如果传入的实际值是一个 `undefined`，我们就不会让它通过过滤器的校验：
+
+_src/filter_filter.js_
+
+```js
+function comparator(actual, expected) {
+  if (_.isUndefined(actual)) {
+    return false;
+  }
+  // if (_.isNull(actual) || _.isNull(expected)) {
+  //   return actual === expected;
+  // }
+  // actual = ('' + actual).toLowerCase();
+  // expected = ('' + expected).toLowerCase();
+  // return actual.indexOf(expected) !== -1;
+}
+```
