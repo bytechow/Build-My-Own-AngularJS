@@ -210,3 +210,19 @@ it('filters an array of arrays where a nested value matches', function() {
   ]);
 });
 ```
+
+我们只需要把 `deepCompare` 变成一个递归函数就可以实现这个功能了。所有在对象（和数组）中的值会被再次传入到 `deepCompare` 中进行处理，而 `comparator` 只会在遇到叶子结点的原始类型值才会被调用：
+
+_src/filter_filter.js_
+
+```js
+function deepCompare(actual, expected, comparator) {
+  // if (_.isObject(actual)) {
+  //   return _.some(actual, function(value) {
+      return deepCompare(value, expected, comparator);
+  //   });
+  // } else {
+  //   return comparator(actual, expected);
+  // }
+}
+```

@@ -17,3 +17,6 @@ Angular scopes 实际上列出了五个内容，但却说是“four main areas�
 
 ## p225
 页中的 `test/parse.js` 需要改为 `test/parse_spec.js`
+
+## p328
+9-7 节的最后一段中，`compare` 应该改成 `comparator`
