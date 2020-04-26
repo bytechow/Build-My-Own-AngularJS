@@ -283,3 +283,93 @@ it('filters with nested objects on the same level only', function() {
   ]);
 });
 ```
+
+这个测试用例没有通过，这时因为我们当前的标准也会匹配到 `{user: {name: {first: ‘Bob’, last: ‘Fox’}}}`，为什么会这样呢？
+
+原因是一旦我们对期望值和实际值中的 `name` 属性进行遍历，期望值会变成原始字符串 `Bob`。我们已经学习过如果进行对字符串这种原始类型进行匹配，`deepCompare` 会对实际值中所有属性，包括内嵌属性，进行匹配。但在这种情况下，我们不希望进行这种匹配。我们只希望在当前层级上对原始类型进行匹配。
+
+我们需要对 `deepCompare` 进行扩展，让它既可以用来匹配实际值上任意层级的属性，也可以匹配指定层级上的属性。这可以通过一个新参数 `matchAnyProperty` 来进行控制。只有当它为 `true` 时，我们才对实际对象进行递归匹配，否则我们只会进行简单的原始类型级别的比较：
+
+_src/filter_filter.js_
+
+```js
+function deepCompare(actual, expected, comparator, matchAnyProperty) {
+  // if (_.isString(expected) && _.startsWith(expected, '!')) {
+  //   return !deepCompare(actual, expected.substring(1), comparator);
+  // }
+  // if (_.isArray(actual)) {
+  //   return _.some(actual, function(actualItem) {
+  //     return deepCompare(actualItem, expected, comparator);
+  //   });
+  // }
+  // if (_.isObject(actual)) {
+  //   if (_.isObject(expected)) {
+  //     return _.every(
+  //       _.toPlainObject(expected),
+  //       function(expectedVal, expectedKey) {
+  //         if (_.isUndefined(expectedVal)) {
+  //           return true;
+  //         }
+  //         return deepCompare(actual[expectedKey], expectedVal, comparator);
+  //       }
+  //     );
+    } else if (matchAnyProperty) {
+      // return _.some(actual, function(value, key) {
+      //   return deepCompare(value, expected, comparator);
+      // });
+    } else {
+      return comparator(actual, expected);
+      // }
+  // } else {
+  //   return comparator(actual, expected);
+  // }
+}
+```
+
+现在在判定函数中，我们需要往这个参数传入 `true` 才能恢复我们希望匹配任意属性的默认行为：
+
+_src/filter_fitler.js_
+
+```js
+return function predicateFn(item) {
+  return deepCompare(item, expression, comparator, true);
+};
+```
+
+在递归调用 `deepCompare` 时，我们需要把这个参数传递下去，唯一的例外是 `_.every` 函数，我们不需要匹配任意层级的属性：
+
+_src/filter_filter.js_
+
+```js
+function deepCompare(actual, expected, comparator, matchAnyProperty) {
+  // if (_.isString(expected) && _.startsWith(expected, '!')) {
+    return !deepCompare(actual, expected.substring(1),
+      comparator, matchAnyProperty);
+  // }
+  // if (_.isArray(actual)) {
+  //   return _.some(actual, function(actualItem) {
+      return deepCompare(actualItem, expected,
+        comparator, matchAnyProperty);
+  //   });
+  // }
+  // if (_.isObject(actual)) {
+  //   if (_.isObject(expected)) {
+  //     return _.every(_.toPlainObject(expected), function(expectedVal, expectedKey) {
+  //       if (_.isUndefined(expectedVal)) {
+  //         return true;
+  //       }
+        return deepCompare(actual[expectedKey], expectedVal, comparator);
+    //   });
+    // } else if (matchAnyProperty) {
+    //   return _.some(actual, function(value, key) {
+        return deepCompare(value, expected,
+  //         comparator, matchAnyProperty);
+  //     });
+  //   } else {
+  //     return comparator(actual, expected);
+  //   }
+  // } else {
+  //   return comparator(actual, expected);
+  // }
+}
+```
