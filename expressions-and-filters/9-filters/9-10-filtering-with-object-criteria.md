@@ -336,7 +336,7 @@ return function predicateFn(item) {
 };
 ```
 
-在递归调用 `deepCompare` 时，我们需要把这个参数传递下去，唯一的例外是 `_.every` 函数，我们不需要匹配任意层级的属性：
+在递归调用 `deepCompare` 时，我们需要把这个参数传递下去，唯一的例外是 `_.every` 函数，在这个函数中我们不需要匹配任意层级的属性：
 
 _src/filter_filter.js_
 
