@@ -22,4 +22,6 @@ Angular scopes 实际上列出了五个内容，但却说是“four main areas�
 9-7 节的最后一段中，`compare` 应该改成 `comparator`
 
 ## p341
-最后一段，`fourth` 应该改为 `fifth`，`inWildcard` 应该改为 `isWildcard`， `isWildcard` 是第 5 个参数，而不是第 4 个。
+最后一段，`fourth` 应该改为 `fifth`，`isWildcard` 是第 5 个参数，而不是第 4 个。
+
+> 注意不要弄混了 `isWildcard` 和 `inWildcard`，它俩只有一字之差。

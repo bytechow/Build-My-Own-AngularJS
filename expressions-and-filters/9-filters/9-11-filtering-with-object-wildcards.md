@@ -148,3 +148,47 @@ it('filters with a nested wildcard property', function() {
   ]);
 });
 ```
+
+目前也会匹配到 `role: 'moderator'`，但我们希望它只会匹配到两个层次都包含 'o' 的对象，因为我们已经在标准对象中指明了。
+
+我们可以通过在给 `deepComare` 传入第四个参数 `inWildcard` 来解决这个问题。我们只会在匹配了一个通配符之后再进行递归时才把它设置为 true：
+
+_src/filter_filter.js_
+
+```js
+function deepCompare(
+  actual, expected, comparator, matchAnyProperty, inWildcard) {
+  // if (_.isString(expected) && _.startsWith(expected, '!')) {
+  //   return !deepCompare(actual, expected.substring(1),
+  //   }
+  //   if (_.isArray(actual)) {
+  //     comparator,
+  //     matchAnyProperty);
+  //   return _.some(actual, function(actualItem) {
+  //       return deepCompare(actualItem, expected,
+  //       });
+  //   }
+  //   comparator, matchAnyProperty);
+  // if (_.isObject(actual)) {
+  //   if (_.isObject(expected)) {
+  //     return _.every(_.toPlainObject(expected), function(expectedVal, expectedKey) {
+  //       if (_.isUndefined(expectedVal)) {
+  //         return true;
+  //       }
+        var isWildcard = (expectedKey === '$');
+        var actualVal = isWildcard ? actual : actual[expectedKey];
+        return deepCompare(actualVal, expectedVal,
+          comparator, isWildcard, isWildcard);
+  //     });
+  //   } else if (matchAnyProperty) {
+  //     return _.some(actual, function(value, key) {
+  //       return deepCompare(value, expected, comparator, matchAnyProperty);
+  //     });
+  //   } else {
+  //     return comparator(actual, expected);
+  //   }
+  // } else {
+  //   return comparator(actual, expected);
+  // }
+}
+```
