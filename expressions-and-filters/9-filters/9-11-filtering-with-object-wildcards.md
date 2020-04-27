@@ -54,3 +54,97 @@ it('filters wildcard properties scoped to parent', function() {
   ]);
 });
 ```
+
+当我们对期望对象的内容进行遍历时，我们需要检查这个 key 是否是 `$`。如果是，我们就要对实际对象的_整体_进行匹配，而不单单是对它本身包含的 key 进行匹配（这需要实际对象中包含 `$` 属性）：
+
+_src/filter_filter.js_
+
+```js
+return _.every(
+  // _.toPlainObject(expected),
+  // function(expectedVal, expectedKey) {
+  //   if (_.isUndefined(expectedVal)) {
+  //     return true;
+  //   }
+    var isWildcard = (expectedKey === '$');
+    var actualVal = isWildcard ? actual : actual[expectedKey];
+    return deepCompare(actualVal, expectedVal, comparator);
+  // }
+);
+```
+
+除此之外，我们确实需要在实际对象中匹配任意层次的属性。这就是通配符想要达到的效果。因此，我们需要在调用 `deepCompare` 时传递第四个参数：
+
+_src/filter_filter.js_
+
+```js
+return _.every(
+  // _.toPlainObject(expected),
+  // function(expectedVal, expectedKey) {
+  //   if (_.isUndefined(expectedVal)) {
+  //     return true;
+  //   }
+  //   var isWildcard = (expectedKey === '$');
+  //   var actualVal = isWildcard ? actual : actual[expectedKey];
+    return deepCompare(actualVal, expectedVal, comparator, isWildcard);
+  // }
+);
+```
+
+实际上，当我们在标准对象的顶层使用通配符后，它也能够对数组中的原始类型元素进行匹配：
+
+_test/filter_filter_spec.js_
+
+```js
+it('filters primitives with a wildcard property', function() {
+  var fn = parse('arr | filter:{$: "o"}');
+  expect(fn({ arr: ['Joe', 'Jane', 'Mary'] })).toEqual(['Joe']);
+});
+```
+
+在判定函数里面，如果是要匹配一个非对象类型的数据，就会直接使用原始过滤器表达式中的 `$` 属性对应的值（如果有的话）进行匹配：
+
+_src/filter_filter.js_
+
+```js
+function createPredicateFn(expression) {
+  var shouldMatchPrimitives =
+    _.isObject(expression) && ('$' in expression);
+
+  // function comparator(actual, expected) {
+  //   if (_.isUndefined(actual)) {
+  //     return false;
+  //   }
+  //   if (_.isNull(actual) || _.isNull(expected)) {
+  //     return actual === expected;
+  //   }
+  //   actual = ('' + actual).toLowerCase();
+  //   expected = ('' + expected).toLowerCase();
+  //   return actual.indexOf(expected) !== -1;
+  // }
+  
+  // return function predicateFn(item) {
+    if (shouldMatchPrimitives && !_.isObject(item)) {
+      return deepCompare(item, expression.$, comparator);
+    }
+    // return deepCompare(item, expression, comparator, true);
+  // };
+}
+````
+
+最后，通配符属性也可以嵌套使用。使用以后，代表我们需要实际对象的某个内嵌层中需要存在某个值：
+
+_test/filter_filter_spec.js_
+
+```js
+it('filters with a nested wildcard property', function() {
+  var fn = parse('arr | filter:{$: {$: "o"}}');
+  expect(fn({
+    arr: [
+      { name: { first: 'Joe' }, role: 'admin' }, { name: { first: 'Jane' }, role: 'moderator' }, { name: { first: 'Mary' }, role: 'admin' }
+    ]
+  })).toEqual([
+    { name: { first: 'Joe' }, role: 'admin' }
+  ]);
+});
+```
