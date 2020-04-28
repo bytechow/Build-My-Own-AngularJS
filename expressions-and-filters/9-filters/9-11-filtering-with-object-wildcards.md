@@ -192,3 +192,43 @@ function deepCompare(
   // }
 }
 ```
+
+我们可以使用一个 `if` 语句来保证在通配符匹配时不会再对整个对象标准（中的其余层次）进行匹配。也就是说，程序会进入到第二个条件分支（`else if (matchAnyProperty)`） 中去，然后就会进入到下一个嵌套中。当继续递归调用时，`inWildcard` 标识会再次变成假值（falsy），因此我们会在正确的上下文下应用第二个通配符：
+
+_src/filter_filter.js_
+
+```js
+function deepCompare(
+  actual, expected, comparator, matchAnyProperty, inWildcard) {
+  // if (_.isString(expected) && _.startsWith(expected, '!')) {
+  //   return !deepCompare(actual, expected.substring(1),
+  //   }
+  //   if (_.isArray(actual)) {
+  //     comparator,
+  //     matchAnyProperty);
+  //   return _.some(actual, function(actualItem) {
+  //       return deepCompare(actualItem, expected,
+  //         comparator, matchAnyProperty);
+  //       if (_.isObject(actual)) {});
+  //   }
+    if (_.isObject(expected) && !inWildcard) {
+  //     return _.every(_.toPlainObject(expected), function(expectedVal, expectedKey) {
+  //       if (_.isUndefined(expectedVal)) {
+  //         return true;
+  //       }
+  //       var isWildcard = (expectedKey === '$');
+  //       var actualVal = isWildcard ? actual : actual[expectedKey];
+  //       return deepCompare(actualVal, expectedVal,
+  //       }); comparator, isWildcard, isWildcard);
+  //   } else if (matchAnyProperty) {
+  //     return _.some(actual, function(value, key) {
+  //       return deepCompare(value, expected, comparator, matchAnyProperty);
+  //     });
+  //   } else {
+  //     return comparator(actual, expected);
+  //   }
+  // } else {
+  //   return comparator(actual, expected);
+  // }
+}
+```
