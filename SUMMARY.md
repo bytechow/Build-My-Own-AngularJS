@@ -145,6 +145,7 @@
   * [9-10 使用对象进行过滤](expressions-and-filters/9-filters/9-10-filtering-with-object-criteria.md)
   * [9-11 使用对象通配符进行过滤](expressions-and-filters/9-filters/9-11-filtering-with-object-wildcards.md)
   * [9-12 使用自定义比较器进行过滤](expressions-and-filters/9-filters/9-12-filtering-with-custom-comparators.md)
+  * [9-13 本章小结](expressions-and-filters/9-filters/9-13-summary.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
 
 ## 三、模块与依赖注入
