@@ -148,6 +148,7 @@
   * [9-13 本章小结](expressions-and-filters/9-filters/9-13-summary.md)
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
   * [10-1 将表达式集成到作用域中去](expressions-and-filters/10-watching-expressions/10-1-integrating-expressions-to-scopes.md)
+  * [10-2 字面量与常量表达式](expressions-and-filters/10-watching-expressions/10-2-literal-and-constant-expressions.md)
 
 ## 三、模块与依赖注入
 
