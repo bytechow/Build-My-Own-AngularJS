@@ -141,3 +141,42 @@ it('accepts expressions in $eval', function() {
   expect(scope.$eval('42')).toBe(42);
 });
 ```
+
+由于 `$apply` 和 `$evalAsync` 都是在 `$eval` 的基础上构建的，它们也同样支持使用表达式。我们把下面两个测试用例分别放到 `describe('$apply')` 和 `describe('$evalAsync')` 中去：
+
+_test/scope_spec.js_
+
+```js
+it('accepts expressions in $apply', function() {
+  scope.aFunction = _.constant(42);
+  expect(scope.$apply('aFunction()')).toBe(42);
+});
+
+it('accepts expressions in $evalAsync', function(done) {
+  var called;
+  scope.aFunction = function() {
+    called = true;
+  };
+
+  scope.$evalAsync('aFunction()');
+  
+  scope.$$postDigest(function() {
+    expect(called).toBe(true);
+    done();
+  });
+});
+```
+
+在 `$eval` 中，我们要做的只是对传入的表达式进行解析，然后调用生成的表达式函数就可以了：
+
+_src/scope.js_
+
+```js
+Scope.prototype.$eval = function(expr, locals) {
+  return parse(expr)(this, locals);
+};
+```
+
+由于 `$apply` 和 `$evalAsync` 都是基于 `$eval` 实现的，因此只要改了上面这句就可以让这两个函数都支持解析表达式了：
+
+注意，我们需要传递 `locals` 参数给表达式参数。正如我们在实现属性查找表达式（lookup expressions）时所看到的，我们可能会使用这个参数来覆盖作用域属性。
