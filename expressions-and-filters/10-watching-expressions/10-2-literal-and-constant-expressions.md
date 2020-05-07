@@ -400,3 +400,51 @@ case AST.MemberExpression:
   ast.constant = ast.object.constant;
   break;
 ```
+
+如果是计算型的属性查找，我们还需要看查找属性时使用的键（key）是不是一个常量：
+
+_test/parse_spec.js_
+
+```js
+it('marks computed lookup constant when object and key are', function() {
+  expect(parse('{a: 1}["a"]').constant).toBe(true);
+  expect(parse('obj["a"]').constant).toBe(false);
+  expect(parse('{a: 1}[something]').constant).toBe(false);
+  expect(parse('obj[something]').constant).toBe(false);
+});
+```
+
+如果是计算型的属性查找，我们需要额外检查 property 节点：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  // markConstantExpressions(ast.object);
+  if (ast.computed) {
+    markConstantExpressions(ast.property);
+  }
+  ast.constant = ast.object.constant &&
+                  (!ast.computed || ast.property.constant);
+  // break;
+```
+
+函数调用表达式就不是一个常量——我们不能对函数的性质作这样的假设：
+
+_test/parse_spec.js_
+
+```js
+it('marks function calls non-constant', function() {
+  expect(parse('aFunction()').constant).toBe(false);
+});
+```
+
+在遇到函数调用表达式时，我们直接把常量标识设置为 `false` 就可以了：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  ast.constant = false;
+  break;
+```
