@@ -448,3 +448,145 @@ case AST.CallExpression:
   ast.constant = false;
   break;
 ```
+
+但在调用过滤器时就有一个例外情况了。过滤器的调用也是一种调用表达式，但与普通函数调用不一样，如果它们的输入表达式时一个常量的话，它们也会被视为是常量：
+
+_test/parse_spec.js_
+
+```js
+it('marks filters constant if arguments are', function() {
+  register('aFilter', function() {
+    return _.identity;
+  });
+  expect(parse('[1, 2, 3] | aFilter ').constant).toBe(true);
+  expect(parse(' [1, 2 a] | aFilter').constant).toBe(false);
+  expect(parse('[1, 2, 3] | aFilter:42').constant).toBe(true);
+  expect(parse(' [1, 2, 3] | aFilter:a').constant).toBe(false);
+});
+```
+
+我们可以使用跟之前用在数组和对象上的一样的技巧：对传入的数组参数进行递归检查，如果数组中的每个元素都是常量，就设置常量标识。注意，我们会根据节点的 `filter` 标识的值来初始化 `constant` 标识，因此，如果是非过滤器类型的函数调用，它的标识也不会变成 `true`：
+
+_src/parse.js_
+
+```js
+// case AST.CallExpression:
+  allConstants = ast.filter ? true : false;
+  _.forEach(ast.arguments, function(arg) {
+    markConstantExpressions(arg);
+    allConstants = allConstants && arg.constant;
+  });
+  ast.constant = allConstants;
+  // break;
+```
+
+> 过滤器还会存在即使传入的参数是常量但还不算是常量的情况。在本章后面会讲到。
+
+如果赋值表达式左右两侧都是常量，那它实际上就是一个常量了。虽然把赋值表达式的左侧变成常量并没有什么实际意义：
+
+_test/parse_spec.js_
+
+```js
+it('marks assignments constant when both sides are', function() {
+  expect(parse('1 = 2').constant).toBe(true);
+  expect(parse('a = 2').constant).toBe(false);
+  expect(parse('1 = b').constant).toBe(false);
+  expect(parse('a = b').constant).toBe(false);
+});
+````
+
+我们需要对赋值两侧的内容进行检查，然后根据检查结果设置它的 `constant` 属性：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  markConstantExpressions(ast.left);
+  markConstantExpressions(ast.right);
+  ast.constant = ast.left.constant && ast.right.constant;
+  break;
+```
+
+如果一元运算符的运算数是常量时，它也是一个常量：
+
+_test/parse_spec.js_
+
+```js
+it('marks unaries constant when arguments are constant', function() {
+  expect(parse('+42').constant).toBe(true);
+  expect(parse('+a').constant).toBe(false);
+});
+```
+
+开发时，我们会先对运算数进行检查，然后根据检查结果来设置一元运算表达式的常量标识：
+
+_src/parse.js_
+
+```js
+case AST.UnaryExpression:
+  markConstantExpressions(ast.argument);
+  ast.constant = ast.argument.constant; break;
+```
+
+二元运算符表达式是否为常量时根据左右两边运算数是否为常量来决定。如果两边的运算数都为常量，那整个表达式都会是常量：
+
+_test/parse_spec.js_
+
+```js
+it('marks binaries constant when both arguments are constant', function() {
+  expect(parse('1 + 2').constant).toBe(true);
+  expect(parse('1 + 2').literal).toBe(false);
+  expect(parse('1 + a').constant).toBe(false);
+  expect(parse('a + 1').constant).toBe(false);
+  expect(parse('a + a').constant).toBe(false);
+});
+
+it('marks logicals constant when both arguments are constant', function() {
+  expect(parse('true && false').constant).toBe(true);
+  expect(parse('true && false').literal).toBe(false);
+  expect(parse('true && a').constant).toBe(false);
+  expect(parse('a && false').constant).toBe(false);
+  expect(parse('a && b').constant).toBe(false);
+});
+```
+
+开发时，要让这两个测试用例通过，需要检查两边的运算数节点，再决定表达式的 `constant` 属性值：
+
+_src/parse.js_
+
+```js
+case AST.BinaryExpression: case AST.LogicalExpression:
+  markConstantExpressions(ast.left);
+  markConstantExpressions(ast.right);
+  ast.constant = ast.left.constant && ast.right.constant;
+  break;
+```
+
+最后是三元运算符，它也一样，如果所有运算数都为常量，它对应的表达式就为常量：
+
+_test/parse_spec.js_
+
+```js
+it('marks ternaries constant when all arguments are', function() {
+  expect(parse('true ? 1 : 2').constant).toBe(true);
+  expect(parse('a ? 1 : 2').constant).toBe(false);
+  expect(parse('true ? a : 2').constant).toBe(false);
+  expect(parse('true ? 1 : b').constant).toBe(false);
+  expect(parse('a ? b : c').constant).toBe(false);
+});
+```
+
+在决定 `constant` 的结果之前，我们需要先分别检查它的三个运算数：
+
+_src/parse.js_
+
+```js
+case AST.ConditionalExpression: markConstantExpressions(ast.test);
+  markConstantExpressions(ast.consequent);
+  markConstantExpressions(ast.alternate);
+  ast.constant =
+    ast.test.constant && ast.consequent.constant && ast.alternate.constant;
+  break;
+```
+
+现在我们就可以实现了一个完整的能对所有类型的表达式进行常量标记的树遍历方法。
