@@ -17,5 +17,61 @@ it('removes constant watches after first invocation', function() {
 
 现在，这个测试用例执行后会抛出一个“10 iterations reached”（已重试了 10 次）的异常，因为这个表达式每次执行都会生成一个新的数组，因此使用引用比较的 watch 每次都会认为它是一个新值。但 `[1, 2, 3]` 实际上是一个常量，我们只需要执行一次运算就够了。
 
-我们可以使用一个叫 _侦测委托_（watch delegates） 的新表达式特性来解决这个问题。侦测委托实际上是一个可以附加到表达式上的函数。
+我们可以使用一个叫 _侦测委托_（watch delegates） 的新表达式特性来解决这个问题。侦测委托实际上是一个可以附加到表达式上的函数。当 `Scope.$watch` 中发现了表达式带有一个侦测委托，我们就要绕过正常的创建侦听器的步骤。我们不会在这个方法中创建侦听器，但是我们会把这个任务委托给表达式本身：
 
+_src/scope.js_
+
+```js
+Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
+  // var self = this;
+
+  watchFn = parse(watchFn);
+
+  if (watchFn.$$watchDelegate) {
+    return watchFn.$$watchDelegate(self, listenerFn, valueEq, watchFn);
+  }
+  
+  // var watcher = {
+    watchFn: watchFn,
+  //   listenerFn: listenerFn || function() {},
+  //   last: initWatchVal,
+  //   valueEq: !!valueEq
+  // };
+  // this.$$watchers.unshift(watcher);
+  // this.$$root.$$lastDirtyWatch = null;
+  // return function() {
+  //   var index = self.$$watchers.indexOf(watcher);
+  //   if (index >= 0) {
+  //     self.$$watchers.splice(index, 1);
+  //     self.$$root.$$lastDirtyWatch = null;
+  //   }
+  // };
+};
+```
+
+为了正确创建侦听器，我们需要传递所有必须的参数给侦听委托：作用域实例、listener 函数，基于值/引用的相等性判断标识还有要侦听的表达式本身。
+
+> 可以看到，侦听委托加入了双美元符号作为前缀，这表示它是 Angular 内部使用的特性，应用开发者不应该直接使用。
+
+只要我们需要在侦听器针对某些特殊情况进行处理，表达式解析器都可以把侦听委托加入到表达式函数上了。其中一个特殊情况就是常量表达式，我们需要加入一个_常量侦听委托_（constant watch delegate）：
+
+_src/parse.js_
+
+```js
+function parse(expr) {
+  // switch (typeof expr) {
+  //   case 'string':
+  //     var lexer = new Lexer();
+  //     var parser = new Parser(lexer);
+      var parseFn = parser.parse(expr);
+      if (parseFn.constant) {
+        parseFn.$$watchDelegate = constantWatchDelegate;
+      }
+      return parseFn;
+  //   case 'function':
+  //     return expr;
+  //   default:
+  //     return _.noop;
+  // }
+}
+```
