@@ -75,3 +75,28 @@ function parse(expr) {
   // }
 }
 ```
+
+常量侦听委托（constant watch delegate）跟其他 watcher 基本一致，但它会在第一次调用后移除自身：
+
+_src/parse.js_
+
+```js
+function constantWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  var unwatch = scope.$watch(
+    function() {
+      return watchFn(scope);
+    },
+    function(newValue, oldValue, scope) {
+      if (_.isFunction(listenerFn)) {
+        listenerFn.apply(this, arguments);
+      }
+      unwatch();
+    },
+    valueEq);
+  return unwatch;
+}
+```
+
+注意，我们并不是直接把原始的 `watchFn` 作为 `$watch` 的第一个参数，因为这样会让 `$watch` 再次找到 `$$watchDelegate`，形成无限循环。我们会把它包裹在一个不带 `$$watchDelegate` 的函数中。
+
+同时也要注意我们会返回 `unwatch` 函数。即使常量侦听器会在第一次调用后销毁自身，我们也需要允许它使用 `Scope.$watch` 的返回值来执行移除操作，跟其他侦听器保持一致。
