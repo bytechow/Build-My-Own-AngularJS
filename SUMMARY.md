@@ -149,7 +149,8 @@
 * [第10章 监听表达式](expressions-and-filters/10-watching-expressions/10-watching-expressions.md)
   * [10-1 将表达式集成到作用域中去](expressions-and-filters/10-watching-expressions/10-1-integrating-expressions-to-scopes.md)
   * [10-2 字面量与常量表达式](expressions-and-filters/10-watching-expressions/10-2-literal-and-constant-expressions.md)
-  * [10-3 优化对常量表达式的侦测](expressions-and-filters/10-watching-expressions/10-3-optimizing-constant-expression-watching.md)
+  * [10-3 优化对常量表达式的侦测](expressions-and-filters/10-watching-expressions/10-3-one-time-expressions.md)
+  * [10-4 单次绑定的表达式](expressions-and-filters/10-watching-expressions/10-4-optimizing-constant-expression-watching.md)
 
 ## 三、模块与依赖注入
 
