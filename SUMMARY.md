@@ -151,6 +151,7 @@
   * [10-2 字面量与常量表达式](expressions-and-filters/10-watching-expressions/10-2-literal-and-constant-expressions.md)
   * [10-3 优化对常量表达式的侦测](expressions-and-filters/10-watching-expressions/10-3-optimizing-constant-expression-watching.md)
   * [10-4 单次绑定表达式](expressions-and-filters/10-watching-expressions/10-4-one-time-expressions.md)
+  * [10-5 输入跟踪](expressions-and-filters/10-watching-expressions/10-5-input-tracking.md)
 
 ## 三、模块与依赖注入
 
