@@ -190,3 +190,69 @@ function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
   // return unwatch;
 }
 ```
+
+现在效果已经很不错了，但我们还需要处理单次绑定侦听器的一种特殊情况：在处理表示集合的字面量（比如数组或者对象）时，单次绑定在移除这个侦听器之前，需要检查字面量里面的值是否都被定义过了。举个例子，如果要单次绑定的是一个数组字面量，我们只会在所有数组元素都不为 `undefined` 时才移除它：
+
+_test/scope_spec.js_
+
+```js
+it('does not remove one-time watches before all array items defined', function() {
+  scope.$watch('::[1, 2, aValue]', function() {}, true);
+
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(1);
+  
+  scope.aValue = 3;
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(0);
+});
+```
+
+对象字面量的侦听器也一样，只有在对象里所有属性值都不为 `undefined` 时才移除这个侦听器：
+
+_test/scope_spec.js_
+
+```js
+it('does not remove one-time watches before all object vals defined', function() {
+  scope.$watch('::{a: 1, b: aValue}', function() {}, true);
+  
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(1);
+  
+  scope.aValue = 3;
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(0);
+});
+```
+
+> 这个特性也支持指令使用对象字面量进行单次绑定，比如 `ngClass` 和 `ngClass`。
+
+如果表达式是一个字面亮，我们应该使用一个特殊的“一次性字面量侦听器”委托来代替普通的单次绑定侦听委托：
+
+_src/parse.js_
+
+```js
+function parse(expr) {
+  // switch (typeof expr) {
+  //   case 'string':
+  //     var lexer = new Lexer();
+  //     var parser = new Parser(lexer);
+  //     var oneTime = false;
+  //     if (expr.charAt(0) === ':' && expr.charAt(1) === ':') {
+  //       oneTime = true;
+  //       expr = expr.substring(2);
+  //     }
+  //     var parseFn = parser.parse(expr);
+  //     if (parseFn.constant) {
+  //       parseFn.$$watchDelegate = constantWatchDelegate;
+  //     } else if (oneTime) {
+        parseFn.$$watchDelegate = parseFn.literal ? oneTimeLiteralWatchDelegate : oneTimeWatchDelegate;
+  //     }
+  //     return parseFn;
+  //   case 'function':
+  //     return expr;
+  //   default:
+  //     return _.noop;
+  // }
+}
+```
