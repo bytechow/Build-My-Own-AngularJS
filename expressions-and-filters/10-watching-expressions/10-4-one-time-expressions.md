@@ -100,3 +100,93 @@ function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
   return unwatch;
 }
 ```
+
+但这里还有一个问题，单次绑定表达式在第一次运算时可能并不会像常量表达式那样总是存在着值。举个例子，我们在第一次表达式运算时可能还在等待服务器返回数据。如果单次绑定能够支持这种异步的场景，会更有用。这也是为什么它们只会在返回值不为 `undefined` 时被移除：
+
+_test/scope_spec.js_
+
+```js
+it('does not remove one-time-watches until value is defined', function() {
+  scope.$watch('::aValue', function() {});
+  
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(1);
+  
+  scope.aValue = 42;
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(0);
+});
+```
+
+要通过这个测试用例，我们可以在调用 `unwatch` 语句的外面包裹一层 `if` 语句：
+
+_src/parse.js_
+
+```js
+function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  // var unwatch = scope.$watch(
+  //   function() {
+  //     return watchFn(scope);
+  //   },
+  //   function(newValue, oldValue, scope) {
+  //     if (_.isFunction(listenerFn)) {
+  //       listenerFn.apply(this, arguments);
+  //     }
+      if (!_.isUndefined(newValue)) {
+        // unwatch();
+      }
+  //   }, valueEq);
+  // return unwatch;
+}
+```
+
+但这还并不是最优的处理方式。我们之前也看到了，在 digest 时可能会发生很多事情，有可能其中一件事情就是把表达式的值再次变成 `undefined`。Angular 只会在值_稳定_下来后才会移除单次绑定表达式的 watch，换言之，这个值在 digest 的最后时刻一定不能是 `undefined`（才会去移除）：
+
+_test/scope_spec.js_
+
+```js
+it('does not remove one-time-watches until value stays defined', function() {
+  scope.aValue = 42;
+
+  scope.$watch('::aValue', function() {});
+  var unwatchDeleter = scope.$watch('aValue', function() {
+    delete scope.aValue;
+  });
+  
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(2);
+  
+  scope.aValue = 42;
+  unwatchDeleter();
+  scope.$digest();
+  expect(scope.$$watchers.length).toBe(0);
+});
+```
+
+在这个测试用例中，我们会加入第二个侦听器，它会在 digest 期间把单词绑定的监听器的值在此变成 `undefined`。只要第二个监听器存在，单次绑定的侦听器就不会稳定下来，也就不会被移除了。
+
+我们必须要对单次绑定的监听器的最后一个值进行跟踪，然后在 digest 结束时看看它是否已经被定义过了。如果已经定义过，我们才会移除这个侦听器。我们可以利用 `$$postDigest` 方法来延迟执行移除的操作：
+
+_src/parse.js_
+
+```js
+function oneTimeWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  var lastValue;
+  // var unwatch = scope.$watch(function() {
+  //   return watchFn(scope);
+  // }, function(newValue, oldValue, scope) {
+    lastValue = newValue;
+    // if (_.isFunction(listenerFn)) {
+    //   listenerFn.apply(this, arguments);
+    // }
+    // if (!_.isUndefined(newValue)) {
+      scope.$$postDigest(function() {
+        if (!_.isUndefined(lastValue)) {
+          // unwatch();
+        }
+      });
+  //   }
+  // }, valueEq);
+  // return unwatch;
+}
+```
