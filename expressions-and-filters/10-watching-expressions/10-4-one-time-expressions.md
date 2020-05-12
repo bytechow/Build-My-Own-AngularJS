@@ -256,3 +256,32 @@ function parse(expr) {
   // }
 }
 ```
+
+这个委托函数跟单词绑定的侦听委托相似，但它并没有检查表达式本身的值是否已经被定义，同时会假设这个字面亮是一个集合，最后检查这个集合中包含的元素是否都已被定义：
+
+_src/parse.js_
+
+```js
+function oneTimeLiteralWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  function isAllDefined(val) {
+    return !_.any(val, _.isUndefined);
+  }
+  var unwatch = scope.$watch(function() {
+    return watchFn(scope);
+  }, function(newValue, oldValue, scope) {
+    if (_.isFunction(listenerFn)) {
+      listenerFn.apply(this, arguments);
+    }
+    if (isAllDefined(newValue)) {
+      scope.$$postDigest(function() {
+        if (isAllDefined(newValue)) {
+          unwatch();
+        }
+      });
+    }
+  }, valueEq);
+  return unwatch;
+}
+```
+
+> 数字、字符串、布尔值和 `undefined` 也都是字面量，但它们永远都不会被传递给 `oneTimeLiteralWatchDelegate`，因为它们都是常量，会直接被委托给 `constantWatchDelegate`。换句话说，一次性字面量委托函数（one-time literal delegate）只会接收到至少包含一个非常量元素的数组或者对象。
