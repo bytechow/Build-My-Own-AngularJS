@@ -62,12 +62,110 @@ function parse(expr) {
   //         oneTimeWatchDelegate;
       } else if (parseFn.inputs) {
         parseFn.$$watchDelegate = inputsWatchDelegate;
-      }
+  //     }
   //     return parseFn;
   //   case 'function':
   //     return expr;
   //   default:
   //     return _.noop;
   // }
+}
+```
+
+对给定的输入表达式需要单独增加一个侦听器：
+
+_src/parse.js_
+
+```js
+function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  var inputExpressions = watchFn.inputs;
+
+  return scope.$watch(function() {
+    
+  }, listenerFn, valueEq);
+}
+```
+
+对输入表达式的跟踪主要是通过维护一个数组，这个数组存放了输入表达式的值。这个数组会使用一些“唯一值”进行初始化（一个空的函数字面量），然后在每次执行 watch 时基于 scope 计算输入表达式的值，从而更新侦听器的值：
+
+_src/parse.js_
+
+```js
+function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  // var inputExpressions = watchFn.inputs;
+
+  var oldValues = _.times(inputExpressions.length, _.constant(function() {}));
+  
+  // return scope.$watch(function() {
+    _.forEach(inputExpressions, function(inputExpr, i) {
+      var newValue = inputExpr(scope);
+      if (!expressionInputDirtyCheck(newValue, oldValues[i])) {
+        oldValues[i] = newValue;
+      }
+    });
+  // }, listenerFn, valueEq);
+}
+```
+
+我们会把脏值检测的任务委托给一个新的辅助函数，它会对新旧值进行兼容 `NaN` 的、基于引用的相等性判断：
+
+_src/parse.js_
+
+```js
+function expressionInputDirtyCheck(newValue, oldValue) {
+  return newValue === oldValue ||
+    (typeof newValue === 'number' && typeof oldValue === 'number' &&
+      isNaN(newValue) && isNaN(oldValue));
+}
+```
+
+每次执行侦听器函数时，我们都会设置一个 `changed` 的标识，如果任何一个输入表达式发生变化时，这个标识就会被设置为 `true`：
+
+_src/parse.js_
+
+```js
+function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  // var inputExpressions = watchFn.inputs;
+
+  // var oldValues = _.times(inputExpressions.length, _.constant(function() {}));
+  
+  // return scope.$watch(function() {
+    var changed = false;
+    // _.forEach(inputExpressions, function(inputExpr, i) {
+    //   var newValue = inputExpr(scope);
+      if (changed || !expressionInputDirtyCheck(newValue, oldValues[i])) {
+        changed = true;
+  //       oldValues[i] = newValue;
+  //     }
+  //   });
+  // }, listenerFn, valueEq);
+}
+```
+
+如果有一个输入表达式发生了改变，组合表达式本身就会生成一个新值，并会把这个新值作为侦听器函数的返回值：
+
+_src/parse.js_
+
+```js
+function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
+  // var inputExpressions = watchFn.inputs;
+
+  // var oldValues = _.times(inputExpressions.length, _.constant(function() {}));
+  var lastResult;
+  
+  // return scope.$watch(function() {
+  //   var changed = false;
+  //   _.forEach(inputExpressions, function(inputExpr, i) {
+  //     var newValue = inputExpr(scope);
+  //     if (changed || !expressionInputDirtyCheck(newValue, oldValues[i])) {
+  //       changed = true;
+  //       oldValues[i] = newValue;
+  //     }
+  //   });
+    if (changed) {
+      lastResult = watchFn(scope);
+    }
+  //   return lastResult;
+  // }, listenerFn, valueEq);
 }
 ```
