@@ -1,12 +1,11 @@
 ### 对输入表达式进行跟踪
-
 #### Input Tracking
 
 关于表达式侦听，我们可以做一个优化，也就是_输入表达式跟踪_（input tracking）。它的核心概念就是当一个表达式是由一个或多个_输入表达式_组成（比如 `'a * b'` 就是由 `'a'` 和 `'b'`组成），除非其中一个输入表达式发生了变化，否则无需再重新计算表达式。
 
 举个例子，如果有一个数组字面量，它里面所有的元素都没有发生变化：
 
-_test/scope\_spec.js_
+_test/scope_spec.js_
 
 ```js
 it('does not re-evaluate an array if its contents do not change', function() {
@@ -15,19 +14,19 @@ it('does not re-evaluate an array if its contents do not change', function() {
   scope.a = 1;
   scope.b = 2;
   scope.c = 3;
-
+  
   scope.$watch('[a, b, c]', function(value) {
     values.push(value);
   });
-
+  
   scope.$digest();
   expect(values.length).toBe(1);
   expect(values[0]).toEqual([1, 2, 3]);
-
+  
   scope.$digest();
   expect(values.length).toBe(1);
   scope.c = 4;
-
+  
   scope.$digest();
   expect(values.length).toBe(2);
   expect(values[1]).toEqual([1, 2, 4]);
@@ -82,7 +81,7 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
   var inputExpressions = watchFn.inputs;
 
   return scope.$watch(function() {
-
+    
   }, listenerFn, valueEq);
 }
 ```
@@ -96,7 +95,7 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
   // var inputExpressions = watchFn.inputs;
 
   var oldValues = _.times(inputExpressions.length, _.constant(function() {}));
-
+  
   // return scope.$watch(function() {
     _.forEach(inputExpressions, function(inputExpr, i) {
       var newValue = inputExpr(scope);
@@ -129,7 +128,7 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
   // var inputExpressions = watchFn.inputs;
 
   // var oldValues = _.times(inputExpressions.length, _.constant(function() {}));
-
+  
   // return scope.$watch(function() {
     var changed = false;
     // _.forEach(inputExpressions, function(inputExpr, i) {
@@ -153,7 +152,7 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 
   // var oldValues = _.times(inputExpressions.length, _.constant(function() {}));
   var lastResult;
-
+  
   // return scope.$watch(function() {
   //   var changed = false;
   //   _.forEach(inputExpressions, function(inputExpr, i) {
@@ -171,5 +170,6 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 }
 ```
 
+`lastResult` 变量会保持不变，直到其中至少一个输入表达式发生改变。
 
-
+> Angular.js 还在 `inputsWatchDelegate`中对只有唯一一个输入表达式的情况做了一个额外的优化。在这种情况下，它会跳过创建 `oldValues` 数组的步骤，以便节省一些内存和计算开销。本书会跳过这个优化。
