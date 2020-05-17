@@ -174,4 +174,90 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 
 > Angular.js 还在 `inputsWatchDelegate`中对只有唯一一个输入表达式的情况做了一个额外的优化。在这种情况下，它会跳过创建 `oldValues` 数组的步骤，以便节省一些内存和计算开销。本书会跳过这个优化。
 
-在处理了监听委托之后
+在处理了监听委托之后，让我们考虑一下它使用的 `inputs` 数组是如何实现的。我们需要把目光转回 AST 编译器。
+
+要组成 `inputs`，首先需要判断输入表达式到底是什么类型。不同类型的表达式会有不同的输入类型，因此需要分别确定各个 AST 节点类型的输入节点。这意味着我们需要有一个树遍历函数，跟之前我们检查表达式是否为常量时创建的那个函数类似。
+
+实际上，我们不需要再新建一个树遍历函数，只需要对现有的这个函数进行扩展，让它既可以检查常量，又可以对输入表达式进行校验就可以了。首先我们需要对它进行重命名，让它的名字与行为之间更为贴切：
+
+_src/parse.js_
+
+```js
+function markConstantAndWatchExpressions(ast) {
+  // var allConstants;
+  // switch (ast.type) {
+    case AST.Program:
+  //     allConstants = true;
+  //     _.forEach(ast.body, function(expr) {
+        markConstantAndWatchExpressions(expr);
+    //     allConstants = allConstants && expr.constant;
+    //   });
+    //   ast.constant = allConstants;
+    //   break;
+    // case AST.Literal:
+    //   ast.constant = true;
+    //   break;
+    // case AST.Identifier:
+    //   ast.constant = false;
+    //   break;
+    case AST.ArrayExpression:
+      // allConstants = true;
+      // _.forEach(ast.elements, function(element) {
+        markConstantAndWatchExpressions(element);
+    //     allConstants = allConstants && element.constant;
+    //   });
+    //   ast.constant = allConstants;
+    //   break;
+    case AST.ObjectExpression:
+    //   allConstants = true;
+    //   _.forEach(ast.properties, function(property) {
+        markConstantAndWatchExpressions(property.value);
+    //     allConstants = allConstants && property.value.constant;
+    //   });
+    //   ast.constant = allConstants;
+    //   break;
+    // case AST.ThisExpression:
+    // case AST.LocalsExpression:
+    //   ast.constant = false;
+    //   break;
+    case AST.MemberExpression:
+      markConstantAndWatchExpressions(ast.object);
+      // if (ast.computed) {
+        markConstantAndWatchExpressions(ast.property);
+      // }
+      // ast.constant = ast.object.constant &&
+      //   (!ast.computed || ast.property.constant);
+      // break;
+    case AST.CallExpression:
+      // allConstants = ast.filter ? true : false;
+      // _.forEach(ast.arguments, function(arg) {
+        markConstantAndWatchExpressions(arg);
+      //   allConstants = allConstants && arg.constant;
+      // });
+      // ast.constant = allConstants;
+      // break;
+    case AST.AssignmentExpression:
+      markConstantAndWatchExpressions(ast.left);
+      markConstantAndWatchExpressions(ast.right);
+      // ast.constant = ast.left.constant && ast.right.constant;
+      // break;
+    case AST.UnaryExpression:
+      markConstantAndWatchExpressions(ast.argument);
+      // ast.constant = ast.argument.constant;
+      // break;
+    case AST.BinaryExpression:
+    case AST.LogicalExpression:
+      markConstantAndWatchExpressions(ast.left);
+      markConstantAndWatchExpressions(ast.right);
+      // ast.constant = ast.left.constant && ast.right.constant;
+      // break;
+    case AST.ConditionalExpression:
+      markConstantAndWatchExpressions(ast.test);
+      markConstantAndWatchExpressions(ast.consequent);
+      markConstantAndWatchExpressions(ast.alternate);
+  //     ast.constant =
+  //       ast.test.constant && ast.consequent.constant && ast.alternate.constant;
+  //     break;
+  // }
+}
+```
