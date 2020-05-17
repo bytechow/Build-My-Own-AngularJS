@@ -39,7 +39,7 @@ it('does not re-evaluate an array if its contents do not change', function() {
 
 我们需要在 parser 生成的每个表达式函数中记录它的输入表达式——这个表达式改变时可能会让整个表达式的值都发生改变。我们需要对我们的 AST 编译器进行扩展，让它不仅支持处理完整的表达式，还能够处理一个表达式中包含的多个输入表达式。
 
-在介绍 AST 编译器的变动前，我们先来看看侦听器这边应该怎么改。当我们传入一个表达式，如果它既不是常量，也不是单次绑定，而且有输入表达式，它就肯定会有一个 `inputs` 属性。如果是的话，我们将会使用一个特殊的 `inputsWatchDelegate` 委托进行监听：
+在介绍 AST 编译器的变动前，我们先来看看侦听器这边应该怎么改。当我们传入一个表达式，如果它既不是常量，也不是单次绑定，而且有输入表达式，它就肯定会有一个 `inputs` 属性。如果是的话，我们将会使用一个特殊的 `inputsWatchDelegate` 委托进行侦听：
 
 _src/parse.js_
 
@@ -174,7 +174,7 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 
 > Angular.js 还在 `inputsWatchDelegate`中对只有唯一一个输入表达式的情况做了一个额外的优化。在这种情况下，它会跳过创建 `oldValues` 数组的步骤，以便节省一些内存和计算开销。本书会跳过这个优化。
 
-在处理了监听委托之后，让我们考虑一下它使用的 `inputs` 数组是如何实现的。我们需要把目光转回 AST 编译器。
+在处理了侦听委托之后，让我们考虑一下它使用的 `inputs` 数组是如何实现的。我们需要把目光转回 AST 编译器。
 
 要组成 `inputs`，首先需要判断输入表达式到底是什么类型。不同类型的表达式会有不同的输入类型，因此需要分别确定各个 AST 节点类型的输入节点。这意味着我们需要有一个树遍历函数，跟之前我们检查表达式是否为常量时创建的那个函数类似。
 
@@ -260,4 +260,92 @@ function markConstantAndWatchExpressions(ast) {
   //     break;
   // }
 }
+```
+
+在 `ASTCompiler.compile` 方法中也需要更改对应的函数名称：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  markConstantAndWatchExpressions(ast);
+  // ...
+};
+```
+
+现在这个函数除了标记常量，我们还需要将每个 AST 节点的输入节点收集到一个叫 `toWatch` 的属性中。我们先要定义一个一个变量来收集输入节点：
+
+_src/parse.js_
+
+```js
+function markConstantAndWatchExpressions(ast) {
+  // var allConstants;
+  var argsToWatch;
+  // ...
+}
+```
+
+现在，我们需要依次考虑每个节点类型的输入，想想“这个表达式的值会在什么时候发生变化？”
+
+简单的字面量并不需要被侦听——它们永远都不会被改变：
+
+_src/parse.js_
+
+```js
+case AST.Literal:
+  // ast.constant = true;
+  ast.toWatch = [];
+  // break;
+```
+
+对标识符表达式来说，我们需要侦听的就是表达式本身。它没有更小的部门可以被拆解了：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // ast.constant = false;
+  ast.toWatch = [ast];
+  // break;
+```
+
+对数组来说，我们需要对所有非常量元素对应的输入表达式进行侦听：
+
+_src/parse.js_
+
+```js
+case AST.ArrayExpression:
+  // allConstants = true;
+  argsToWatch = [];
+  // _.forEach(ast.elements, function(element) {
+  //   markConstantAndWatchExpressions(element);
+  //   allConstants = allConstants && element.constant;
+    if (!element.constant) {
+      argsToWatch.push.apply(argsToWatch, element.toWatch);
+    }
+  // });
+  // ast.constant = allConstants;
+  ast.toWatch = argsToWatch;
+  // break;
+```
+
+同样地，对象会基于非常量属性值进行侦听：
+
+_src/parse.js_
+
+```js
+case AST.ObjectExpression:
+  // allConstants = true;
+  argsToWatch = [];
+  // _.forEach(ast.properties, function(property) {
+  //   markConstantAndWatchExpressions(property.value);
+  //   allConstants = allConstants && property.value.constant;
+    if (!property.value.constant) {
+      argsToWatch.push.apply(argsToWatch, property.value.toWatch);
+    }
+  // });
+  // ast.constant = allConstants;
+  ast.toWatch = argsToWatch;
+  // break;
 ```
