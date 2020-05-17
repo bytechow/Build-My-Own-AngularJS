@@ -173,3 +173,5 @@ function inputsWatchDelegate(scope, listenerFn, valueEq, watchFn) {
 `lastResult` 变量会保持不变，直到其中至少一个输入表达式发生改变。
 
 > Angular.js 还在 `inputsWatchDelegate`中对只有唯一一个输入表达式的情况做了一个额外的优化。在这种情况下，它会跳过创建 `oldValues` 数组的步骤，以便节省一些内存和计算开销。本书会跳过这个优化。
+
+在处理了监听委托之后
