@@ -349,3 +349,74 @@ case AST.ObjectExpression:
   ast.toWatch = argsToWatch;
   // break;
 ```
+
+`this` 和 `$local` 都没有输入表达式：
+
+_src/parse.js_
+
+```js
+case AST.ThisExpression:
+case AST.LocalsExpression:
+  // ast.constant = false;
+  ast.toWatch = [];
+  // break;
+```
+
+成员表达式和标识符一样，都没有可以单独拆分出来的输入表达式。我们需要侦听的是表达式本身：
+
+_src/parse.js_
+
+```js
+case AST.MemberExpression:
+  // markConstantAndWatchExpressions(ast.object);
+  // if (ast.computed) {
+  //   markConstantAndWatchExpressions(ast.property);
+  // }
+  // ast.constant = ast.object.constant &&
+  //   (!ast.computed || ast.property.constant);
+  ast.toWatch = [ast];
+  // break;
+```
+
+调用表达式的输入表达式就是它本身，但如果它是一个过滤器，它的输入表达式旧回由它的非常量参数组成：
+
+_src/parse.js_
+
+```js
+case AST.CallExpression:
+  // allConstants = ast.filter ? true : false;
+  argsToWatch = [];
+  // _.forEach(ast.arguments, function(arg) {
+  //   markConstantAndWatchExpressions(arg);
+  //   allConstants = allConstants && arg.constant;
+    if (!arg.constant) {
+      argsToWatch.push.apply(argsToWatch, arg.toWatch);
+    }
+  // });
+  // ast.constant = allConstants;
+  ast.toWatch = ast.filter ? argsToWatch : [ast];
+  // break;
+```
+
+对于赋值表达式来说，它的输入表达式就是节点本身：
+
+_src/parse.js_
+
+```js
+case AST.AssignmentExpression:
+  // markConstantAndWatchExpressions(ast.left);
+  // markConstantAndWatchExpressions(ast.right);
+  // ast.constant = ast.left.constant && ast.right.constant;
+  ast.toWatch = [ast];
+  // break;
+```
+
+对于一元运算符表达式，我们需要对参数（运算数）对应的输入表达式进行侦听——如果参数并没有发生变化，也就没有必要再次使用运算符（进行运算）了：
+
+```js
+case AST.UnaryExpression:
+  // markConstantAndWatchExpressions(ast.argument);
+  // ast.constant = ast.argument.constant;
+  ast.toWatch = ast.argument.toWatch;
+  // break;
+````
