@@ -420,3 +420,52 @@ case AST.UnaryExpression:
   ast.toWatch = ast.argument.toWatch;
   // break;
 ````
+
+对于二元运算符表达式，我们需要对两边的运算数进行侦听：
+
+_src/parse.js_
+
+```js
+case AST.BinaryExpression: case AST.LogicalExpression:
+  // markConstantAndWatchExpressions(ast.left);
+  // markConstantAndWatchExpressions(ast.right);
+  // ast.constant = ast.left.constant && ast.right.constant;
+  ast.toWatch = ast.left.toWatch.concat(ast.right.toWatch);
+  // break;
+```
+
+需要注意的是，逻辑运算符表达式并不适用这种规则。如果我们对左右侧的输入值进行侦听，就可能会破坏逻辑与（AND）和逻辑或（OR）的“短路”行为。因此这时候我们就需要 把 `LogicalExpression` 和 `BinaryExpression` 判断分支进行分离，然后再 `LogicalExpression` 分支中独立处理输入项：
+
+_src/parse.js_
+
+```js
+case AST.BinaryExpression:
+  markConstantAndWatchExpressions(ast.left);
+  markConstantAndWatchExpressions(ast.right);
+  ast.constant = ast.left.constant && ast.right.constant;
+  ast.toWatch = ast.left.toWatch.concat(ast.right.toWatch);
+  break;
+case AST.LogicalExpression:
+  markConstantAndWatchExpressions(ast.left);
+  markConstantAndWatchExpressions(ast.right);
+  ast.constant = ast.left.constant && ast.right.constant;
+  ast.toWatch = [ast];
+  break;
+```
+
+最后是三元运算符表达式，它的输入值还是它自身。同样地，为了不破坏短路行为，我们不可以将表达式的各个部分作为它的输入表达式：
+
+_src/parse.js_
+
+```js
+case AST.ConditionalExpression:
+  // markConstantAndWatchExpressions(ast.test);
+  // markConstantAndWatchExpressions(ast.consequent);
+  // markConstantAndWatchExpressions(ast.alternate);
+  // ast.constant =
+  //   ast.test.constant && ast.consequent.constant && ast.alternate.constant;
+  ast.toWatch = [ast];
+  // break;
+```
+
+现在，AST 中的所有节点（除了 `Program`）都带上了一个 `toWatch` 数组，也就完成了对 `markConstantAndWatchExpressions` 的实现。如果能访问到输入节点，每个节点的 `toWatch` 会指向该节点的输入节点。否则，数组包含的节点本身。现在，我们就可以利用这鞋信息来完成对输入表达式的跟踪。
