@@ -468,4 +468,25 @@ case AST.ConditionalExpression:
   // break;
 ```
 
-现在，AST 中的所有节点（除了 `Program`）都带上了一个 `toWatch` 数组，也就完成了对 `markConstantAndWatchExpressions` 的实现。如果能访问到输入节点，每个节点的 `toWatch` 会指向该节点的输入节点。否则，数组包含的节点本身。现在，我们就可以利用这鞋信息来完成对输入表达式的跟踪。
+现在，AST 中的所有节点（除了 `Program`）都带上了一个 `toWatch` 数组，也就完成了对 `markConstantAndWatchExpressions` 的实现。如果能访问到输入节点，每个节点的 `toWatch` 会指向该节点的输入节点。否则，数组也会包含节点本身。现在，我们就可以利用这些信息来完成对输入表达式的跟踪。
+
+现在 AST 节点上都有一个 `toWatch` 数组属性，而我们期望在表达式函数中会有 `inputs` 数组。现在要做的就是把这两者结合起来。AST 编译器需要对主表达式的输入节点进行_单独编译_（separately compile）。
+
+首先，我们需要对编译器进行重构，让它可以有多个编译目标。目前，我们将所有的 JavaScript 代码放到 `this.state.body` 数组中去，而把所有变量名放到 `this.state.vars` 中去。由于之后我们需要编译多个函数，我们需要对此行为作出改变，让它能在编译不同表达式时，有不同的空间存放函数体（body）和变量（vars）。
+
+在编译阶段，我们需要会把 body 和 var 放到一个中间对象 `fn` 中：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+    fn: { body: [], vars: [] },
+  //   filters: {}
+  // };
+  // ...
+};
+```
