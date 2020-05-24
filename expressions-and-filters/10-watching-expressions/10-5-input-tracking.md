@@ -490,3 +490,67 @@ ASTCompiler.prototype.compile = function(text) {
   // ...
 };
 ```
+
+然后，在调用 `recurse` 之前需要把 state 上的 `computing` 属性设置为字符串 `‘fn’`：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {}
+  // };
+  this.state.computing = 'fn';
+  // this.recurse(ast);
+```
+
+这也就是说“无论抛出的是什么，都要把它放到 `state` 的 `fn` 对象中，因为这就是我们现在要计算的“。要满足这个要求从而使用 `computing` 树形，我们就要更新所有抛出值的位置。
+
+在 `recurse` 的 `AST.Program` 分支中：
+
+_src/parse.js_
+
+```js
+case AST.Program:
+  // _.forEach(_.initial(ast.body), _.bind(function(stmt) {
+    this.state[this.state.computing].body.push(this.recurse(stmt), ';');
+  // }, this));
+  this.state[this.state.computing].body.push(
+  //   'return ', this.recurse(_.last(ast.body)), ';');
+  // break;
+```
+
+在 `recurse` 的 `AST.LogicalExpression` 分支中：
+
+_src/parse.js_
+
+```js
+case AST.LogicalExpression:
+  // intoId = this.nextId();
+  this.state[this.state.computing].body.push(
+  //   this.assign(intoId, this.recurse(ast.left)));
+  // this.if_(ast.operator === '&&' ? intoId : this.not(intoId),
+  //   this.assign(intoId, this.recurse(ast.right)));
+  // return intoId;
+```
+
+在 `recurse` 的 `AST.ConditionalExpression` 分支中：
+
+_src/parse.js_
+
+```js
+case AST.ConditionalExpression:
+  // intoId = this.nextId();
+  // var testId = this.nextId();
+  this.state[this.state.computing].body.push(
+  //   this.assign(testId, this.recurse(ast.test)));
+  // this.if_(testId,
+  //   this.assign(intoId, this.recurse(ast.consequent)));
+  // this.if_(this.not(testId),
+  //   this.assign(intoId, this.recurse(ast.alternate)));
+  // return intoId;
+```
