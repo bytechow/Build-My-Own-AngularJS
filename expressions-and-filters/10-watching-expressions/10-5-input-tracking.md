@@ -554,3 +554,47 @@ case AST.ConditionalExpression:
   //   this.assign(intoId, this.recurse(ast.alternate)));
   // return intoId;
 ```
+
+在 `nextId` 方法中：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.nextId = function(skip) {
+  // var id = 'v' + (this.state.nextId++);
+  // if (!skip) {
+    this.state[this.state.computing].vars.push(id);
+  // }
+  // return id;
+};
+```
+
+在 `_if` 方法中：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.if_ = function(test, consequent) {
+  this.state[this.state.computing].body.push(
+    // 'if(', test, '){', consequent, '}');
+};
+```
+
+在 `addEnsureSafeMemberName`，`addEnsureSafeObject` 和 `addEnsureSafeFunction` 中：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.addEnsureSafeMemberName = function(expr) {
+  this.state[this.state.computing].body.push(
+    // 'ensureSafeMemberName(' + expr + ');');
+};
+ASTCompiler.prototype.addEnsureSafeObject = function(expr) {
+  this.state[this.state.computing].body.push(
+    // 'ensureSafeObject(' + expr + ');');
+};
+ASTCompiler.prototype.addEnsureSafeFunction = function(expr) {
+  this.state[this.state.computing].body.push(
+    // 'ensureSafeFunction(' + expr + ');');
+};
+```
