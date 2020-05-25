@@ -598,3 +598,126 @@ ASTCompiler.prototype.addEnsureSafeFunction = function(expr) {
     // 'ensureSafeFunction(' + expr + ');');
 };
 ```
+
+更新生成代码的位置后，我们还需要改变在生成函数时读取生成代码的位置：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {}
+  // };
+  // this.state.computing = 'fn';
+  // this.recurse(ast);
+  // var fnString = this.filterPrefix() +
+  //   'var fn=function(s,l){' +
+    (this.state.fn.vars.length ?
+      'var ' + this.state.fn.vars.join(',') + ';' :
+    //   ''
+    // ) +
+    this.state.fn.body.join('') +
+  //   '}; return fn;';
+  // /* jshint -W054 */
+  // var fn = new Function(
+  //   'ensureSafeMemberName', 'ensureSafeObject', 'ensureSafeFunction', 'ifDefined',
+  //   'filter', fnString)(
+  //   ensureSafeMemberName,
+  //   ensureSafeObject,
+  //   ensureSafeFunction,
+  //   ifDefined,
+  //   filter);
+  // /* jshint +W054 */
+  // fn.literal = isLiteral(ast);
+  // fn.constant = ast.constant;
+  // return fn;
+};
+```
+
+进行了所有这些重构后，现在我们可以重用所有用于编译的代码，来根据 AST 节点的 toWatch 属性对输入函数进行编译。我们需要在编译期间使用 `inputs` 数组对生成的输入函数进行跟踪：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {},
+    inputs: []
+  // };
+  // ...
+};
+```
+
+输入表达式函数的编译会在我们编译主表达式函数之前完成：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {},
+  //   inputs: []
+  // };
+  _.forEach(getInputs(ast.body), function(input) {
+    
+  });
+  // this.state.computing = 'fn';
+  // this.recurse(ast);
+  // ...
+};
+```
+
+`getInputs` 辅助函数是获取高级 AST 节点输入的地方。只有当程序体由一个表达式组成，且表达式的输入不是表达式本身时，我们才这样处理：
+
+_src/parse.js_
+
+```js
+function getInputs(ast) {
+  if (ast.length !== 1) {
+    return;
+  }
+  var candidate = ast[0].toWatch;
+  if (candidate.length !== 1 || candidate[0] !== ast[0]) {
+    return candidate;
+  }
+}
+```
+
+再循环里面，我们会对各个输入表达式函数进行编译。我们会为每一个输入表达式生成一个唯一的“输入 key”（input key），将 key 初始化为一个编译的状态（state），然后把它赋值给 `computing` 属性。这样当我们在后面调用 `recurse` 时，生成的代码就会被放到一个正确的位置上。最后我们为这个函数生成最终的 `return` 语句，然后把这个输入 key 放到 `inputs` 数组中：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {},
+  //   inputs: []
+  // };
+  _.forEach(getInputs(ast.body), _.bind(function(input, idx) {
+    var inputKey = 'fn' + idx;
+    this.state[inputKey] = { body: [], vars: [] };
+    this.state.computing = inputKey;
+    this.state[inputKey].body.push('return ' + this.recurse(input) + ';');
+    this.state.inputs.push(inputKey);
+  }, this));
+  // this.state.computing = 'fn';
+  // this.recurse(ast);
+  // ...
+};
+```
