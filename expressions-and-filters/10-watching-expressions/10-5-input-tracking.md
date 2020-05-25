@@ -721,3 +721,91 @@ ASTCompiler.prototype.compile = function(text) {
   // ...
 };
 ```
+
+此时，我们已经在 `state.inputs` 中存储了所有生成输入表达式的_变量名称_了，同时生成的代码页已经放到了 state 中。剩下来要做的是把生成的输入表达式函数与主表达式函数进行连接。我们会使用一个方法 `watchFns` 来完成此项工作：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {},
+  //   inputs: []
+  // };
+  // _.forEach(getInputs(ast.body), _.bind(function(input, idx) {
+  //   var inputKey = 'fn' + idx;
+  //   this.state[inputKey] = { body: [], vars: [] };
+  //   this.state.computing = inputKey;
+  //   this.state[inputKey].body.push('return ' + this.recurse(input) + ';');
+  //   this.state.inputs.push(inputKey);
+  // }, this));
+  // this.state.computing = 'fn';
+  // this.recurse(ast);
+  // var fnString = this.filterPrefix() +
+  //   'var fn=function(s,l){' + (this.state.fn.vars.length ?
+  //     'var ' + this.state.fn.vars.join(',') + ';' :
+  //     ''
+  //   ) + this.state.fn.body.join('') +
+  //   '};' +
+    this.watchFns() +
+    // ' return fn;';
+  // ...
+};
+```
+
+`watchFns` 要做的就是对在编译期间进行收集的 `inputs` 进行遍历。它会把手机到的 JavaScript 代码放到一个数组中，然后把数据元素进行 join 操作得到一个字符串，然后返回这个一个字符串：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.watchFns = function() {
+  var result = [];
+  _.forEach(this.state.inputs, _.bind(function(inputName) {
+    
+  }, this));
+  return result.join('');
+};
+```
+
+我们会根据在输入表达式的“输入 key”找到对应的变量（vars）和程序体（body），再据此生成一个 JavaScript 函数。这个函数的生成过程与主表达式函数类似：先声明变量，然后才生成程序体。这个函数会接受一个参数，这个参数（大概）就是一个作用域（scope）：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.watchFns = function() {
+  // var result = [];
+  // _.forEach(this.state.inputs, _.bind(function(inputName) {
+    result.push('var ', inputName, '=function(s) {', (this.state[inputName].vars.length ?
+        'var ' + this.state[inputName].vars.join(',') + ';' :
+        ''
+      ),
+      this.state[inputName].body.join(''), '};');
+  // }, this));
+  // return result.join('');
+};
+```
+
+这里我们同时生成了一段代码，用于把 `input` 数组放到要生成的主函数上。它包含了对所有要生成的输入表达式的引用：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.watchFns = function() {
+  // var result = [];
+  // _.forEach(this.state.inputs, _.bind(function(inputName) {
+  //   result.push('var ', inputName, '=function(s) {', (this.state[inputName].vars.length ?
+  //       'var ' + this.state[inputName].vars.join(',') + ';' :
+  //       ''
+  //     ),
+  //     this.state[inputName].body.join(''), '};');
+  // }, this));
+  if (result.length) {
+    result.push('fn.inputs = [', this.state.inputs.join(','), '];');
+  }
+  // return result.join('');
+};
+```
