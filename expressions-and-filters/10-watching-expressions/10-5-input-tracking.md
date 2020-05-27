@@ -809,3 +809,74 @@ ASTCompiler.prototype.watchFns = function() {
   // return result.join('');
 };
 ```
+
+在单元测试通过之前，我们必须考虑的最后一个问题是局部变量在输入表达式中的角色。正如你所见，在 `watchFns` 中生成的输入表表达式函数不会接收到代表局部变量的 `l` 参数。那是因为在输入表达式中，我们根本不会考虑局部变量。
+
+这样做的问题是，我们在 `recurse` 中的 `AST.Identifier` 判断分支生成了一些代码，这些代码要求 `l` 始终存在。我们需要对此进行更改。具体来说，就是在编译器中设置一个属性，标记一下编译器现在在编译的到底是输入表达式函数还是主表达式函数：
+
+_src/parse.js_
+
+```js
+ASTCompiler.prototype.compile = function(text) {
+  // var ast = this.astBuilder.ast(text);
+  // markConstantAndWatchExpressions(ast);
+  // this.state = {
+  //   nextId: 0,
+  //   fn: { body: [], vars: [] },
+  //   filters: {},
+  //   inputs: []
+  // };
+  this.stage = 'inputs';
+  // _.forEach(getInputs(ast.body), _.bind(function(input, idx) {
+  //   var inputKey = 'fn' + idx;
+  //   this.state[inputKey] = { body: [], vars: [] };
+  //   this.state.computing = inputKey;
+  //   this.state[inputKey].body.push('return ' + this.recurse(input) + ';');
+  //   this.state.inputs.push(inputKey);
+  // }, this));
+  this.stage = 'main';
+  // this.state.computing = 'fn';
+  // this.recurse(ast);
+  // ...
+};
+```
+
+现在，在为 `AST.Identifier` 节点生成代码时，我们需要根据编译阶段，以不同的方式对局部变量属性进行检查。如果编译的是输入表达式，代表要对局部变量进行检查的标识会一直是 `false`。而在编译主表达式函数，它的值由 `getHasOwnProperty` 函数的执行结果确定：
+
+_src/parse.js_
+
+```js
+case AST.Identifier:
+  // ensureSafeMemberName(ast.name);
+  // intoId = this.nextId();
+  var localsCheck;
+  if (this.stage === 'inputs') {
+    localsCheck = 'false';
+  } else {
+    localsCheck = this.getHasOwnProperty('l', ast.name);
+  }
+  this.if_(localsCheck,
+  //   this.assign(intoId, this.nonComputedMember('l', ast.name)));
+  // if (create) {
+    this.if_(this.not(localsCheck) +
+  //     ' && s && ' + this.not(this.getHasOwnProperty('s', ast.name)),
+  //     this.assign(this.nonComputedMember('s', ast.name), '{}'));
+  // }
+  this.if_(this.not(localsCheck) + ' && s',
+  //   this.assign(intoId, this.nonComputedMember('s', ast.name)));
+  // if (context) {
+    context.context = localsCheck + '?l:s';
+  //   context.name = ast.name;
+  //   context.computed = false;
+  // }
+  // this.addEnsureSafeObject(intoId);
+  // return intoId;
+```
+
+这样我们就实现了对输入表达式的跟踪了。改了不少东西，但同时也带来了很棒的优化。过程简单来说就是：
+
+1. 编译器遍历 AST 节点，然后根据它的输入节点确定 `toWatch` 的赋值（如果适用的话）。
+2. 编译器会为顶层表达式下的每个输入表达式生成一个单独的 JavaScript 函数体。输入表达式是根据上一步中赋值的 `toWatch` 属性决定的。
+3. 编译器的 `watchFns` 方法会为上一步中复制的每个函数体生成输入表达式函数。然后将他们赋值给主表达式函数的 `inputs` 属性中。
+4. 当表达式处于被侦听（watched）的状态时，会被赋值一个输入表达式侦听委托（inputs watch delegate）。
+5. 输入表达式的监听委托不再监听主表达式函数，而会监听它在 `inputs` 中找到的每个函数。
