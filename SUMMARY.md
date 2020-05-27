@@ -152,6 +152,7 @@
   * [10-3 优化对常量表达式的侦测](expressions-and-filters/10-watching-expressions/10-3-optimizing-constant-expression-watching.md)
   * [10-4 单次绑定表达式](expressions-and-filters/10-watching-expressions/10-4-one-time-expressions.md)
   * [10-5 对输入表达式进行跟踪](expressions-and-filters/10-watching-expressions/10-5-input-tracking.md)
+  * [10-6 有状态的过滤器](expressions-and-filters/10-watching-expressions/10-6-stateful-filters.md)
 
 ## 三、模块与依赖注入
 
