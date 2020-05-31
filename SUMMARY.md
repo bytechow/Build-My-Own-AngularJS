@@ -154,6 +154,7 @@
   * [10-5 对输入表达式进行跟踪](expressions-and-filters/10-watching-expressions/10-5-input-tracking.md)
   * [10-6 有状态的过滤器](expressions-and-filters/10-watching-expressions/10-6-stateful-filters.md)
   * [10-7 在外部进行赋值](expressions-and-filters/10-watching-expressions/10-7-external-assignment.md)
+  * [10-8 本章小结](expressions-and-filters/10-watching-expressions/10-8-summary.md)
 
 ## 三、模块与依赖注入
 
