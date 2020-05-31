@@ -153,6 +153,7 @@
   * [10-4 单次绑定表达式](expressions-and-filters/10-watching-expressions/10-4-one-time-expressions.md)
   * [10-5 对输入表达式进行跟踪](expressions-and-filters/10-watching-expressions/10-5-input-tracking.md)
   * [10-6 有状态的过滤器](expressions-and-filters/10-watching-expressions/10-6-stateful-filters.md)
+  * [10-7 在外部进行赋值](expressions-and-filters/10-watching-expressions/10-7-external-assignment.md)
 
 ## 三、模块与依赖注入
 
