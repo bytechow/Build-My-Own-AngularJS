@@ -1,4 +1,4 @@
-### 利用 JSHint 做静态分析（Enable Static Analysis With JSHint）
+### 使用 JSHint 做静态分析（Enable Static Analysis With JSHint）
 
 JSHint 是一个能够读取 JavaScript 代码，然后提供关于代码中出现的语法或结构性错误的分析报告的工具。它的分析过程被称为_linting_，这个分析功能对我们十分重要，毕竟作为代码库的作者，我们并不希望产出一些可能会带给别人麻烦的代码。
 
