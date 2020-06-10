@@ -12,7 +12,7 @@ npm install --save-dev jshint
 
 另外，如果你现在浏览 `package.json`文件，你会看到文件内容已经发生了改变：json 结构中会多出来一个叫 `devDependencies` 的 key，这个 key 对应的值是一个对象，对象里面还会有一个名为 `jshint` 的 key。这一个操作实际上表示的是我们在项目开发阶段会使用名为 `jshint` 的依赖包。让 `package.json` 发生这种改变的关键在于上面命令中的 `--save-dev` 参数。
 
-现在我们可以为 JSHint 创建一个配置文件了。当我们运行 JSHint 的时候，JSHint 会自动在当前目录中查找一个叫`.jshintrc`的文件，并从文件里面读取配置参数。创建这个文件后，往里面填充以下内容：
+现在我们可以为 JSHint 创建一个配置文件了。当我们运行 JSHint 的时候，JSHint 会自动在当前目录中查找一个叫 `.jshintrc`的文件，并从文件里面读取配置参数。创建这个文件后，往里面填充以下内容：
 
 _.jshintrc_
 
@@ -24,7 +24,7 @@ _.jshintrc_
 }
 ```
 
-这里我们设置了在 JSHint 环境中允许使用 `browser`，`browserify` 和 `devel` 语法。这样能确保当我们访问浏览器中的一些通用的全局变量时 JSHint 不会报错，类似的全局变量有`setTimeout`和`console`，或者 Browserify 模块系统中会用到的 `module` 和 `require` 。
+这里我们设置了在 JSHint 环境中允许使用 `browser`，`browserify` 和 `devel` 语法。这样能确保当我们访问浏览器中的一些通用的全局变量时 JSHint 不会报错，比如 `setTimeout` 和 `console`，或者 Browserify 模块系统中会用到的 `module` 和 `require` 。
 
 现在可以运行 JSHint 了：
 
