@@ -26,15 +26,15 @@ _.jshintrc_
 
 这里我们设置了在 JSHint 环境中允许使用 `browser`，`browserify` 和 `devel` 语法。这样能确保当我们访问浏览器中的一些通用的全局变量时 JSHint 不会报错，比如 `setTimeout` 和 `console`，或者 Browserify 模块系统中会用到的 `module` 和 `require` 。
 
-现在可以运行 JSHint 了：
+现在已经做好了运行 JSHint 的准备了：
 
 ```bash
 ./node_modules/jshint/bin/jshint src
 ```
 
-看上去我们这个简单的“Hello, world”程序经过静态分析后并没有发现错误！但为了确保这个工具是正常运作的，你可以故意让`hello.js`中的代码出错（例如，把 `function` 改成 `funktion`），看看 JSHint 会输出些什么。
+从检查结果来看，我们这个简单的 “Hello, world” 程序并没有什么语法错误！但为了确保这个工具是正常运作的，你可以故意让 `hello.js`中的代码出错（例如，把 `function` 改成 `funktion`），看看 JSHint 会输出些什么。
 
-我们可以使用 NPM 的 _运行脚本（run script_ 来简化运行 JSHint 的命令。在 `package.json` 中保存这个命令后，以后我们就可以直接使用简写命令，而不用再记忆之前那一长串命令了：
+我们可以使用 NPM 的 _运行脚本_（run script）来简化运行 JSHint 的命令。在 `package.json` 中保存这个命令后，以后我们就可以直接使用简写命令，而不用再记忆之前那一长串命令了：
 
 _package.json_
 
@@ -51,7 +51,7 @@ _package.json_
 }
 ```
 
-从现在起，如果你要对项目里的代码使用 JSHint，可以直接运行下面的命令：
+从现在起，如果你要对项目里的代码使用 JSHint，直接运行以下命令即可：
 
 ```bash
 npm run lint
