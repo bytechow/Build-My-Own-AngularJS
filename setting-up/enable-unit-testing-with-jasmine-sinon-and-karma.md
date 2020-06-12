@@ -1,6 +1,6 @@
 ### 使用 Jasmine，Sinon 和 Karma 构建单元测试（Enable Unit Testing With Jasmine, Sinon, and Karma）
 
-单元测试在整个开发过程中都处于绝对的中心地位。这意味着我们需要一个好的测试框架。我们将要使用的测试框架是 [Jasmine](https://jasmine.github.io/2.3/introduction.html)，它有良好、简洁的 API，同时也满足我们所有的测试需求：
+单元测试在我们的整个开发过程中都处于绝对的中心地位。这意味着我们需要一个好的测试框架。我们将要使用的测试框架是 [Jasmine](https://jasmine.github.io/2.3/introduction.html)，它有良好、简洁的 API，同时也满足我们所有的测试需求：
 
 ```js
 describe('you can group test cases in "describe" blocks...', function() {
@@ -18,9 +18,9 @@ describe('you can group test cases in "describe" blocks...', function() {
 });
 ```
 
-要真正运行单元测试，我们需要用到一个很受欢迎的测试执行器—— [Karma](http://karma-runner.github.io/)。安装插件后，它就能与 Jasmine 和 Browserify 良好地集成到在一起使用。
+要真正运行单元测试，我们需要用到一个很受欢迎的测试执行器—— [Karma](http://karma-runner.github.io/)。通过安装特定插件后，Karma 和 Jasmine、Browserify 就能很好地被集成到一起使用了。
 
-另外，我们还会用到一个测试助手库—— [Sinon.JS](https://sinonjs.org/)，这个库能为我们提供之后会用到的一些较为复杂的 mock 对象。在我们开始构建 HTTP 服务时，Sinon 会变得非常有用。
+另外，我们还会用到一个测试辅助库—— [Sinon.JS](https://sinonjs.org/)，这个库能为我们提供一些之后会用到的较为复杂的 mock 对象。当我们开始开发 HTTP 服务时，Sinon 会变得非常有用。
 
 我们先来安装 Jasmine 和 Sinon：
 
@@ -34,7 +34,7 @@ npm install --save-dev jasmine-core sinon
 npm install --save-dev karma karma-jasmine karma-jshint-preprocessor
 ```
 
-还要安装一个 PhantomJS 影子浏览器，Karma 实际上会在这个隐形的浏览器中运行单元测试：
+还要安装一个 PhantomJS 影子浏览器，Karma 实际上会在这个隐形的浏览器中运行（我们编写的）单元测试：
 
 ```bash
 npm install --save-dev phantomjs-prebuilt@2.1.7 karma-phantomjs-launcher
@@ -42,7 +42,7 @@ npm install --save-dev phantomjs-prebuilt@2.1.7 karma-phantomjs-launcher
 
 > 译者注：原文的安装命令为 `npm install --save-dev phantomjs-prebuilt karma-phantomjs-launcher`。karma-phantomjs-launcher 用到需要到 2.1.7 版本的 phantomjs-prebuilt，所以这里给`phantomjs-prebuilt`加上了版本号。
 
-下一步，我们会在 Karma 特有的配置文件 `karma.conf.js` 加载并配置 Karma 和 Jasmine：
+下一步，我们会在 Karma 指定的配置文件 `karma.conf.js` 中加载并配置 Karma 和 Jasmine：
 
 _karma.conf.js_
 
