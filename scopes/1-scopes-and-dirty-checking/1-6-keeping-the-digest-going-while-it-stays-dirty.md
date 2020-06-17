@@ -41,7 +41,7 @@ it('triggers chained watchers in the same digest', function() {
 
 我们需要修改 digest 的代码，让其在侦听属性值停止变化之前持续对所有 watcher 进行遍历。多轮检查是能让依赖其他侦听器的 watcher 感知到属性发生变化的唯一方法。
 
-我们先把 `$digest` 函数重命名为 `$$digestOnce`，然后再对它进行调整，让这个函数能把所有 watcher 都执行一次，最终返回一个标识本轮是否发生了变化的布尔值：
+我们先把 `$digest` 函数重命名为 `$$digestOnce`，然后对它进行调整，让这个函数能把所有 watcher 都执行一次，最终返回一个标识本轮是否发生了变化的布尔值：
 
 _src/scope.js_
 
@@ -64,7 +64,7 @@ Scope.prototype.$$digestOnce = function() {
 };
 ```
 
-然后，我们需要重新定义 `$digest`，让它能够运行“外面的循环”，只要发现还有变化就继续调用 `$$digestOnce`：
+然后，我们需要重新定义 `$digest` 函数，它会执行一个“外部的循环”，只要发现值发生了变化就一直调用 `$$digestOnce`：
 
 _src/scope.js_
 
@@ -77,9 +77,8 @@ Scope.prototype.$digest = function() {
 };
 ```
 
-`$digest` 现在可以对所有的 watcher 进行多轮的执行了。如果在第一轮运行时，任何一个被侦听的值发生了改变，则这一轮会被标记为是“脏”的，会对所有 watcher 进行第二轮执行。这样的检查执行会继续循环执行，直到该轮中没有任何一个被侦听值发生变化时才会停止，这种停止变化状态被认为是稳定的状态。
+现在的 `$digest`  至少会对所有 watcher 进行一轮遍历。在第一轮遍历时，一旦发现有侦听值发生改变，那么整一轮会被标记为是“脏”（dirty）的，需要对所有 watcher 进行第二轮的遍历。这个过程会一直持续下去，直到本轮中没有侦听值发生变化，这时我们才认为 digest 彻底稳定下来了。
 
-> 实际上 Angular 作用域的代码中并没有一个叫 `$$digestOnce` 的函数。Angular 源码中把循环执行 digest 的代码都放在 `$digest` 方法里面了。我们追求的是清晰地展现实现原理而不是极致的性能体现，所以才把内部的循环单独剥离为一个函数。
+> 实际上 Angular 源码中并没有 `$$digestOnce` 函数。Angular 源码中把循环执行 digest 的代码逻辑都整合到 `$digest` 方法里面去了。我们追求的是清晰展示实现原理，而不是极致的性能表现，所以才把内部的循环单独剥离为一个函数。
 
-现在，我们能看到关于 Angular watch 函数另一个需要注意的点：它们可能会在每次 digest 完成之前运行很多次。这也是为什么人们都说 watcher 应该具有[幂等性](https://en.wikipedia.org/wiki/Idempotence)的：也就是 watch 函数应该不包含副作用或者副作用只会发生有限次的。举个例子，如果在一个 watch 函数里会发起一个 Ajax 请求，我们无法保证应用最终会发起多少次请求。
-
+现在我们可以观察到 Angular watch 函数的另一个特性：在每次 digest 完成之前，watch 函数可能已经被运行很多次了。这也是我们说 watcher 应该具有[幂等性](https://en.wikipedia.org/wiki/Idempotence)的：watch 函数应该没有副作用或者副作用只会发生有限次的。举个例子，如果我们在 watch 函数里发起了一个 Ajax 请求，我们无法保证应用最终会发起多少次请求。
