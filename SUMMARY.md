@@ -31,7 +31,7 @@
  * [1-3 脏值检测](scopes/1-scopes-and-dirty-checking/1-3-checking-for-dirty-values.md)
  * [1-4 侦听数据的初始值](scopes/1-scopes-and-dirty-checking/1-4-initializing-watch-values.md)
  * [1-5 在 digest 时得到通知](scopes/1-scopes-and-dirty-checking/1-5-getting-notified-of-digests.md)
- * [1-6 尚有脏值存在时继续运行 digest](scopes/1-scopes-and-dirty-checking/1-6-keeping-the-digest-going-while-it-stays-dirty.md)
+ * [1-6 还有脏值时继续运行 digest](scopes/1-scopes-and-dirty-checking/1-6-keeping-the-digest-going-while-it-stays-dirty.md)
  * [1-7 发现值始终无法稳定下来时结束 digest](scopes/1-scopes-and-dirty-checking/1-7-giving-up-on-an-unstable-digest.md)
  * [1-8 短路优化](scopes/1-scopes-and-dirty-checking/1-8-short-circuiting-the-digest-when-the-last-watch-is-clean.md)
  * [1-9 基于值的脏值检测](scopes/1-scopes-and-dirty-checking/1-9-value-based-dirty-checking.md)

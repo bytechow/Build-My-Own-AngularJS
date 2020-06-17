@@ -1,6 +1,6 @@
-### 尚有脏值存在时继续运行 digest（Keeping The Digest Going While It Stays Dirty）
+### 还有脏值时继续运行 digest（Keeping The Digest Going While It Stays Dirty）
 
-虽然我们已经实现了脏值检测的核心了，但我们离完成还远着呢。举例来说，我们就还没能支持这样一个典型场景：listener 函数可能也会改变作用域上的属性。如果出现了这种情况，并且还有另一个 watcher 在侦听该属性时，那么在当前 digest 运行过程中它无法察觉到这个属性是发生了变化的：
+虽然我们已经实现了脏值检测系统的核心部分，但离开发完成还远着呢。比如我们现在还没法处理好这样一种典型场景：listener 函数改变了一个作用域属性，同时有另一个 watcher 在侦听该属性时，那实际上在当前 digest 运行过程中这个 watcher 时无法感知到这个属性值时发生了变化了的：
 
 _test/scope_spec.js_
 
@@ -35,13 +35,13 @@ it('triggers chained watchers in the same digest', function() {
 });
 ```
 
-我们在作用域里面有两个 watcher：一个会侦听 `nameUpper` 属性，它会根据这个属性来生成`initial`属性，而另一个侦听的是 `name` 属性，并根据这个属性生成赋给 `nameUpper` 属性的值。我们希望产生的效果是，在同一个 digest 阶段中，当作用域上的 `name` 发生变化时，`nameUpper` 和 `initial` 的属性值会相应发生改变。但目前的情况并不是这样的。
+我们在作用域里面有两个 watcher：一个会侦听 `nameUpper` 属性，它会根据这个属性来生成 `initial` 属性，而另一个侦听的是 `name` 属性，并根据这个属性生成要赋给 `nameUpper` 属性的值。我们希望达到的效果是，在同一个 digest 阶段中，当作用域上的 `name` 发生变化时，`nameUpper` 和 `initial` 的属性值会相应发生改变。但目前的情况显然不是这样的。
 
-> 我们故意先注册依赖另一个 watcher 的 watcher。如果注册顺序换过来，由于 watcher 按照依赖的先后顺序执行，测试就可以直接通过了。但我们希望 watcher 之间的依赖变化不受注册顺序的影响。
+> 这里我们故意先注册了依赖另一个监听器返回值的 watcher。这是因为如果把注册顺序换回来，这时 watcher 注册执行的顺序就恰好是依赖的先后顺序，测试就会直接通过了。但我们希望 watcher 之间的依赖关系不受注册顺序的影响。
 
-我们需要做的就是修改 digest 的代码，让其在侦听属性值停止变化之前持续对所有 watcher 进行遍历。多轮检查，是我们能让依赖其他 watcher 的 watcher 感知到属性变化的唯一方法。
+我们需要修改 digest 的代码，让其在侦听属性值停止变化之前持续对所有 watcher 进行遍历。多轮检查是能让依赖其他侦听器的 watcher 感知到属性发生变化的唯一方法。
 
-我们先把 `$digest` 函数重命名为 `$$digestOnce`，然后对它进行调整，使它能把所有 watcher 都执行一次，最终返回一个说明本轮执行 watcher 时是否发现有变化的布尔值：
+我们先把 `$digest` 函数重命名为 `$$digestOnce`，然后再对它进行调整，让这个函数能把所有 watcher 都执行一次，最终返回一个标识本轮是否发生了变化的布尔值：
 
 _src/scope.js_
 
