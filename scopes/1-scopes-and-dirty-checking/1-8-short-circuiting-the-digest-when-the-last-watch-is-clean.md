@@ -159,7 +159,7 @@ it('does not end digest so that new watches are not run', function() {
 });
 ```
 
-这里我们注册的第二个 watcher 并没有被执行。原因是在 digest 的第二轮遍历中，在这个新 watcher 运行之前，我们把第一个 watcher 当作是上轮变化了而本轮没有再次发生变化的 watcher（符合短路优化条件），短路优化直接结束了 digest。我们可以通过在添加 watcher 后重置 `$$lastDirtyWatch`来解决这个问题，这样就能显式地禁用短路优化：
+这里我们注册的第二个 watcher 并没有被执行。原因是在 digest 的第二轮遍历中，在这个新增的 watch 函数运行之前，程序把第一个 watcher 当作是上轮变化了而本轮没有再次发生变化的 watcher（符合短路优化条件），短路优化直接结束了 digest。我们可以通过在注册 watcher 后重置 `$$lastDirtyWatch`来解决这个问题，这样就能显式地禁用短路优化：
 
 _src/scope.js_
 
@@ -175,6 +175,6 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
 };
 ```
 
-现在我们的 digest 周期比之前快得多了。在典型的 Angular 应用中，这个优化并不总是能像上面这个例子一样能如此高效地减少遍历次数。但从平均水平来讲，它产生的效果的已经足以让 Angular 开发团队加入这个优化了。
+现在我们的 digest 循环就比之前快得多了。对于一般的 Angular 应用来说，这个优化并不总是能像上面这个例子一样能高效地减少遍历次数。但从平均水平上来看，它产生的效果已经足以让 Angular 开发团队加入这个优化了。
 
-下面我们再来看看 Angular 实际上是如何对数据进行侦听的。
+下面的章节，我们将回归到 Angular 实际上是如何对数据进行侦听的话题上来。
