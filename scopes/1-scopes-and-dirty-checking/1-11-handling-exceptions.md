@@ -52,7 +52,7 @@ it('catches exceptions in listener functions and continues', function() {
 });
 ```
 
-在这两个单元测试中，我们都注册了两个 watcher，第一个 watcher 将会抛出异常。我们只需验证第二个 watcher 有没有正常运行就可以。
+我们在这两个单元测试中都注册了两个 watcher，第一个 watcher 会抛出异常，我们只需验证第二个 watcher 有没有正常运行就可以了。
 
 要让这两个单元测试通过，我们需要修改 `$$digestOnce` 函数，把每个 watcher 的执行部分用 `try...watch` 语句包裹起来：
 
@@ -84,4 +84,4 @@ Scope.prototype.$$digestOnce = function() {
 };
 ```
 
-这样一来，我们的 digest 周期就健壮多了，有异常发生也能更好地应对了！
+这样一来，我们的 digest 循环就健壮多了，即使发生异常了，我们也能更好地应对了！
