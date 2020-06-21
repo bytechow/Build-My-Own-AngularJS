@@ -2,13 +2,13 @@
 
 #### Scope Phases
 
-`$evalAsync`还可以在检测到当前没有 digest 运行时定时调用 `$digest` 方法。那意味着，无论你在什么时候使 `$evalAsync` 来延迟执行一个函数，你都可以保证这个函数会在“不久后”被调用，而不需要等待其他东西来启动一个 digest。
+`$evalAsync` 的另一个作用是，可以在检测到当前没有 digest 运行时定时启动一个 `$digest` 周期。这意味着，无论你在什么时候调用 `$evalAsync` 延迟执行一个函数，都可以肯定这个函数会在“不久后”被调用，而不需要依赖其他事件来出发 digest。
 
-> 虽然 `$evalAsync` 会定时启动一个 `$digest`，但对于异步执行代码，我们更推荐使用 `$applyAsync`，下一节中会讲到。
+> 注意，虽然 `$evalAsync` 也可以异步启动一个 `$digest`，但我们还是推荐你使用 `$applyAsync` 来完成这个需求，这个方法下节会讲到。
 
-要完成这个功能，首先我们需要让 `$evalAsync` 可以通过某种途径检查到当前是否有 digest 正在运行，因为如果当前已经有 digest 在运行的话，我们就不需要再特地启动一个 digest 了。为此，Angular 作用域加入了 _作用域阶段_ 这个概念，实际上它就是作用域对象上的一个字符串类型的属性，在这个属性里面存储了当前 digest 运行状态的信息。
+要完成这个需求，我们先得让 `$evalAsync` 可以通过某种途径检查到当前是否有 digest 正在运行，这是因为如果当前已经有 digest 在运行，我们就没有必要再启动一个 digest 了。为此，Angular 实现了一个叫 _作用域阶段_（phase）的东西，它就是作用域对象上的一个字符串属性而已，用于标识当前发生的状态或事件。
 
-在单元测试中，我们假设作用域对象上有一个属性叫 `$$phase`，它的值在 digest 运行过程中会是 `“$digest”`，而在 apply 一个函数的调用时会是 `“$apply”`，其他时间就是 `null`。下面我们会在 `describe('$digest')` 的测试集中加入这个单元测试：
+在单元测试中，我们会假定作用域对象上有一个属性叫 `$$phase`，在 digest 运行过程中，它的值会是 `“$digest”`，而在使用 apply 调用一个函数的时会变成 `“$apply”`，在其他所有时间都会是 `null`。下面我们会在 `describe('$digest')` 测试集合中加入这个单元测试：
 
 _test/scope\_spec.js_
 
@@ -40,9 +40,9 @@ it('has a $$phase field whose value is the current digest phase', function() {
 });
 ```
 
-> 注意，这里我们无需显式地调用 `$digest` 方法来启动对作用域的 digest，因为调用 `$apply` 就包含了这一步了。
+> 注意，这里我们无需再调用 `$digest` 方法来启动 digest，因为调用 `$apply` 时就会帮我们顺带启动一个。
 
-在 `Scope` 构造函数中，我们会加入 `$$phase` 这个实例属性，并将它的初始值设为 `null`：
+在 `Scope` 构造函数中，我们会加入 `$$phase` 这个实例属性，并把它初始化为 `null`：
 
 _src/scope.js_
 
@@ -55,7 +55,7 @@ function Scope() {
 }
 ```
 
-下面，我们会定义两个用于控制作用域周期的函数：一个用于写入值，另一个用于清空当前值。同时，我们也会加入一个额外的检查，如果当前作用域阶段已经存在有效值的时候，就不能再尝试写入：
+下面，我们会定义两个用于控制 phase 的函数：一个用于设置，另一个用于清空。同时，我们也会加入一个额外的检查，确保 phase 不会在处于激活状态时被更改：
 
 _src/scope.js_
 
@@ -72,7 +72,7 @@ Scope.prototype.$clearPhase = function() {
 };
 ```
 
-在 `$digest` 方法中，在开始 digest 循环之前我们就把作用域阶段设置为 `“$digest”`：
+在 `$digest` 中，我们会在 digest 循环开始之前把 phase 设置为 `“$digest”`：
 
 _src/scope.js_
 
@@ -97,7 +97,7 @@ Scope.prototype.$digest = function() {
 };
 ```
 
-在 `$apply` 方法中，我们也要把作用域阶段设置为 `$apply`：
+调用 `$apply` 方法时，我们要把 phase 设置为 `$apply`：
 
 _src/scope.js_
 
@@ -113,7 +113,7 @@ Scope.prototype.$apply = function(expr) {
 };
 ```
 
-最后，我们再把定时执行 `$digest` 的功能加入到 `$evalAsync` 中。首先，我们还是把这个需求定义为一个单元测试，并把它放到 `describe('$evalAsync')` 测试集中：
+最后，我们再把定时执行 `$digest` 的功能加入到 `$evalAsync` 中。但我们还是先把这个需求定义为一个单元测试，并把它放到 `describe('$evalAsync')` 测试集合中：
 
 _test/scope\_spec.js_
 
