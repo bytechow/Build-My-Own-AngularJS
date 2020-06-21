@@ -1,10 +1,9 @@
-### 在 watch 函数中使用 $evalAsync 定时任务
-
+### 在 watch 函数中设置 $evalAsync 定时任务
 #### Scheduling $evalAsync from Watch Functions
 
-上一节我们说到了在 listener 函数可以用 `$evalAsync` 来设定一个延时任务，这个任务会在同一个 digest 循环中执行。但如果我们在 watch 函数时用 `$evalAsync` 设定一个延时任务会发生什么事呢？当然，我们不推荐这样做，因为我们认为 watch 函数不应该产生任何副作用。但还是允许这样做的，所以我们要保证在这种情况下不会对 digset 产生破坏。
+上一节我们说可以在 listener 函数可以用 `$evalAsync` 来设定一个延时任务，这个任务依然会在同一个 digest 周期中被执行。但如果我们是在 watch 函数内用 `$evalAsync` 设定一个延时任务会发生什么呢？当然，我们不推荐这样做，因为我们认为 watch 函数不应该产生任何副作用。但在 Angular 这种做法也是被允许的，所以我们要保证在这种情况下不会对 digset 产生不良的影响。
 
-我们考虑一种情况，在 watch 函数调用一次 `$evalAsync`，一切似乎都很正常。像下面这个单元测试，我们不用修改当前的代码就能让它通过了：
+如果我们在 watch 函数调用一次 `$evalAsync`，看上去是运行正常的。像下面这个单元测试，我们不需要修改代码就能让它通过了：
 
 _test/scope\_spec.js_
 
@@ -31,7 +30,7 @@ it('executes $evalAsynced functions added by watch functions', function() {
 });
 ```
 
-那究竟问题出在哪里呢？正如我们所见，只要还有一个 watch 是“脏”的，我们就会继续进行 digest 循环。上面的测试用例的情况就是在第一轮 digest 遍历时，我们首次从 watch 函数中返回 `scope.aValue`，这会触发第二轮 digest 循环。这第二轮 digest 中，就会调用在 watch 中使用 `$evalAsync` 设定延迟执行的函数。但如果在没有 watcher 变“脏”的情况下调用 `$evalAsync` 又该怎么处理呢？
+那究竟问题出在哪里呢？正如我们所见，只要还有一个 watch 是“脏”的，我们就会继续进行 digest 循环。在上面的测试用例中，在第一轮 digest 遍历时，我们首次从 watch 函数中返回 `scope.aValue`，这会触发第二轮 digest 循环。这第二轮 digest 开始时，会先执行在 watch 中设定的 `$evalAsync` 延迟任务。但如果在没有 watcher 变“脏”的情况下调用 `$evalAsync` 又该怎么处理呢？
 
 _test/scope\_spec.js_
 
