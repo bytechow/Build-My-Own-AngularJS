@@ -113,7 +113,7 @@ Scope.prototype.$apply = function(expr) {
 };
 ```
 
-最后，我们再把定时执行 `$digest` 的功能加入到 `$evalAsync` 中。但我们还是先把这个需求定义为一个单元测试，并把它放到 `describe('$evalAsync')` 测试集合中：
+最后我们再把定时执行 `$digest` 的功能加入到 `$evalAsync` 中。但在此之前还是先把这个需求定义为一个单元测试放到 `describe('$evalAsync')` 测试集合中：
 
 _test/scope\_spec.js_
 
@@ -139,9 +139,9 @@ it('schedules a digest in $evalAsync', function(done) {
 });
 ```
 
-我们在 `$evalAsync` 调用后过去一段时间，才去检查 digest 是否运行了，而不是在调用后马上检查。具体来说，这里的“过去一段时间”就是使用 50 毫秒的 timeout 定时器。要在 Jasmine 中使用 `setTimeout`，我们要使用它对异步测试的支持方式：测试案例对应的函数可以传入一个名为 `done` 的回调函数参数，在调用这个回调函数之后这个单元测试进程才会结束。我们会在 timeout 定时器的最后调用这个回调函数。
+我们会在 `$evalAsync` 调用完一段时间后才会去检查 digest 是否有运行，而不是在调用后马上检查。这里说的“一段时间”实际上就是 timeout 定时器设定的 50 毫秒。要在 Jasmine 中使用 `setTimeout`，我们就要用到它对异步测试的支持：测试用例对应的函数可以传入一个名为 `done` 的回调函数参数，只有调用回调函数才能结束这个单元测试进程。我们会在 timeout 函数的最后调用这个回调函数。
 
-`$evalAsync` 函数现在就可以检查作用域的当前状态，如果作用域状态为空，我们就设定一个延迟执行的 digest 任务。
+`$evalAsync` 函数现在就可以检查作用域的当前状态，如果作用域状态为空，我们就会设定一个延迟执行的 digest 任务。
 
 _src/scope.js_
 
