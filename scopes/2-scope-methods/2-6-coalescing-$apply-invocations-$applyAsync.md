@@ -2,13 +2,13 @@
 
 #### Coalescing $apply Invocations - $applyAsync
 
-虽然 `$evalAsync` 既可以用于在一个 digest 内设置延时任务，也可以在 digest 外设置延时任务，但实际上它被设计出来主要是用于应付前一种情况的。digest 中调用的 `setTimeout` 主要只是为了防止有人在 digest 外调用 `$evalAsync` 而引起混乱。
+虽然 `$evalAsync` 既可以用于在 digest 内设置延时任务，也可以在 digest 外设置延时任务，但实际上它确实是为前者设计的。如果有人在 digest 外调用了 `$evalAsync`，那 `$evalAsync` 内部调用 `setTimeout` 主要是为了防止混淆。
 
-而对于要在 digest 循环外异步地 apply 一个函数的情况，Angular 也有一个定制的函数 `$applyAsync`。它的作用与 `$apply` 差不多——都是用于将无法感知到 Angular digest 循环的外部代码整合进去。但跟 `$apply` 不同的是，`$applyAsync` 不会马上调用传入的函数，而且也不会立即触发一个 digest。相反，`$applyAsync` 会推迟一段比较短的时间之后再执行这两项工作。
+而对于要在 digest 循环外异步调用（apply）一个函数的情况，Angular 提供了另一个专用函数 `$applyAsync`。它的作用与 `$apply` 差不多——都是用于将无法感知到 Angular digest 周期的外部代码进行集成。但跟 `$apply` 不同的是，`$applyAsync` 不会马上调用传入的函数，而且也不会立即触发一个 digest。相反，`$applyAsync` 会推迟一段比较短的时间之后再执行这两个操作。
 
-`$applyAsync` 最初的设计动机是用于处理 HTTP 响应：当 `$http` 服务收到一个响应之后，就会调用一些响应处理函数并且启动一个 digest。这意味着每次 HTTP 响应到来时都要运行一个 digest。这样的话，如果应用的 HTTP 通信比较频繁或者它的 digest 循环需要花费较多资源时（很多应用启动时都可能会遇到这种情况），就会产生性能问题。现在，`$http` 就可以配置为使用 `$applyAsync` 的模式，对于到达时间非常接近的 HTTP 应答会被合并到一个 digest 中处理。然而， `$applyAsync` 并没有绑定到 `$http` 服务中去，你可以把它应用到任何可以从“合并到一个 digest 进行处理“的模式中获益的情况中去。
+`$applyAsync` 最初的设计动机是用于处理 HTTP 响应：当 `$http` 服务收到一个响应之后，就会调用对应的处理函数并且启动一个 digest。这意味着每次 HTTP 响应时都要重新运行一个 digest。这样的话，如果应用的 HTTP 通信比较频繁或者它的 digest 循环需要大量计算时（很多应用启动时都可能会遇到这种情况），就会产生性能问题。目前，`$http` 可以配置为使用 `$applyAsync` 模式，它会将返回时间非常接近的 HTTP 响应都合并到一个 digest 内进行处理。但是，`$applyAsync` 不仅仅只能用于 `$http` 服务进行请求，你还可以把它应用到任何可以从“合并到一个 digest 进行处理“的模式获益的情况中去。
 
-在关于 `$applyAsync` 的第一个测试用例中，我们希望调用这个函数后不会立马发生改变，在过了 50 毫秒以后才会产生变化：
+在 `$applyAsync` 的第一个测试用例中，我们希望调用函数后不会立马发生改变，而会在 50 毫秒以后才会产生变化：
 
 _test/scope\_spec.js_
 
@@ -48,7 +48,7 @@ describe('$applyAsync', function() {
 });
 ```
 
-到目前为止，我们还没有发现 `$applyAsync` 跟 `$evalAsync` 有什么区别，但我们只要在 listner 函数中调用一下 `$applyAsync` 就能发现端倪。如果我们在这里调用 `$evalAsync`，那么这个函数仍然会在同一个 digest 中被调用。但 `$applyAsync` 总是会延迟函数的调用：
+目前我们还没有发现 `$applyAsync` 与 `$evalAsync` 有什么区别，但只要我们尝试在 listner 函数中调用 `$applyAsync` 就能发现端倪。如果我们在这里调用 `$evalAsync`，那么这个函数仍然会在同一个 digest 中被调用。但 `$applyAsync` 只会在 digest 结束后才进行调用：
 
 _test/scope\_spec.js_
 
@@ -75,7 +75,7 @@ it('never executes $applyAsync function in the same cycle', function(done) {
 });
 ```
 
-作为开发 `$applyAsync` 的第一步，我们需要在 Scope 构造函数中添加另一个队列。这个队列就用于存放我们使用 `$applyAsync` 设定的异步任务：
+开发 `$applyAsync` 的第一步是在 Scope 构造函数中添加另一个数组成员。这个数组就用于存放 `$applyAsync` 设定的异步任务：
 
 _src/scope.js_
 
@@ -89,7 +89,7 @@ function Scope() {
 }
 ```
 
-每调用一次 `$applyAsync`，我们就会把一个函数添加到这个队列中来。稍后，这个函数就会在当前作用域语境下对传入的表达式进行运算，这跟 `$apply` 是一样的：
+每次调用 `$applyAsync`，我们都会把一个函数添加到这个队列中来。之后，这个函数就会在当前作用域的上下文内对传入的表达式进行运算，这跟 `$apply` 是一样的：
 
 _src/scope.js_
 
@@ -102,7 +102,7 @@ Scope.prototype.$applyAsync = function(expr) {
 };
 ```
 
-这里我们还需要设定用于调用这些函数的延时任务。我们可以直接用 `setTimeout` 并传入值为 0 的 dalay 参数来实现延时。在这个定时器函数中，我们会用 `$apply` 来触发一个函数，这个函数将会遍历异步任务队列，逐一对队列中存储的函数进行调用：
+这里我们还需要设定用于调用这些函数的延时任务。我们可以直接用参数为零的 `setTimeout` 实现延时。在这个定时器函数中，我们会用 `$apply` 来触发一个函数，这个函数将会对 `$applyAsync` 对应的异步任务队列进行便利，并调用队列中的每一个函数：
 
 _src/scope.js_
 
@@ -122,9 +122,9 @@ Scope.prototype.$applyAsync = function(expr) {
 };
 ```
 
-> 注意，我们不会对队列中的每一个元素都调用一次 `$apply`。我们只需要在循环以外调用一次 `$apply` 就可以了，毕竟我们只需要启动一次 digest。
+> 注意，我们不需要分别对队列中的每一个元素调用一次 `$apply`。我们只需要在循环以外调用一次 `$apply` 就可以了，我们只希望程序启动一次 digest。
 
-正如我们上面说到的，`$applyAsync`的核心是对一些高频操作进行优化，让这些操作带来的变化用一次 digest 就能进行处理。我们现在还没有真正实现这个目标。目前的情况是，每次调用 `$applyAsync` 都会设定一个启动 digest 的延时任务，我们在 watch 函数中添加一个计数器就能发现问题了：
+如上所述，`$applyAsync` 的核心要点是对一些端时间内多次进行的操作进行优化，以便运行一次 digest 就能对这些操作带来的变化进行统一处理。我们现在还没有真正地实现这个目标。现在每次调用 `$applyAsync` 时都会设定一个启动 digest 的延时任务，我们只要在 watch 函数中对一个计数器进行自增就能明显地看出这个问题了：
 
 _test/scope\_spec.js_
 
@@ -154,9 +154,11 @@ it('coalesces many calls to $applyAsync', function(done) {
 });
 ```
 
-我们希望计数器的数字能到 2（因为在第一次 digest 中 watch 会被执行两次），但不能大于这个数字。
+我们希望计数器的数值是 2，但不能大于这个数字。
 
-我们要做的就是记录用于执行异步任务队列的 `timeout` 定时器是不是已经设定好了。我们会在把这个信息保存在私有的作用域属性 `$$applyAsyncId` 中：
+> 译者注：因为在第一次 digest 中，因为第一轮循环肯定变“脏”，watch 会被执行两次。
+
+我们需要使用一个私有的 scope 属性 `$$applyAsyncId` 来对执行异步任务队列的 `timeout` 定时器进行跟踪，看是不是它已经被设定好了：
 
 _src/scope.js_
 
@@ -171,7 +173,7 @@ function Scope() {
 }
 ```
 
-在设定延时任务之前，我们需要先检查一下这个属性，并在设定好之后和任务完成之后对这个属性进行更新：
+在设置延时任务之前，我们需要先检查一下这个属性，并在设置好定时器和延时任务完成之后对这个属性进行更新：
 
 _src/scope.js_
 
@@ -194,7 +196,7 @@ Scope.prototype.$applyAsync = function(expr) {
 };
 ```
 
-关于 `$applyAsync` 的另一个事实是，如果在 timeout 定时器触发之前因为其他某些原因已经启动了一个 digest，那定时器中的 digest 就无需启动了。在这种情况下，当前在运行 digest 就能把异步任务执行完，而 `$applyAsync` 的定时器应该被销毁了：
+`$applyAsync` 的另一个特性是，如果在它设定的 timeout 定时器触发之前由于其他某些原因已经启动了一个 digest，那定时器中的 digest 就无需启动了。这时，当前正在运行的 digest 就能将异步任务执行完，`$applyAsync` 的定时器就应该被销毁了：
 
 _test/scope\_spec.js_
 
@@ -228,9 +230,9 @@ it('cancels and flushes $applyAsync if digested first', function(done) {
 });
 ```
 
-在这里，我们验证 `$applyAsync` 设定的任务是否都会在调用 `$digest` 之后就会马上执行，这样后面就没剩下需要执行的任务了。
+这里我们验证调用 `$digest` 后会不会把 `$applyAsync` 设定的任务都执行掉，之后就没有需要执行的任务了。
 
-下面，我们先把 `$applyAsync` 中用于遍历执行异步任务队列的代码抽取成一个内部函数，这样我们就可以在多处地方使用了：
+下面，我们会把 `$applyAsync` 中用于遍历执行异步任务队列的代码抽取成一个内部函数，这样我们就可以在多个地方重用它了：
 
 _src/scope.js_
 
