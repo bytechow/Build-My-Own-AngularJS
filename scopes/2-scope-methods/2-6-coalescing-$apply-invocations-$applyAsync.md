@@ -257,9 +257,9 @@ Scope.prototype.$applyAsync = function(expr) {
 };
 ```
 
-> LoDash 的 `_.bind` 函数就相当于 ECMAScript 5 的 `Function.prototype.bind`，是用于确保函数的 this 指向一个已知值的。
+> LoDash 的 `_.bind` 函数就相当于 ECMAScript 5 的 `Function.prototype.bind`，是用于指定返回函数的 this 值的。
 
-现在，我们就可以在 `$digest` 函数中直接调用这个函数了，并判断如果当前已经有定时器处于等待触发状态，我们就取消这个定时器并立即开始遍历异步任务队列：
+现在，我们就可以在 `$digest` 函数中使用这个函数了，并判断如果当前已经有定时器处于待触发状态，我们就取消这个定时器并立即开始遍历异步任务队列：
 
 _src/scope.js_
 
@@ -289,5 +289,5 @@ Scope.prototype.$digest = function() {
 };
 ```
 
-这就是 `$applyAsync` 的全部内容了。它实际上就是在 `$apply` 的基础进行了一些小优化，在一些需要调用 `$apply` 但会在短时间内多次调用的情况能派上用场。
+这就是 `$applyAsync` 全部的内容了，它实际上就是 `$apply` 的“优化版”，在短时间内多次调用 `$apply` 时可以派上用场。
 

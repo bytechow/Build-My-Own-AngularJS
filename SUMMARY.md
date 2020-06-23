@@ -46,7 +46,7 @@
   * [2-4 在 watch 函数中使用 $evalAsync 定时任务](scopes/2-scope-methods/2-4-scheduling-$evalAsync-from-watch-functions.md)
   * [2-5 作用域阶段](scopes/2-scope-methods/2-5-scope-phases.md)
   * [2-6 合并 $apply 调用—— $applyAsync](scopes/2-scope-methods/2-6-coalescing-$apply-invocations-$applyAsync.md)
-  * [2-7 在 digest 之后运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
+  * [2-7 在 digest 周期结束时运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
   * [2-8 异常处理](scopes/2-scope-methods/2-8-handling-exceptions.md)
   * [2-9 多个变化共用同一个 listener 函数](scopes/2-scope-methods/2-9-watching-several-changes-with-one-listener-$watchGroup.md)
   * [2-10 本章小结](scopes/2-scope-methods/2-10-summary.md)

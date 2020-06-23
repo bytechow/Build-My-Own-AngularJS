@@ -1,7 +1,7 @@
-### 在 digest 之后运行代码—— $$postDigest
+### 在 digest 周期结束时运行代码—— $$postDigest
 #### Running Code After A Digest - $$postDigest
 
-有一种方法让我们可以在 digest 周期结束后执行代码，就是通过设置 `$$postDigest` 函数来实现。
+有一种方法可以让我们可以在 digest 周期结束后再执行代码，就是通过设置 `$$postDigest` 函数来实现。
 
 这个函数名中的两个美元符号表明这个函数只用于 Angular 内部，而不是给应用开发者使用的。但既然存在这个函数，我们也把它实现出来。
 
