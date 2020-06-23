@@ -1,11 +1,11 @@
 ### 在 digest 周期结束时运行代码—— $$postDigest
 #### Running Code After A Digest - $$postDigest
 
-有一种方法可以让我们可以在 digest 周期结束后再执行代码，就是通过设置 `$$postDigest` 函数来实现。
+有一个方法可以让我们可以在 digest 周期结束后再执行代码，那就是 `$$postDigest`。
 
-这个函数名中的两个美元符号表明这个函数只用于 Angular 内部，而不是给应用开发者使用的。但既然存在这个函数，我们也把它实现出来。
+这个方法以两个美元符号作为前缀暗示它实际上是 Angular 的内部工具，不是应用开发者应该使用的。但既然它存在，那我们也会实现它。
 
-像 `$evalAsync` 和 `$applyAsync` 一样，`$$postDigest` 会让传入的函数在“稍后一段时间”再运行。具体来说，这个函数会在接下来的一次 digest 完成时才会被调用。类似 `$evalAsync`，使用 `$$postDigest` 延时执行的函数只会被执行一次。但跟 `$evalAsync` 和 `$applyAsync` 不同的是，设置 `$$postDigest` 延时函数后不会同时设定一个延时启动 digest 的定时任务，因此这个函数会延迟到接下来的、因某种原因触发的 digest 启动之后才会执行。下面的单元测试就会对这些需求进行明确定义：
+像 `$evalAsync` 和 `$applyAsync` 一样，`$$postDigest` 也能延迟“一段时间”再运行传入的函数。具体来说，这个函数会在下一次 digest 完成时被调用。跟 `$evalAsync` 类似，使用 `$$postDigest` 延时执行的函数也只会被执行一次。但它跟 `$evalAsync` 和 `$applyAsync` 不同的是，`$$postDigest` 设定延时函数时，并不会设定延时启动 digest 任务，因此这个函数会延迟到下一个被（某种原因）触发的 digest 运行后才会被执行。下面我们使用单元测试来对这些需求进行明确定义：
 
 _test/scope_spec.js_
 
@@ -34,7 +34,7 @@ describe('$postDigest', function() {
 });
 ```
 
-顾名思义，`$$postDigest` 函数是 digest 之后才运行的，因此如果你在 `$$postDigest` 中对作用域中的数据进行修改时，这些变化并不会马上被脏值检测系统捕获到。如果你确实希望这些变化能被捕获到，你就需要手动调用 `$digest` 或 `$apply`：
+顾名思义，`$$postDigest` 函数是在 digest 运行之后才运行的，所以如果你在 `$$postDigest` 中对作用域中的数据进行修改时，这些变化并不会马上被脏值检测系统捕获到。如果你希望捕捉到这些变化，你需要再次调用 `$digest` 或 `$apply`：
 
 _test/scope_spec.js_
 
@@ -61,8 +61,7 @@ it('does not include $$postDigest in the digest', function() {
   expect(scope.watchedValue).toBe('changed value');
 });
 ```
-
-开发 `$$postDigest` 的第一步是在 `Scope` 构造函数再初始化一个数组类型的实例属性：
+实现 `$$postDigest` 的第一步是在 `Scope` 构造函数再创建一个数组类型的实例属性：
 
 _src/scope.js_
 
@@ -78,7 +77,7 @@ function Scope() {
 }
 ```
 
-下一步就是实现 `$$postDigest` 本身了。这个函数要做的仅仅是把传入的函数添加到上面新增的队列中：
+接着就要实现 `$$postDigest` 本身了。这个函数要做的仅仅是把传入的函数添加到上面新增的数组中就可以了：
 
 _src/scope.js_
 
@@ -88,7 +87,7 @@ Scope.prototype.$$postDigest = function(fn) {
 };
 ```
 
-最后，在 `$digest` 函数内部，我们需要在 digest 运行结束时对这个队列进行遍历，并逐个调用里面的函数：
+最后，在 `$digest` 函数中，我们需要在 digest 运行结束时对这个队列进行遍历，逐个调用里面的函数：
 
 _src/scope.js_
 
@@ -123,4 +122,4 @@ Scope.prototype.$digest = function() {
 };
 ```
 
-我们利用 `Array.shift()` 从数组中提取最前面的函数并立即调用，同时可以不断缩小队列长度直到队列被清空。我们无需对 `$$postDigest` 传入任何参数。
+利用 `Array.shift()` 可以不断地从数组中取出排列在最前面的函数进行调用，一直持续到数组被清空。我们无需对 `$$postDigest` 传入任何参数。
