@@ -119,7 +119,7 @@ Scope.prototype.$digest = function() {
 };
 ```
 
-而对于 `$applyAsync`，我们就需要在 `$$flushApplyAsync` 对异步任务进行遍历时进行处理：
+而对于 `$applyAsync`，我们就需要在 `$$flushApplyAsync` 对异步任务进行遍历时进行处理了：
 
 _src/scope.js_
 
@@ -136,4 +136,4 @@ Scope.prototype.$$flushApplyAsync = function() {
 };
 ```
 
-现在我们的 digest 循环在异常处理方面比之前健壮多了。
+现在加入异常处理以后，digest 周期就比之前健壮多了。
