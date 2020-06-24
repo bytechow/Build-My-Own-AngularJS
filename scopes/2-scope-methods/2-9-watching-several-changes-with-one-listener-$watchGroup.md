@@ -194,7 +194,7 @@ it('uses different arrays for old and new values on subsequent runs', function()
 });
 ```
 
-我们可以通过检查当前 listener 是否是被第一次调用来实现这个需求。如果是第一次调用，那我们就把 `newValues` 同时作为新值和旧值的参数传入进去：
+我们可以通过检查当前 listener 是否是被第一次调用来实现这个需求。如果是第一次调用，那我们就把 `newValues` 同时作为新值和旧值：
 
 _src/scope.js_
 
