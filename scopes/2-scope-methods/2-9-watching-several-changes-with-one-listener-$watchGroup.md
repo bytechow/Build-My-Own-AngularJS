@@ -248,7 +248,7 @@ it('calls the listener once when the watch array is empty', function() {
 });
 ```
 
-我们需要在 `$watchGroup` 方法中检查数组是否为空，如果为空，我们就设定一个调用 listener 函数的延时任务，下面的代码就没有必要继续执行了，直接退出就可以了：
+我们需要在 `$watchGroup` 方法中检查数组是否为空，如果为空，我们就设定一个调用 listener 函数的延时任务，然后下面的代码就没有必要继续执行了，直接退出就可以了：
 
 _src/scope.js_
 
