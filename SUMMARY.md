@@ -48,7 +48,7 @@
   * [2-6 合并 $apply 调用—— $applyAsync](scopes/2-scope-methods/2-6-coalescing-$apply-invocations-$applyAsync.md)
   * [2-7 在 digest 周期结束时运行代码—— $$postDigest](scopes/2-scope-methods/2-7-running-code-after-a-digest-$$postDigest.md)
   * [2-8 异常处理](scopes/2-scope-methods/2-8-handling-exceptions.md)
-  * [2-9 多个变化共用同一个 listener 函数](scopes/2-scope-methods/2-9-watching-several-changes-with-one-listener-$watchGroup.md)
+  * [2-9 用一个 listener 函数同时监听多个变化——$watchGroup](scopes/2-scope-methods/2-9-watching-several-changes-with-one-listener-$watchGroup.md)
   * [2-10 本章小结](scopes/2-scope-methods/2-10-summary.md)
 * [第3章 作用域继承](scopes/3-scope-inheritance/3-scope-inheritance.md)
   * [3-1 根作用域](scopes/3-scope-inheritance/3-1-the-root-scope.md)
