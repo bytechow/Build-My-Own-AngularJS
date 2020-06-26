@@ -123,7 +123,7 @@ it('can watch a property in the parent', function() {
 
 > 你可能察觉到了，子作用域也是有自己的 `$watch` 方法的，毕竟这个 `$watch` 方法是定义在 `Scope.prototype` 上的。这与用户自定义属性使用的继承机制是一样的：由于父作用域继承自 `Scope.prototype`，子作用域继承自父作用域，`Scope.prototype` 上定义的东西自然就能被每一个作用域访问到了！
 
-最后，上面讨论的所有内容都适用于任意深度上得作用域层次结构：
+上面讨论的所有内容适用于任意深度的作用域层次：
 
 _test/scope_spec.js_
 
@@ -152,9 +152,11 @@ it('can be nested at any depth', function() {
 });
 ```
 
-虽然目前我们对作用域继承进行了很多定义，但它实现起来其实很简单直接。我们只需要利用 JavaScript 对象继承就可以了，因为 Angular 的作用域是严格按照 JavaScript 本身的工作方式进行建模的。实质上，当你创建子作用域时，它的父作用域就自动成为它的原型了。
+虽然上面我们定义了很多东西，但实现起来其实也很简单。我们只需要利用 JavaScript 对象继承就可以了，因为 Angular 作用域是按照 JavaScript 本身的工作方式设计的。实质上，当你创建子作用域时，它的父作用域就会自动成为它的原型了。
 
-> 我们不会花费时间在介绍 JavaScript 中的原型概念上。如果你想复习一下的话，DailyJS 上的两篇文章会很适合你，[prototype](http://dailyjs.com/2012/05/20/js101-prototype/) 和 [inheritance](http://dailyjs.com/2012/05/27/js101-prototype-chains/)。
+> 我们不会花太多时间讨论 JavaScript 中的原型是什么。如果你想复习一下的话，DailyJS 上有很多关于原型和继承的好文章，[prototype](http://dailyjs.com/2012/05/20/js101-prototype/) 和 [inheritance](http://dailyjs.com/2012/05/27/js101-prototype-chains/)。
+
+> 译者注：以上两个链接由于已经是 2012 年的链接，已经失效。如有必要，请看 MDN 的说明 [继承与原型链](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain)
 
 我们在 `Scope`  构造函数中创建 `$new` 函数。这个函数能够为当前作用域创建一个子作用域，并返回这个子作用域：
 
@@ -167,8 +169,8 @@ Scope.prototype.$new = function() {
 };
 ```
 
-在这个函数中，我们首先创建子作用域的构造函数，然后把它赋值给一个叫 `ChildScope` 的变量上。这个构造函数并不需要加入任何代码，所以只要一个空函数就可以了。然后我们会把 `Scope` 设置为 `ChildScope` 的原型。最后使用 `ChildScope` 构造函数创建一个对象并返回这个对象即可。
+在这个函数中，我们首先要创建子作用域的构造函数，然后把它赋值到 `ChildScope` 局部变量上。这个构造函数什么都不用做，因此只需要一个空函数就可以了。接着，我们把 `Scope` 设置为 `ChildScope` 的原型。然后使用 `ChildScope` 构造函数创建一个对象，最后返回这个对象就可以。
 
-这个函数没多少代码，但已经能让我们在本节中的所有测试用例都通过了！
+这个函数虽然没多少代码，但已经能让本节中的所有测试用例都通过了！
 
-> 我们还可以使用 ES5 提供的简写函数（shorthand function）`Object.create()` 来构建子作用域。
+> 你也可以使用 ES5 提供的简写函数（shorthand function）`Object.create()` 来构建子作用域。
