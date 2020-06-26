@@ -46,7 +46,7 @@ it("inherits the parent's properties", function() {
 });
 ```
 
-但反过来就不一样了。父作用域无法访问子作用域上定义的属性：
+但反过来，父作用域是无法访问子作用域上定义的属性的：
 
 _test/scope_spec.js_
 
@@ -61,7 +61,7 @@ it('does not cause a parent to inherit its properties', function() {
 });
 ```
 
-作用域属性的共享规则跟定义属性的时间点是无关的。父作用域上定义属性后，它的所有子子作用域都可以访问到这个属性：
+属性的共享与属性的定义时间无关。在父作用域上定义属性时，父作用域现存的子作用域同样可以访问到这个属性：
 
 _test/scope_spec.js_
 
@@ -76,7 +76,7 @@ it('inherits the parents properties whenever they are defined', function() {
 });
 ```
 
-我们也可以通过子作用域对父作用域上的属性进行修改，因为两个作用域指向的值实际上是相同的：
+我们也可以在子作用域上对父作用域的属性进行修改，因为两个作用域的同名属性实际上指向同一个值：
 
 _test/scope_spec.js_
 
@@ -93,7 +93,7 @@ it('can manipulate a parent scopes property', function() {
 });
 ```
 
-由此还可以看出，我们可以在子作用域中对父作用域上的属性进行侦听：
+由此可以看出，我们也可以在子作用域中对父作用域上的属性进行侦听：
 
 _test/scope_spec.js_
 
@@ -121,9 +121,9 @@ it('can watch a property in the parent', function() {
 });
 ```
 
-> 你可能发现了，子作用域也是可以调用 `$watch` 函数的，而这个 `$watch` 函数是定义在 `Scope.prototype` 上的。这与我们自定义属性使用的继承机制是一样的：因为父作用域继承自 `Scope.prototype`，而子作用域继承自父作用域，`Scope.prototype` 上定义的一切就能被每一个作用域访问到了！
+> 你可能察觉到了，子作用域也是有自己的 `$watch` 方法的，毕竟这个 `$watch` 方法是定义在 `Scope.prototype` 上的。这与用户自定义属性使用的继承机制是一样的：由于父作用域继承自 `Scope.prototype`，子作用域继承自父作用域，`Scope.prototype` 上定义的东西自然就能被每一个作用域访问到了！
 
-最后，上面提到的所有特性在作用域继承的任意深度上都适用：
+最后，上面讨论的所有内容都适用于任意深度上得作用域层次结构：
 
 _test/scope_spec.js_
 
