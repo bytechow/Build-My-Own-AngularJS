@@ -55,7 +55,7 @@
   * [3-2 创建一个子作用域](scopes/3-scope-inheritance/3-2-making-a-child-scope.md)
   * [3-3 属性屏蔽](scopes/3-scope-inheritance/3-3-attribute-shadowing.md)
   * [3-4 相互独立的侦听器](scopes/3-scope-inheritance/3-4-separated-watches.md)
-  * [3-5 递归 digest](scopes/3-scope-inheritance/3-5-recursive-digestion.md)
+  * [3-5 递归的 digest](scopes/3-scope-inheritance/3-5-recursive-digestion.md)
   * [3-6 调用 `$apply`，`$evalAsync` 和 `$applyAsync` 时会对整个树结构进行 digest](scopes/3-scope-inheritance/3-6-digesting-the-whole-tree-from-$apply-$evalAsync-and-$applyAsync.md)
   * [3-7 孤立的作用域](scopes/3-scope-inheritance/3-7-isolated-scopes.md)
   * [3-8 替换父作用域](scopes/3-scope-inheritance/3-8-substituting-the-parent-scope.md)
