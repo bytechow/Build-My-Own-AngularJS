@@ -1,7 +1,7 @@
 ### 调用 `$apply`，`$evalAsync` 和 `$applyAsync` 时会对整个树结构进行 digest
 #### Digesting The Whole Tree from $apply, $evalAsync, and $applyAsync
 
-正如我们在上面的章节中看到的那样，`$digest` 只会从当前作用域开始往下执行。但对于 `$apply` 来说，情况就不一样了。当我们在 Angular 中调用 `$apply`，它会从整个作用域树结构的最顶端开始执行 digest。下面这个单元测试就能说明目前我们还没实现这样的效果：
+正如我们在上面章节看到的那样，`$digest` 只会从当前作用域开始往下执行。但对于 `$apply` 来说，情况就不一样了。当我们在 Angular 调用 `$apply` 时，它会从整个作用域树结构的最顶端开始执行 digest。下面这个单元测试就说明了目前我们还没实现这样的需求：
 
 _test/scope_spec.js_
 
@@ -26,9 +26,9 @@ it('digests from root on $apply', function() {
 });
 ```
 
-我们能看到，当我们在（孙）子元素上调用 `$apply` 时，并未能触发它祖父元素上的 watcher。
+我们可以看到，在（孙）子元素上调用 `$apply` 时，并没有触发它祖父元素上的 watcher。
 
-要实现这个效果，我们首先需要在作用域上保存它们的根元素的引用，这样才能在根元素上触发 digest。我们也可以沿着原型链找到根作用域，但显式地在作用域上保存一个 `$root` 属性会直接得多。我们可以在根作用域的构造函数上设置这个变量：
+要实现这个效果，我们先要在作用域上保存对根元素的引用，这样才能在根元素上触发 digest。当然，我们也可以沿着原型链一步步找到根作用域，但直接在作用域上保存一个 `$root` 属性会方便得多。我们可以在根作用域的构造函数上初始化这个变量：
 
 _src/scope.js_
 
@@ -46,9 +46,9 @@ function Scope() {
 }
 ```
 
-这样的话，利用原型继承链的特性，树结构里面所有的作用域就都能访问到这个 `$root` 变量了。
+这样的话，我们就可以利用原型链继承的特性，让树结构里面所有的作用域就都能访问到这个 `$root` 变量了。
 
-我们仍然需要在 `$apply` 中进行修改，但也非常简单。我们在根作用域上调用 `$digest`，而不是在当前作用域上调用：
+我们需要对 `$apply` 进行修改，但也很简单。我们只需要在里面调用根作用域上的 `$digest`，而不再调用当前作用域上得 `$digest`：
 
 _src/scope.js_
 
@@ -64,13 +64,13 @@ Scope.prototype.$apply = function(expr) {
 };
 ```
 
-注意，这里我们还是会在当前作用域的语境下运行传入的函数，而不是在根作用域上，通过调用 `this` 上的 `$eval` 方法。我们只是希望 digest 能从根作用域开始一直运行下来而已。
+注意，这里我们调用的是 `this` 上的 `$eval` 方法，也就是说我们是在当前作用域的上下文内执行，而不是根作用域。我们只是希望 digest 能从根作用域开始一直运行下来而已。
 
-事实上，`$apply` 会从根作用域开始往下执行 digest 的特性，正是我们会推荐使用它而不是更为简单 `$digest` 方法来集成外部代码的原因之一：如果你不太清楚哪些作用域会与将要发生的更改相关联，那完全可以把它们都包含进来。
+实际上，`$apply` 从根作用域开始往下执行 digest 的特性，正是我们推荐使用它而不是更为简单 `$digest` 方法来集成外部代码的原因之一：如果你不太清楚哪些作用域与即将发生更改有关，那完全可以把它们都囊括进来。
 
-值得注意的是，由于 Angular 应用只有一个根作用域，`$apply` 确实会导致整个应用里的所有作用域上的 watcher 都会被执行。知道了 `$digest` 和 `$apply` 的区别之后，当你遇到需要额外性能的情况时，你就可以用 `$digest` 来代替 `$apply` 了。
+值得注意的是，由于 Angular 应用只有一个根作用域，`$apply` 确实会执行应用里所有作用域上的 watcher。再了解了 `$digest` 和 `$apply` 的区别以后，当你遇到提升性能的情况时，就可以用 `$digest` 来代替 `$apply` 了。
 
-在介绍了 `$digest` 和 `$apply`（以及与 `$apply` 紧密关联的 `$applyAsync`）之后，我们还需要讨论另一个会触发 digest 的函数，即 `$evalAsync`。它的工作原理与 `$apply` 类似，是在根作用域上设定延时的 digest 任务的，而不是在被调用的作用域上。用单元测试表示就是：
+在介绍了 `$digest` 和 `$apply`（以及与 `$apply` 紧密关联的 `$applyAsync`）以后，我们还需要讨论另一个会触发 digest 的函数——`$evalAsync`。它的工作原理与 `$apply` 类似，是在根作用域上设定延时执行的 digest 任务的，而不是在被调用的作用域上。用单元测试来表示就是：
 
 _test/scope_spec.js_
 
@@ -98,9 +98,9 @@ it('schedules a digest from root on $evalAsync', function(done) {
 });
 ```
 
-这个单元测试跟之前那一个很像：我们在子作用域上调用 `$evalAsync`，看祖父作用域上的 watcher 是否会被执行。
+这个单元测试跟前一个很像：都是在子作用域上调用 `$evalAsync`，然后看祖父作用域上的 watcher 是否会被执行。
 
-由于我们已经可以轻易地访问到根作用域，要修改 `$evalAsync` 就变得很简单了。我们只需要用根作用域而不是 `this` 来调用 `$digest` 就可以了：
+由于我们已经可以很方便地访问到根作用域，修改 `$evalAsync` 的工作就变得很简单了。同样地，我们只需要用根作用域来代替 `this` 调用 `$digest` 就可以了：
 
 _src/scope.js_
 
@@ -118,9 +118,9 @@ Scope.prototype.$evalAsync = function(expr) {
 };
 ```
 
-有了 `$root` 属性的帮助，我们还可以回顾一下 digest 的代码，保证我们引用的是正确的 `$$lastDirtyWatch` 以便检查短路优化的相关状态。无论我们现在是在哪个作用域上调用 `$digest`，`$$lastDirtyWatch` 指向的应该一直都是根作用域的 `$$lastDirtyWatch`。
+有了 `$root` 属性以后，我们还可以检查一下 digest 的代码，确保我们引用到的是正确的 `$$lastDirtyWatch`，以便检查短路优化的相关状态。无论我们现在是在哪个作用域上调用 `$digest`，`$$lastDirtyWatch` 指向的应该都是根作用域上的 `$$lastDirtyWatch`。
 
-我们应该在 `$watch` 函数改成引用 `$root.$$lastDirtyWatch`：
+我们应该在 `$watch` 函数中把对 `$$lastDirtyWatch` 的引用改成使用 `$root.$$lastDirtyWatch`：
 
 _src/scope.js_
 
