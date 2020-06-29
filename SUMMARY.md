@@ -57,7 +57,7 @@
   * [3-4 相互独立的侦听器](scopes/3-scope-inheritance/3-4-separated-watches.md)
   * [3-5 递归的 digest](scopes/3-scope-inheritance/3-5-recursive-digestion.md)
   * [3-6 调用 `$apply`，`$evalAsync` 和 `$applyAsync` 时会对整个树结构进行 digest](scopes/3-scope-inheritance/3-6-digesting-the-whole-tree-from-$apply-$evalAsync-and-$applyAsync.md)
-  * [3-7 孤立的作用域](scopes/3-scope-inheritance/3-7-isolated-scopes.md)
+  * [3-7 隔离作用域](scopes/3-scope-inheritance/3-7-isolated-scopes.md)
   * [3-8 替换父作用域](scopes/3-scope-inheritance/3-8-substituting-the-parent-scope.md)
   * [3-9 销毁作用域](scopes/3-scope-inheritance/3-9-destroying-scopes.md)
   * [3-10 本章小结](scopes/3-scope-inheritance/3-10-summary.md)

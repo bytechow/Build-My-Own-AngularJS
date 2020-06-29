@@ -145,7 +145,7 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
 };
 ```
 
-在 `$digest` 中我们也要这样处理：
+同样地，在 `$digest` 中我们也要这样处理：
 
 _src/scope.js_
 
