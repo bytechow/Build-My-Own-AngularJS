@@ -166,7 +166,7 @@ Scope.prototype.$new = function(isolated) {
 
 在了解与继承相关的内容之前，我们还需要在隔离作用域的上下文中修复一个问题，这个问题与 `$evalAsync`、`$applyAsync` 和 `$$postDigest` 函数中存储的队列有关。回想一下，我们是在 `$digest` 函数处理 `$$asyncQueue` 和 `$$postDigestQueue` 两个队列，然后在 `$$flushApplyAsync` 中处理 `$$applyAsyncQueue`。在这两个地方，我们都没有对子作用域或父作用域进行额外的处理。我们只是简单地假设每个队列都有一个实例，它指向的是整个树结构中所有排队的任务。
 
-对于非隔离作用域来说，情况会是这样的：每当我们从任何作用域访问其中一个队列时，访问到的队列都是同一个，因为这个队列会被继承到每一个作用域。但对隔离作用域来说情况就不一样了。像前面提到的 `$root`，孤立作用域创建的 `$asyncQueue`、`$applyAsyncQueue` 和 `$$postDigestQueue` 方法会屏蔽掉根作用域上对应的三个同名队列。这就产生了一个不幸的影响，即孤立作用域上使用 `$evalAsync` 或者 `$$postDigest` 设定的延时函数永远不会被执行：
+对于非隔离作用域来说，情况会是这样的：当我们访问任意作用域上的一个队列时，访问到的队列都是同一个，因为这个队列会被每一个作用域继承。但对隔离作用域来说情况就不一样了。与前面提到的 `$root` 类似，隔离作用域创建的 `$asyncQueue`、`$applyAsyncQueue` 和 `$$postDigestQueue` 方法会屏蔽掉根作用域上的三个同名队列。这就产生了一个不幸的影响，即在隔离作用域上使用 `$evalAsync` 或者 `$$postDigest` 设定的延时函数永远不会被执行：
 
 _test/scope_spec.js_
 
@@ -198,7 +198,7 @@ it('executes $$postDigest functions on isolated scopes', function() {
 });
 ```
 
-跟 `$root` 一样，无论是不是孤立作用域，我们希望这个作用域使用的 `$$asyncQueue` 和 `$$postDigestQueue` 指向同一个引用位置。如果作用域不是孤立作用域，它会自动获得正确的引用位置。如果是孤立作用域，我们就需要显式地进行赋值了：
+跟 `$root` 一样，无论作用域是不是隔离作用域，我们都希望所有作用域共享 `$$asyncQueue` 和 `$$postDigestQueue` 的同一副本。如果作用域不是隔离作用域，它能自动得到一个副本。但如果是隔离作用域，我们就需要显式地进行赋值了：
 
 _src/scope.js_
 
@@ -222,9 +222,9 @@ Scope.prototype.$new = function(isolated) {
 };
 ```
 
-`$$applyAsyncQueue` 的情况就有点不一样了：由于任务队列的处理是由 `$$applyAsyncId` 来控制的，而现在树结构中的作用域可能会有自己的 `$$applyAsyncId` 实例，我们实际上会有几个 `$applyAsync` 进程，每个孤立作用域一个。这就违背了 `$applyAsync` 的合并 `$apply` 调用的初衷了。
+`$$applyAsyncQueue` 出现的问题就不太一样了：`$$applyAsyncQueue`  是否执行任务队列是由 `$$applyAsyncId` 控制的，而现在树结构中的作用域可能会有自己的 `$$applyAsyncId` 实例，所以实际上会出现几个 `$applyAsync` 进程，每个隔离作用域一个。这就违背了 `$applyAsync` 合并 `$apply` 调用的初衷了。
 
-我们可以利用 `$applyAsyncQueue` 会在 `$digest` 函数中处理完的事实来进行测试。如果我们在子作用域调用 `$digest`，父作用域设定的 `$applyAsync` 任务就应该会在这个 digest 中进行处理，但目前并不是这样的：
+我们可以利用 `$applyAsyncQueue` 会在 `$digest` 函数中全部执行完毕的这个特性进行测试。如果我们在子作用域调用 `$digest`，父作用域设定的 `$applyAsync` 任务应该会被执行，但目前并不是这样的：
 
 _test/scope_spec.js_
 
@@ -243,7 +243,7 @@ it("executes $applyAsync functions on isolated scopes", function() {
 });
 ```
 
-首先，就像 `$evalAsync` 和 `$$postDigest` 的任务队列一样，我们需要在作用域之间共享这个队列：
+首先，像 `$evalAsync` 和 `$$postDigest` 任务队列一样，我们需要每个作用域都能访问到这个队列：
 
 _src/scope.js_
 
@@ -268,7 +268,7 @@ Scope.prototype.$new = function(isolated) {
 };
 ```
 
-其次，我们需要共享 `$$applyAsyncId` 属性。我们不能直接在 `$new` 拷贝这个属性，因为孤立作用域还是需要能定义自己的 `$$applyAsyncId` 属性的。但我们可以显式地 `$root`：
+其次，我们需要共享 `$$applyAsyncId` 属性。但我们不能直接在 `$new` 拷贝这个属性，因为隔离作用域还要能对 `$$applyAsyncId` 属性进行赋值。但我们可以直接从 `$root` 获取到它的值：
 
 _src/scope.js_
 
@@ -334,4 +334,4 @@ Scope.prototype.$$flushApplyAsync = function() {
 };
 ```
 
-最终，我们把所需的一切都准备好了！
+这样隔离作用域的相关内容就都能正常运行了！
