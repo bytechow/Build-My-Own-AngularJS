@@ -2,12 +2,12 @@
 
 在大多数情况下，我们使用 watch 函数的返回值与 `last` 属性中保存的旧值进行比较就可以满足脏值检测的需求了，但在第一次调用 watch 函数时这样处理合适吗？第一次调用时，`last` 属性还未被赋值，它的值还是 `undefined`。这时，如果要侦听的变量值恰好也是 `undefined` 就会产生问题了。我们希望在第一次 watch 函数执行时，listener 函数无论如何都会被调用，由于我们目前尚未考虑到侦听数据初始值为 `undefined` 的情况，当前的代码会判断值没有发生改变，也就不会调用 listener 函数了：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('calls listener when watch value is first undefined', function() {
   scope.counter = 0;
-  
+
   scope.$watch(
     function(scope) { return scope.someValue; },
     function(newValue, oldValue, scope) { scope.counter++; }
@@ -47,7 +47,7 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
 
 与此同时，`initWatchVal` 也会作为 watcher 最初的旧值被传递到 listener 函数中。但我们并不希望这个特殊函数能在 `scope.js` 以外的地方被访问到。要实现这个目的，我们只需要在 watcher 注册后，把新值作为 listener 旧值的实参传入就可以了：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('calls listener with new value as old value the first time', function() {
@@ -84,3 +84,6 @@ Scope.prototype.$digest = function() {
   // });
 };
 ```
+
+
+
