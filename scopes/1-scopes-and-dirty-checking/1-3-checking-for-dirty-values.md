@@ -16,7 +16,7 @@ _test/scope_spec.js_
 
 ```js
 it('calls the watch function with the scope as the argument', function() {
-  var watchFn    = jasmine.createSpy();
+  var watchFn = jasmine.createSpy();
   var listenerFn = function() { };
   scope.$watch(watchFn, listenerFn);
  
