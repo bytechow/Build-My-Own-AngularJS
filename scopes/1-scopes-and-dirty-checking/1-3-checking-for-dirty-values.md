@@ -12,14 +12,14 @@ function(scope) {
 
 下面我们来增加一个单元测试，看作用域是否作为一个参数传入到了 watch 函数中：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('calls the watch function with the scope as the argument', function() {
   var watchFn = jasmine.createSpy();
   var listenerFn = function() { };
   scope.$watch(watchFn, listenerFn);
- 
+
   scope.$digest();
 
   expect(watchFn).toHaveBeenCalledWith(scope);
@@ -46,7 +46,7 @@ Scope.prototype.$digest = function() {
 
 当然，这还不能符合我们的要求。我们希望 `$digest` 调用 watch 函数时，把它的返回值与这个函数上一次的返回值进行比较，看是否相等。如果返回值发生了改变，那就说明 watcher 就是变“脏” 了，这时才需要调用它的 listener 函数。我们再写一个测试用例：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('calls the listener function when the watched value changes', function() {
@@ -57,18 +57,18 @@ it('calls the listener function when the watched value changes', function() {
     function(scope) { return scope.someValue; },
     function(newValue, oldValue, scope) { scope.counter++; }
   );
-  
+
   expect(scope.counter).toBe(0);
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
-  
+
   scope.someValue = 'b';
   expect(scope.counter).toBe(1);
-  
+
   scope.$digest();
   expect(scope.counter).toBe(2);
 });
@@ -103,5 +103,8 @@ Scope.prototype.$digest = function() {
 
 这里也能看出关于 Angular 作用域性能的一些重要特性：
 
-- 单纯把数据添加到作用域上（这种行为本身）是不会对性能造成影响。如果属性没有被 watcher 侦听，那它是否在作用域上并不重要。Angular 不会对作用域上的所有属性进行遍历，仅会对 watcher 进行遍历。
-- 每次执行 `$digest` 时都会把绑定在作用域上的 watch 函数逐个执行一次。因此，我们最好留意一下注册侦听器的数量，还要留意每一个 watch 函数或表达式的性能。
+* 单纯把数据添加到作用域上（这种行为本身）是不会对性能造成影响。如果属性没有被 watcher 侦听，那它是否在作用域上并不重要。Angular 不会对作用域上的所有属性进行遍历，仅会对 watcher 进行遍历。
+* 每次执行 `$digest` 时都会把绑定在作用域上的 watch 函数逐个执行一次。因此，我们最好留意一下注册侦听器的数量，还要留意每一个 watch 函数或表达式的性能。
+
+
+
