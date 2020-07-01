@@ -4,7 +4,7 @@
 
 我们可以在调用 `$watch` 函数时传入一个第三个可选参数，当这个参数是 `true` 的时候，就会启动基于值的脏值检测。下面我们来加入一个单元测试：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('compares based on value if enabled', function() {
@@ -18,10 +18,10 @@ it('compares based on value if enabled', function() {
     },
     true
   );
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
-  
+
   scope.aValue.push(4);
   scope.$digest();
   expect(scope.counter).toBe(2);
@@ -30,7 +30,7 @@ it('compares based on value if enabled', function() {
 
 在这个测试中，当 `scope.aValue` 数组发生变化，计数器就会加 1。当数组添加一个元素后，我们希望脏值检测能捕获到这一变化。但测试没有通过，因为 `scope.aValue` 依然引用的是同一个数组，只是内容发生了变化。
 
-首先我们要改写 `$watch` 函数，让它的第三个参数能接收一个布尔值标识，并把标识保存在 watcher 中：
+首先我们要改写 `$watch` 函数，让它能接收一个布尔值参数（函数的第三个参数），并把标识保存在 watcher 中：
 
 _src/scope.js_
 
@@ -102,3 +102,4 @@ Scope.prototype.$$digestOnce = function() {
 > 实际上 Angular 还提供了第三种脏值检测方式：集合侦听器。我们会在第三章实现这种检测方式。
 
 要完成基于值的比较功能，我们还需要处理一个 JavaScript 的“怪癖”。
+
