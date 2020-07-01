@@ -8,7 +8,7 @@
 
 其实有一种方法可以让执行量减半，那就是对上一个发生变化的 watcher  进行记录。然后，每当我们遇到一个没有发生变化 watcher，我们就看它跟上一轮中记录的最后一个发生变化的 watcher 是否是同一个。如果发现是同一个，说明这一轮已经没有 watcher 会发生变化了，我们也就没有必要继续执行本轮剩余的 watcher ，可以马上结束 digest 了。下面这个单元测试就是针对这种情况建立的：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('ends the digest when the last watch is clean', function() {
@@ -24,10 +24,10 @@ it('ends the digest when the last watch is clean', function() {
       function(newValue, oldValue, scope) {}
     );
   });
-  
+
   scope.$digest();
   expect(watchExecutions).toBe(200);
-  
+
   scope.array[0] = 420;
   scope.$digest();
   expect(watchExecutions).toBe(301);
@@ -42,7 +42,7 @@ it('ends the digest when the last watch is clean', function() {
 
 `scope_spec.js` 现在还未引入 LoDash，为了使用它的 `range` 和 `times` 函数，我们需要先引入 LoDash：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 'use strict';
@@ -132,16 +132,16 @@ Scope.prototype.$$digestOnce = function() {
 
 > 在 `_.forEach` 循环中显式地返回 `false` 会让 LoDash 提前结束并退出循环。
 
-这个优化手段现在就可以起效了。但我们还需要处理一种极端情况——在 listener 函数中注册另一个 watcher:
+这个优化手段现在就可以起效了。但我们还需要处理一种特殊情况——在 listener 函数中注册另一个 watcher:
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('does not end digest so that new watches are not run', function() {
-  
+
   scope.aValue = 'abc';
   scope.counter = 0;
-  
+
   scope.$watch(
     function(scope) { return scope.aValue; },
     function(newValue, oldValue, scope) {
@@ -153,7 +153,7 @@ it('does not end digest so that new watches are not run', function() {
       );
     }
   );
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
 });
@@ -178,3 +178,4 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
 现在我们的 digest 循环就比之前快得多了。对于一般的 Angular 应用来说，这个优化并不总是能像上面这个例子一样能高效地减少遍历次数。但从平均水平上来看，它产生的效果已经足以让 Angular 开发团队加入这个优化了。
 
 下面的章节，我们将回归到 Angular 实际上是如何对数据进行侦听的话题上来。
+
