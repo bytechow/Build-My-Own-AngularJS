@@ -132,7 +132,7 @@ Scope.prototype.$$digestOnce = function() {
 
 > 在 `_.forEach` 循环中显式地返回 `false` 会让 LoDash 提前结束并退出循环。
 
-这个优化手段现在就可以起效了。但我们还需要处理一种特殊情况——在 listener 函数中注册另一个 watcher:
+这个优化手段现在起效了，但我们还需要处理一种特殊情况——在 listener 函数中注册另一个 watcher:
 
 _test/scope\_spec.js_
 
