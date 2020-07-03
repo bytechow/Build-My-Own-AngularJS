@@ -4,7 +4,7 @@
 
 Angular 实现移除 watcher 的方式十分聪明：Angular 中的 `$watch` 函数会有一个返回值。这个值就是一个函数，当它被调用的时候就会销毁对应的 watcher。如果用户希望推迟移除 watcher 的时机，他们只需要在注册 watcher 之后保存它返回的函数 ，然后在不再需要 watcher 的时候调用这个函数就可以了：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('allows destroying a $watch with a removal function', function() {
@@ -24,7 +24,7 @@ it('allows destroying a $watch with a removal function', function() {
   scope.aValue = 'def';
   scope.$digest();
   expect(scope.counter).toBe(2);
-  
+
   scope.aValue = 'ghi';
   destroyWatch();
   scope.$digest();
@@ -56,11 +56,11 @@ Scope.prototype.$watch = function(watchFn, listenerFn, valueEq) {
 };
 ```
 
-虽然这样缺失能移除 watcher ，但我们还需要处理几个特殊情况以保证代码的健壮性。这几种特殊情况都与在 digest 过程中移除 watcher 的这种操作有关，这种场景并不少见。
+虽然这样确实能移除 watcher ，但我们还需要处理几个特殊情况以保证代码的健壮性。这几种特殊情况都与在 digest 过程中移除 watcher 的这种操作有关，这种场景并不少见。
 
 首先，watcher 可能会在自己的 watch 或 listener 函数移除自身。我们要保证它不会影响其他 watcher:
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('allows destroying a $watch during digest', function() {
@@ -74,7 +74,7 @@ it('allows destroying a $watch during digest', function() {
       return scope.aValue;
     }
   );
-  
+
   var destroyWatch = scope.$watch(
     function(scope) {
       watchCalls.push('second');
@@ -98,7 +98,7 @@ it('allows destroying a $watch during digest', function() {
 
 实际上，由于第二个 watcher 在 digest 的第一轮中移除了自己，这时存放 watcher 的数组会自动进行 shift 操作（把第三个 watcher 放到第二个 watcher 的位置），导致 `$$digestOnce` 在那一轮中跳过对第三个 watcher 的执行。
 
-> **译者注**：在上面的单元测试中，若未修正代码，这个 digest 一共会执行了三轮，结果是 `['first', 'second', 'first', 'third', 'first', 'third']`。下面来分析一下，为什么会输出这样的结果。首先，第一轮必定变“脏”，移除第二个 watcher 之后，跳过了第三个 watch 函数的执行，那这时的 \$\$lastDirtyWatch 会是第二个 watcher；第二轮，由于移除了第二个 watcher，此时遍历的第二个元素（也是最后一个元素）会是原本的第三个 watcher 肯定不会与 \$\$lastDirtyWatch（原本的第二个 watch）相等，此时第三个 watcher 第一次执行，所以第二轮 digest 也变“脏”了，会再执行第三轮 digest，因此出现这个结果。
+> **译者注**：在上面的单元测试中，若未修正代码，这个 digest 一共会执行了三轮，结果是 `['first', 'second', 'first', 'third', 'first', 'third']`。下面来分析一下，为什么会输出这样的结果。首先，第一轮必定变“脏”，移除第二个 watcher 之后，跳过了第三个 watch 函数的执行，那这时的 $$lastDirtyWatch 会是第二个 watcher；第二轮，由于移除了第二个 watcher，此时遍历的第二个元素（也是最后一个元素）会是原本的第三个 watcher 肯定不会与 $$lastDirtyWatch（原本的第二个 watch）相等，此时第三个 watcher 第一次执行，所以第二轮 digest 也变“脏”了，会再执行第三轮 digest，因此出现这个结果。
 
 解决这个问题的诀窍在于要对 `$$watchers` 数组进行反向操作，新注册的 watcher 会被添加到数组的开头，然后再按照从后到前的顺序进行遍历。当在 digest 的过程中有 watcher 被移除时，已经执行的 watcher 就会填满空出来的数组空间，这样不会对剩余的 watcher 产生影响。
 
@@ -158,7 +158,7 @@ Scope.prototype.$$digestOnce = function() {
 
 另外一个特殊情况会在 watcher 中尝试移除另一个 watcher 时出现。我们来看看下面的测试用例：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('allows a $watch to destroy another during digest', function() {
@@ -173,19 +173,19 @@ it('allows a $watch to destroy another during digest', function() {
       destroyWatch();
     }
   );
-  
+
   var destroyWatch = scope.$watch(
     function(scope) {},
     function(newValue, oldValue, scope) {}
   );
-  
+
   scope.$watch(
     function(scope) { return scope.aValue; },
     function(newValue, oldValue, scope) {
       scope.counter++;
     }
   );
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
 });
@@ -239,7 +239,7 @@ it('allows destroying several $watches during digest', function() {
       scope.counter++;
     }
   );
-  
+
   scope.$digest();
   expect(scope.counter).toBe(0);
 });
@@ -278,3 +278,4 @@ Scope.prototype.$$digestOnce = function() {
 ```
 
 现在，无论如何移除 watcher，我们都不需要再担心会影响到 digest 的正常运行了。
+
