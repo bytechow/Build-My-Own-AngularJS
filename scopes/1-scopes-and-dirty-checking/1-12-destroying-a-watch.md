@@ -94,7 +94,7 @@ it('allows destroying a $watch during digest', function() {
 });
 ```
 
-在上面这个单元测试中，我们注册了三个 watcher。其中第二个 watcher 会在第一次调用之后就移除了自身，剩下第一个和第三个 watcher。我们会验证 watcher 是否按照正确的顺序进行调用：在 digest 的第一轮中，我们希望三个 watcher 的 watch 函数都会被执行。由于 digest 变“脏”，会执行第二轮的便利，但此时第二个 watcher 已经不存在了。
+在上面这个单元测试中，我们注册了三个 watcher。其中第二个 watcher 会在第一次调用之后就移除了自身，剩下第一个和第三个 watcher。我们会验证 watcher 是否按照正确的顺序进行调用：在 digest 的第一轮中，我们希望三个 watcher 的 watch 函数都会被执行。由于 digest 变“脏”，会执行第二轮的遍历，但此时第二个 watcher 已经不存在了。
 
 实际上，由于第二个 watcher 在 digest 的第一轮中移除了自己，这时存放 watcher 的数组会自动进行 shift 操作（把第三个 watcher 放到第二个 watcher 的位置），导致 `$$digestOnce` 在那一轮中跳过对第三个 watcher 的执行。
 
