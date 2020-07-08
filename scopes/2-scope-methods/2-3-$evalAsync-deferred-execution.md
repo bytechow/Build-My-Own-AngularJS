@@ -1,7 +1,8 @@
 ### $evalAsync——延迟执行
+
 #### $evalAsync - Deferred Execution
 
-在 JavaScript 中，延迟执行一段代码是很常见的——让这段代码延迟到当前执行上下文完成时的某个时间点再执行。通常的方法是使用 [setTimeout](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout)，并使用 0 (或非常小的数值）作为延迟参数。
+在 JavaScript 中，延迟执行一段代码是很常见的——让这段代码延迟到当前执行上下文完成时的某个时间点再执行。通常的方法是使用 [setTimeout](https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/setTimeout)，并使用 0 \(或非常小的数值）作为延迟参数。
 
 这种模式也适用于 Angular 应用程序。不过首选的方式是使用 `$timeout` 服务，它会使用 `$apply` 把延迟执行的函数集成到 digest 循环中。
 
@@ -11,22 +12,22 @@
 
 我们用一个单元测试来定义 `$evalAsync` 函数：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 describe('$evalAsync', function() {
-  
+
   var scope;
-  
+
   beforeEach(function() {
     scope = new Scope();
   });
-  
+
   it('executes given function later in the same cycle', function() {
     scope.aValue = [1, 2, 3];
     scope.asyncEvaluated = false;
     scope.asyncEvaluatedImmediately = false;
-    
+
     scope.$watch(
       function(scope) { return scope.aValue; },
       function(newValue, oldValue, scope) {
@@ -41,7 +42,7 @@ describe('$evalAsync', function() {
     expect(scope.asyncEvaluated).toBe(true);
     expect(scope.asyncEvaluatedImmediately).toBe(false);
   });
-  
+
 });
 ```
 
@@ -55,7 +56,7 @@ _src/scope.js_
 function Scope() {
   this.$$watchers = [];
   this.$$lastDirtyWatch = null;
-  this.$$asyncQueue = [];
+  this.$$asyncQueue = []; // +
 }
 ```
 
@@ -94,3 +95,4 @@ Scope.prototype.$digest = function() {
 ```
 
 这样我们就能保证定时任务不会被马上执行，而且当作用域还是“脏”的，这个定时任务就会在当前 digest 周期内被执行。这就满足我们的需求了。
+
