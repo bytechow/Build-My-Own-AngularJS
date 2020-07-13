@@ -1,4 +1,4 @@
-### 用一个 listener 函数同时监听多个变化——$watchGroup
+### 4耳朵用一个 listener 函数同时监听多个变化——$watchGroup
 
 #### Watching Several Changes With One Listener: $watchGroup
 
@@ -10,7 +10,7 @@
 
 事实上，在 Angular 1.3 以后的版本中我们已经不再需要手动创建这种（一次性监听多个值的）函数，可以直接使用 Angular 内建的 `$watchGroup` 方法。
 
-这个 `$watchGroup` 函数能以数组的形式接受多个 watch 函数和一个 listener 函数。它的核心要点是当数组中任何一个 watch 函数侦测到变化，都会调用 listener 函数。这个 listener 函数的参数是两个数组，分别是新值和旧值，它们会按照传入时的顺序进行排列。
+这个 `$watchGroup` 函数能以数组的形式接受多个 watch 函数和一个 listener 函数。它的核心要点是当数组中任何一个 watch 函数侦测到变化，都会调用 listener 函数。这个 listener 函数的参数是两个数组，分别对应新值和旧值，它们会按照传入时的顺序进行排列。
 
 下面，我们新建一个新的 `describe` 代码块来存放对应的测试用例：
 
