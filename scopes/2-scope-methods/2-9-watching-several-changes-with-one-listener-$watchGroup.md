@@ -1,15 +1,16 @@
 ### 用一个 listener 函数同时监听多个变化——$watchGroup
+
 #### Watching Several Changes With One Listener: $watchGroup
 
 到目前为止，我们遇到的 watch 函数和 listener 函数都是简单的因果对：当这个发生变化时，就这样做。然而还有另一种常见的情况，那就是同时观察多个状态，当其中一个状态发生改变时就执行某段代码。
 
-现在 Angular watch 就只是一个普通的 JavaScript 函数，所以用我们已有的 watch 函数是完全可以做到的：我们可以在 watch 函数中进行多个脏值检查，最后返回触发 listener 函数执行的组合值。
+实际上，由于 Angular watch 是一个普通的 JavaScript 函数，因此用我们目前已有的 watch 函数就可以实现这个效果：我们可以在 watch 函数中进行多个脏值检查，最后返回触发 listener 函数执行的组合值。
 
 > 译者注：当然这里说的 watcher 需要传入第三个参数值 `true`，开启基于值的比较模式才可以检测复合值内容是否发生变化。
 
 事实上，在 Angular 1.3 以后的版本中我们已经不再需要手动创建这种（一次性监听多个值的）函数，可以直接使用 Angular 内建的 `$watchGroup` 方法。
 
-这个 `$watchGroup` 函数能以数组的形式接受多个 watch 函数和一个 listener 函数。它的核心要点是当数组中任何一个 watch 函数侦测到了变化，都会调用 listener 函数。这个 listener 函数会被传入同样是以数组形式存在的新值和旧值，它们会按照最初 watch 传入的顺序进行排列。
+这个 `$watchGroup` 函数能以数组的形式接受多个 watch 函数和一个 listener 函数。它的核心要点是当数组中任何一个 watch 函数侦测到变化，都会调用 listener 函数。这个 listener 函数会被传入同样是以数组形式存在的新值和旧值，它们会按照最初 watch 传入的顺序进行排列。
 
 下面，我们新建一个新的 `describe` 代码块来存放对应的测试用例：
 

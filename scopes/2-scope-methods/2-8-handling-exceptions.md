@@ -58,7 +58,7 @@ it('catches exceptions in $applyAsync', function(done) {
 >
 > （译者注：上面的解释比较简略，这里详细说下流程。如果我们只用一个会抛出异常的函数，那就是 `$applyAsync` 一共会设定两个函数，一个会抛异常，另一个不会。第一个 `$applyAsync` 函数会设定一个定时器，定时器到时执行 `$apply`，`$apply` 会利用 `$eval` 调用 `$$flushApplyAsync`，`$$flushApplyAsync` shift 出第一个异步任务并调用，会抛出异常，导致 `$$flushApplyAsync` 调用过程发生中断，返回到上层也就是 `$apply`，由于 `$apply` 使用了 `try...finally` 代码块对 `$eval` 进行包裹，因此异常会被忽略，并进入到 `finally` 代码块，`finally` 代码块中调用了 `$digest`，这样剩余的一个异步任务就会在 `$digest` 函数处理 `$applyAsync` 设定的异步任务时被调用了）
 
-由于 `$$postDigest` 延时函数会在 digest 结束之后执行，我们就不能再使用 watcher 来测试了。但我们可以使用第二个 `$$postDigest` 延时函数来测试，我们要确保在第一个函数发生异常时，第二个函数照样会被执行。我们把这个测试放到 `describe('$$postDigest')` 测试集合中去。
+由于 `$$postDigest` 延时函数会在 digest 结束之后执行，我们就不能再利用 watcher 进行测试了。但我们可以使用第二个 `$$postDigest` 延时函数来测试，我们要确保在第一个函数发生异常时，第二个函数照样会被执行。我们把这个测试放到 `describe('$$postDigest')` 测试集合中去。
 
 _test/scope\_spec.js_
 
@@ -78,7 +78,7 @@ it('catches exceptions in $$postDigest', function() {
 });
 ```
 
-要解决 `$evalAsync` 和 `$$postDigest` 的异常处理问题关键都在 `$digest` 函数上。我们只需要在 `$digest` 执行延时函数的位置外都包裹上 `try...catch` 代码块就可以了：
+要解决 `$evalAsync` 和 `$$postDigest` 的异常处理问题，关键在 `$digest` 函数。我们只需要在 `$digest` 执行延时函数的位置外都包裹上 `try...catch` 代码块就可以了：
 
 _src/scope.js_
 
