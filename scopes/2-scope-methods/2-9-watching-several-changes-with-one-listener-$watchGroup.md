@@ -1,4 +1,4 @@
-### 4耳朵用一个 listener 函数同时监听多个变化——$watchGroup
+### 用一个 listener 函数同时监听多个变化——$watchGroup
 
 #### Watching Several Changes With One Listener: $watchGroup
 
