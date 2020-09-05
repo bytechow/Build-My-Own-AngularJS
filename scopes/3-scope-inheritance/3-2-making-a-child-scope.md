@@ -153,11 +153,11 @@ it('can be nested at any depth', function() {
 });
 ```
 
-虽然上面定义了很多东西，但实现起来很简单。我们只需要利用 JavaScript 对象继承就可以了，Angular 作用域就是按照 JavaScript 本身的工作方式设计的。实际上，当你创建子作用域时，它的父作用域就会自动成为它的原型了。
+虽然上面定义了很多东西，但实现起来很简单。我们只需要利用 JavaScript 对象继承就可以了，Angular 作用域就是按照 JavaScript 本身的工作方式设计的。当你创建子作用域时，它的父作用域就会自动成为它的原型了。
 
 > 我们不会花太多时间讨论 JavaScript 中的原型是什么。如果你想复习一下的话，DailyJS 上有很多关于原型和继承的好文章，[prototype](http://dailyjs.com/2012/05/20/js101-prototype/) 和 [inheritance](http://dailyjs.com/2012/05/27/js101-prototype-chains/)。
 >
-> 译者注：以上两个链接由于已经是 2012 年的链接，已经失效。如有必要，请看 MDN 的说明 [继承与原型链](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain)
+> _译者注：以上两个链接由于已经是 2012 年的链接，已经失效。如有必要，请看 MDN 的说明 _[_继承与原型链_](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Inheritance_and_the_prototype_chain)
 
 我们在 `Scope`  构造函数中创建 `$new` 函数。这个函数能够为当前作用域创建一个子作用域，并返回这个子作用域：
 
