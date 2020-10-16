@@ -143,6 +143,8 @@ Scope.prototype.$$digestOnce = function() {
 
 内部的循环会对作用域所在的树结构进行遍历，直到所有作用域都已经被访问过或者遇到了适用短路优化的情况。我们会使用 `continueLoop` 变量来记录当前是否满足短路优化的条件。如果这个变量变成 `false`，我们就同时跳出循环和 `$$digestOnce` 函数。
 
+注意，在内层循环中
+
 注意，我们使用的 `$$lastDirtyWatch` 属性总是指向最顶层的那个作用域。短路优化需要考虑作用域所在树结构范围内的所有 watcher。如果我们在当前作用域设置 `$$lastDirtyWatch` 属性，就会屏蔽父作用域上的同名属性。
 
 > 实际上，AngularJS 的作用域上并没有 `$$children` 属性。如果查看源码，你能发现它把子作用域放到一个定制的、链表形式的变量组中：`$$nextSibling`，`$$prevSibling`，`$$childHead` 和 `$$childTail`。这是一种优化手段，无需进行常规的数组操作，同时可以降低增删元素的成本。跟使用 `$$children` 数组实现的效果一样。
