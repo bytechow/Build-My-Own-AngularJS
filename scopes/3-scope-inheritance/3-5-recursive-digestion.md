@@ -143,11 +143,11 @@ Scope.prototype.$$digestOnce = function() {
 
 内部的循环会对作用域所在的树结构进行遍历，直到所有作用域都已经被访问过或者遇到了适用短路优化的情况。我们会使用 `continueLoop` 变量来记录当前是否满足短路优化的条件。如果这个变量变成 `false`，我们就同时跳出循环和 `$$digestOnce` 函数。
 
-注意，在内层循环中
+注意，在内层循环中，我们把 `this` 换成当前 `scope`。watch 函数传入的必须是它所挂载的 scope 上，而不是调用 `$digest` 方法的那个 scope 对象
 
-注意，我们使用的 `$$lastDirtyWatch` 属性总是指向最顶层的那个作用域。短路优化需要考虑作用域所在树结构范围内的所有 watcher。如果我们在当前作用域设置 `$$lastDirtyWatch` 属性，就会屏蔽父作用域上的同名属性。
+还有一点要注意，我们使用的 `$$lastDirtyWatch` 属性总是指向最顶层的那个作用域。短路优化需要考虑作用域所在树结构范围内的所有 watcher。如果我们在当前作用域设置 `$$lastDirtyWatch` 属性，就会屏蔽父作用域上的同名属性。
 
-> 实际上，AngularJS 的作用域上并没有 `$$children` 属性。如果查看源码，你能发现它把子作用域放到一个定制的、链表形式的变量组中：`$$nextSibling`，`$$prevSibling`，`$$childHead` 和 `$$childTail`。这是一种优化手段，无需进行常规的数组操作，同时可以降低增删元素的成本。跟使用 `$$children` 数组实现的效果一样。
+> 实际上，AngularJS 的作用域上并没有 `$$children` 属性。如果查看源码，你能发现它把子作用域放到一组定制的、链表形式的变量中：`$$nextSibling`，`$$prevSibling`，`$$childHead` 和 `$$childTail`。这样处理后，新增和移除作用域时的开销要比使用常规数组操作成本更低。它能实现与 `$$children` 数组同样的效果。
 
 
 
