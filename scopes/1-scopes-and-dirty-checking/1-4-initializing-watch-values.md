@@ -45,7 +45,7 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
 
 这样在创建 watcher 后（执行 $digest 时），无论 watch 函数返回什么值，listener 函数都会被调用。
 
-与此同时，`initWatchVal` 也会作为 watcher 最初的旧值被传递到 listener 函数中。但我们并不希望这个特殊函数能在 `scope.js` 以外的地方被访问到。要实现这个目的，我们只需要在 watcher 注册后，把新值作为 listener 旧值的实参传入就可以了：
+与此同时，`initWatchVal` 也会作为 watcher 最初的旧值被传递到 listener 函数中。但我们并不希望这个特殊函数能在 `scope.js` 以外的地方被访问到。要实现这个目的，我们只需要在注册 watcher 后，把新值当作 listener 旧值就可以了：
 
 _test/scope\_spec.js_
 
