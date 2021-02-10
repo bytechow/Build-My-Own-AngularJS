@@ -2,11 +2,11 @@
 
 在目前的代码中，我们会对作用域中的所有 watcher 进行多轮遍历，直到在某轮遍历中所有 watcher 都未发生变化（或者达到了 TTL 上限）。
 
-由于一个 digest 可能需要执行包含大量的 watcher，尽可能地降低执行 watcher 的次数变得尤为重要。这也是为什么我们要对 digest 循环应用一种特殊的优化措施——短路优化了。
+digest 可能需要执行大量的 watcher，因此尽可能地降低执行 watcher 的次数变得尤为重要。这也是为什么我们要对 digest 循环用上一种特殊的优化措施——短路优化了。
 
-假如一个作用域上有 100 个 watcher，当在作用域上启动 digest 后发现只有第一个 watcher 的值发生了变化，也就是说这一个 watch （老鼠屎）把这一轮 digest（粥）弄“脏”了，我们不得不再执行一轮 digest，在第二轮遍历中，我们发现所有 watcher 的值都不再发生变化了，这时才能结束 digest。但这个过程我们需要执行 200 个 watcher！
+假如一个作用域上有 100 个 watcher，作用域 digest 启动后发现只有第一个 watcher 的值发生了变化，也就是说这一个 watch （老鼠屎）把这一轮 digest（粥）弄“脏”了，我们不得不再执行一轮 digest，在第二轮遍历中，我们通过检查发现所有 watcher 的值都不再发生变化了，这时才能结束 digest。但整个过程我们需要执行 200 个 watcher！
 
-其实有一种方法可以让执行量减半，那就是对上一个发生变化的 watcher  进行记录。然后，每当我们遇到一个没有发生变化 watcher，我们就看它跟上一轮中记录的最后一个发生变化的 watcher 是否是同一个。如果发现是同一个，说明这一轮已经没有 watcher 会发生变化了，我们也就没有必要继续执行本轮剩余的 watcher ，可以马上结束 digest 了。下面这个单元测试就是针对这种情况建立的：
+其实我们可以让执行量减半，那就是对上一个发生变化的 watcher  进行记录。然后，每当我们遇到一个没有发生变化 watcher，我们就把它跟上一轮记录的最后一个发生变化的 watcher 进行比较。如果发现是同一个，说明这一轮已经没有 watcher 会发生变化了，我们也就没有必要继续执行本轮剩余的 watcher ，可以马上结束 digest 了。我们为这种情况建立下面这个单元测试：
 
 _test/scope\_spec.js_
 
@@ -104,7 +104,7 @@ Scope.prototype.$$digestOnce = function() {
 };
 ```
 
-同时，在 `$$digestOnce` 中，如果我们发现当前的 watcher 跟之前记录在 `$$lastDirtyWatch` 实例属性的 watcher 是同一个的话，我们就会通过 `return false` 的方式来直接退出当前的遍历轮次，同时也会退出外层的 `$digest` 循环：
+同时，在 `$$digestOnce` 中，如果我们发现当前的 watcher 没有发生变化，而且正好跟存储在 `$$lastDirtyWatch` 实例属性上的 watcher 是同一个的话，我们就会通过 `return false` 的方式来直接退出当前的遍历轮次，同时也能通知外层 `$digest` 可以结束循环了：
 
 ```js
 Scope.prototype.$$digestOnce = function() {
@@ -128,9 +128,9 @@ Scope.prototype.$$digestOnce = function() {
 };
 ```
 
-由于我们在这轮遍历中不会再遇到变“脏”了的 watcher，`dirty` 的值就会是 `undefined`，这同时也是 `$$digestOnce` 函数的返回值（所以才会同时退出外层的 digest 循环）。
+由于我们在这轮遍历中不会再遇到变“脏”了的 watcher，`dirty` 的值就会是 `undefined`，这会成为 `$$digestOnce` 函数的返回值（所以才能同时退出外层的 digest 循环）。
 
-> 在 `_.forEach` 循环中显式地返回 `false` 会让 LoDash 提前结束并退出循环。
+> 在 LoDash `_.forEach` 循环中显式地返回 `false` 会让循环提前结束。
 
 这个优化手段现在起效了，但我们还需要处理一种特殊情况——在 listener 函数中注册另一个 watcher:
 
@@ -159,7 +159,7 @@ it('does not end digest so that new watches are not run', function() {
 });
 ```
 
-这里我们注册的第二个 watcher 并没有被执行。原因是在 digest 的第二轮遍历中，在这个新增的 watch 函数运行之前，程序把第一个 watcher 当作是上轮变化了而本轮没有再次发生变化的 watcher（符合短路优化条件），短路优化直接结束了 digest。我们可以通过在注册 watcher 后重置 `$$lastDirtyWatch`来解决这个问题，这样就能显式地禁用短路优化：
+这里我们注册的第二个 watcher 并没有被执行。原因是在 digest 的第二轮遍历中，在这个新增的 watch 函数运行之前，程序把第一个 watcher 当作是上轮变化了而本轮没有再次发生变化的 watcher（符合短路优化条件），触发短路优化，直接让 digest 结束了。我们可以通过在注册 watcher 后重置 `$$lastDirtyWatch`来解决这个问题，这样就能显式地禁用短路优化：
 
 _src/scope.js_
 
@@ -177,5 +177,5 @@ Scope.prototype.$watch = function(watchFn, listenerFn) {
 
 现在我们的 digest 循环就比之前快得多了。对于一般的 Angular 应用来说，这个优化并不总是能像上面这个例子一样能高效地减少遍历次数。但从平均水平上来看，它产生的效果已经足以让 Angular 开发团队加入这个优化了。
 
-下面的章节，我们将回归到 Angular 实际上是如何对数据进行侦听的话题上来。
+下一章节，我们将回到 Angular 如何侦听数据的话题上来。
 
