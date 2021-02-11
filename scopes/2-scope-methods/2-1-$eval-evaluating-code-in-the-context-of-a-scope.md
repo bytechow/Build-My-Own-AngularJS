@@ -4,37 +4,37 @@
 
 下面这几个测试用例展示了我们应该如何使用 `$eval`。我们把这几个测试用例都放到一个新的 `describe` 代码块中：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 describe('$eval', function() {
-  
+
   var scope;
 
   beforeEach(function() {
     scope = new Scope();
   });
-  
+
   it('executes $evaled function and returns result', function() {
     scope.aValue = 42;
-  
+
     var result = scope.$eval(function(scope) {
       return scope.aValue;
     });
-  
+
     expect(result).toBe(42);
   });
-  
+
   it('passes the second $eval argument straight through', function() {
     scope.aValue = 42;
-  
+
     var result = scope.$eval(function(scope, arg) {
       return scope.aValue + arg;
     }, 2);
-  
+
     expect(result).toBe(44);
   });
-  
+
 });
 ```
 
@@ -48,6 +48,7 @@ Scope.prototype.$eval = function(expr, locals) {
 };
 ```
 
-那为什么我们调用一个函数也要这样绕圈子呢？可能有人会说，`$eval` 只是为了更明显地表现出这段代码是在特定作用域的上下文中执行的。`$apply` 也是基于 `$eval` 实现，我们后面会讲到。
+那为什么调用函数还要这样绕圈子呢？可能有人会说，`$eval` 只是为了更明显地表现出这段代码是在特定作用域的上下文中执行的。`$apply` 也是基于 `$eval` 实现，我们后面会讲到。
 
-但是 `$eval` 真正有趣的地方可能要到后面我们开始介绍表达式时才能真正展现出来，现在我们还在用原生函数形式的 `$eval` ，暂时还看不出来。到那时候，跟 `$watch` 一样，你可以直接传递一个字符串形式的表达式给 `$eval`。`$eval` 会对这个表达式进行编译，然后再在给定的作用域语境中执行它。我们会在本书第二部分实现这些功能。
+`$eval` 真正有趣的地方要到后面介绍表达式时才能展现出来，现在我们用原生函数形式的 `$eval` 还看不出来。到那时，`$eval` 跟 `$watch` 一样，可以直接传入一个字符串表达式，`$eval` 会对这个表达式进行编译，然后再在给定的作用域语境中执行它。我们会在本书第二部分实现这个功能。
+
