@@ -1,7 +1,8 @@
 ### 在 watch 函数中设置 $evalAsync 定时任务
+
 #### Scheduling $evalAsync from Watch Functions
 
-上一节我们说可以在 listener 函数可以用 `$evalAsync` 来设定一个延时任务，这个任务依然会在同一个 digest 周期中被执行。但如果我们是在 watch 函数设定 `$evalAsync` 延时任务会发生什么呢？当然，我们不推荐这样做，因为我们认为 watch 函数不应该产生任何的副作用。但在 Angular 这种做法也是被允许的，所以我们要保证这种操作下不会对 digset 产生不良的影响。
+上一节我们说可以在 listener 函数可以用 `$evalAsync` 来设定一个延时任务，这个任务依然会在同一个 digest 周期中被执行。但如果我们是在 watch 函数设定 `$evalAsync` 延时任务会发生什么呢？当然，我们不推荐这样做，因为我们认为 watch 函数不应该产生任何的副作用。但在 Angular 中这种做法也是被允许的，所以我们要保证这种操作下不会对 digset 产生不良的影响。
 
 如果我们在 watch 函数调用一次 `$evalAsync`，结果看上去是满足我们需求的。像下面这个单元测试，我们不需要修改代码就能让它通过了：
 

@@ -2,7 +2,7 @@
 
 #### Scope Phases
 
-`$evalAsync` 在检测到当前没有 digest 运行时还会定时启动一个 `$digest` 周期。这意味着，无论你在什么时候利用 `$evalAsync` 来延迟执行一个函数，都可以肯定这个函数会在“不久后”被调用，而不需要依赖其他事件触发 digest。
+`$evalAsync` 在检测到当前没有 digest 运行时还可以延期启动一个 `$digest` 周期。这意味着，无论你在什么时候利用 `$evalAsync` 来延迟执行一个函数，都可以肯定这个函数会在“不久后”被调用，而不需要依赖其他事件触发 digest。
 
 > 注意，虽然 `$evalAsync` 也可以异步启动一个 `$digest`，但我们还是推荐你使用 `$applyAsync` 来完成这个需求，我们会下节介绍这个方法。
 
@@ -168,5 +168,5 @@ Scope.prototype.$evalAsync = function(expr) {
 
 开发到这里，我们就能确保无论在何时何处调用 `$evalAsync` ，都会有一个 digest 在稍后被启动。
 
-如果在调用 `$evalAsync` 时 digest 正在运行，那我们传入的函数就会在这个 digest 中得到处理。相反，如果调用时没有 digest 在运行，`$evalAsync` 就会帮我们启动一个 digest。我们使用 `setTimeout` 来推迟这个 digest 的开始时间。这样无论当前 digest 处于什么阶段，`$evalAsync` 的调用者就可以确保函数总是立即返回，无需等待对表达式的同步（synchronously）运算。
+如果在调用 `$evalAsync` 时 digest 正在运行，那我们传入的函数就会在这个 digest 中得到处理。相反，如果调用时没有 digest 在运行，`$evalAsync` 就会帮我们启动一个 digest。我们使用 `setTimeout` 来推迟这个 digest 的开始时间。这样无论当前 digest 处于什么阶段，`$evalAsync` 的调用者就可以确保函数总是立即结束，无需等待对表达式的同步（synchronously）运算。
 
