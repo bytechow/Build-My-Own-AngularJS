@@ -2,7 +2,7 @@
 
 #### Coalescing $apply Invocations - $applyAsync
 
-虽然 `$evalAsync` 既可以用于在 digest 内设置延时任务，也可以在 digest 外设置延时任务，但实际上它确实是为前者设计的。如果有人在 digest 外调用了 `$evalAsync`，那 `$evalAsync` 内部调用 `setTimeout` 主要是为了防止混淆。
+虽然 `$evalAsync` 既可以在 digest 内设置延时任务，也可以在 digest 外设置延时任务，但实际上它就是为前者设计的。如果有人在 digest 外调用了 `$evalAsync`，那 `$evalAsync` 内部调用 `setTimeout` 主要是为了防止混淆。
 
 而对于要在 digest 循环外异步调用（apply）一个函数的情况，Angular 提供了另一个专用函数 `$applyAsync`。它的作用与 `$apply` 差不多——都是用于将无法感知到 Angular digest 周期的外部代码进行集成。但跟 `$apply` 不同的是，`$applyAsync` 不会马上调用传入的函数，而且也不会立即触发一个 digest。相反，`$applyAsync` 会推迟一段比较短的时间之后再执行这两个操作。
 
