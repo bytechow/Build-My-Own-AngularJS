@@ -81,7 +81,7 @@ Scope.prototype.$watchGroup = function(watchFns, listenerFn) {
 };
 ```
 
-> `$watchGroup` 用的是中是基于引用的变化侦测方式。
+> 注意：`$watchGroup` 用的是中是基于引用的变化侦测方式。
 
 上面第一个版本的 `$watchGroup` 的问题在于我们太急于要调用 listener 函数了：如果侦听器数组有多个 watch 发生了变化，listener 就会被多次调用，而我们希望在这样的情况下 listener 函数只会被调用一次。更糟糕的是，由于程序一旦侦测到变化就会调用一次 listener，因此会在 `oldValues` 和 `newValues` 数组中混合了新值和旧值，导致用户看到前后不一致的结果值。
 
