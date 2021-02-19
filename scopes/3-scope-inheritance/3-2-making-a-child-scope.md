@@ -62,7 +62,7 @@ it('does not cause a parent to inherit its properties', function() {
 });
 ```
 
-父子作用域对属性的共享与属性何时定义无关。在父作用域上定义属性时，父作用域现存的子作用域同样可以访问到这个属性：
+父子作用域属性共享与属性定义时间无关。父作用域上定义新属性时，现存的子作用域同样可以访问到这个属性：
 
 _test/scope\_spec.js_
 
@@ -94,7 +94,7 @@ it('can manipulate a parent scopes property', function() {
 });
 ```
 
-由此还可以看出，子作用域可以对父作用域上的属性进行侦听：
+由此可见，子作用域可以对父作用域上的属性进行侦听：
 
 _test/scope\_spec.js_
 
@@ -122,7 +122,7 @@ it('can watch a property in the parent', function() {
 });
 ```
 
-> 可能你已经察觉到了，子作用域也是有自己的 `$watch` 方法的，因为这个 `$watch` 方法是定义在 `Scope.prototype` 上的。这与用户自定义属性的继承机制是一样的：父作用域继承自 `Scope.prototype`，子作用域继承父作用域，`Scope.prototype` 上定义的东西自然就能被每一个作用域访问到了！
+> 可能你已经察觉到了，子作用域也有 `$watch` 方法，因为 `$watch` 方法是定义在 `Scope.prototype` 上。这与用户自定义属性的继承机制是一样的：父作用域继承自 `Scope.prototype`，子作用域继承父作用域，`Scope.prototype` 上定义的东西自然就能被每一个作用域访问到了！
 
 上面讨论的所有内容适用于任意深度的作用域层次：
 
@@ -153,7 +153,7 @@ it('can be nested at any depth', function() {
 });
 ```
 
-虽然上面定义了很多东西，但实现起来很简单。我们只需要利用 JavaScript 对象继承就可以了，Angular 作用域就是按照 JavaScript 本身的工作方式设计的。当你创建子作用域时，它的父作用域就会自动成为它的原型了。
+虽然上面定义了很多特性，但要实现它们其实也很简单。我们只需要利用 JavaScript 对象继承机制就可以了，Angular 作用域继承本来就是以 JavaScript 的继承特性作为原型的。当你创建子作用域时，子作用域的父作用域就会自动成为它的原型了。
 
 > 我们不会花太多时间讨论 JavaScript 中的原型是什么。如果你想复习一下的话，DailyJS 上有很多关于原型和继承的好文章，[prototype](http://dailyjs.com/2012/05/20/js101-prototype/) 和 [inheritance](http://dailyjs.com/2012/05/27/js101-prototype-chains/)。
 >
@@ -170,7 +170,7 @@ Scope.prototype.$new = function() {
 };
 ```
 
-在这个函数中，我们首先要创建子作用域的构造函数，然后把它赋值到 `ChildScope` 局部变量上。这个构造函数什么都不做，因此只需要一个空函数就可以了。接着，我们把 `Scope` 设置为 `ChildScope` 的原型。最后使用 `ChildScope` 构造函数创建一个对象并返回这个对象。
+在这 函数中，我们先创建子作用域的构造函数，并把它赋值到 `ChildScope` 这个局部变量上。这个构造函数是一个空函数，什么都不用做。接着，我们把 `Scope` 设置为 `ChildScope` 的原型。最后使用 `ChildScope` 构造函数创建一个对象，最后返回这个对象。
 
 这个函数虽然没多少代码，但已经能让本节中的所有测试用例通过了！
 
