@@ -1,9 +1,10 @@
 ### 调用 `$apply`，`$evalAsync` 和 `$applyAsync` 时会对整个树结构进行 digest
+
 #### Digesting The Whole Tree from $apply, $evalAsync, and $applyAsync
 
 正如我们在上面章节看到的那样，`$digest` 只会从当前作用域开始往下执行。但对于 `$apply` 来说，情况就不一样了。当我们在 Angular 调用 `$apply` 时，它会从整个作用域树结构的最顶端开始执行 digest。下面这个单元测试就说明了目前我们还没实现这样的需求：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('digests from root on $apply', function() {
@@ -19,14 +20,14 @@ it('digests from root on $apply', function() {
       scope.counter++;
     }
   );
-  
+
   child2.$apply(function(scope) {});
-  
+
   expect(parent.counter).toBe(1);
 });
 ```
 
-我们可以看到，在（孙）子元素上调用 `$apply` 时，并没有触发它祖父元素上的 watcher。
+从目前的测试结果可以看到，在（孙）子元素上调用 `$apply` 时，并没有触发它祖父元素上的 watcher。
 
 要实现这个效果，我们先要在作用域上保存对根元素的引用，这样才能在根元素上触发 digest。当然，我们也可以沿着原型链一步步找到根作用域，但直接在作用域上保存一个 `$root` 属性会方便得多。我们可以在根作用域的构造函数上初始化这个变量：
 
@@ -72,7 +73,7 @@ Scope.prototype.$apply = function(expr) {
 
 在介绍了 `$digest` 和 `$apply`（以及与 `$apply` 紧密关联的 `$applyAsync`）以后，我们还需要讨论另一个会触发 digest 的函数——`$evalAsync`。它的工作原理与 `$apply` 类似，是在根作用域上设定延时执行的 digest 任务的，而不是在被调用的作用域上。用单元测试来表示就是：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('schedules a digest from root on $evalAsync', function(done) {
@@ -90,7 +91,7 @@ it('schedules a digest from root on $evalAsync', function(done) {
   );
 
   child2.$evalAsync(function(scope) {});
-  
+
   setTimeout(function() {
     expect(parent.counter).toBe(1);
     done();
@@ -155,7 +156,7 @@ Scope.prototype.$digest = function() {
   // var dirty;
   this.$root.$$lastDirtyWatch = null;
   // this.$beginPhase('$digest');
-  
+
   // if (this.$$applyAsyncId) {
   //   clearTimeout(this.$$applyAsyncId);
   //   this.$$flushApplyAsync();
@@ -175,7 +176,7 @@ Scope.prototype.$digest = function() {
   //     throw '10 digest iterations reached';
   //   }
   // } while (dirty || this.$$asyncQueue.length);
-  
+
   // this.$clearPhase();
   // while (this.$$postDigestQueue.length) {
   //   try {
@@ -222,3 +223,6 @@ Scope.prototype.$$digestOnce = function() {
   // return dirty;
 };
 ```
+
+
+
