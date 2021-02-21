@@ -119,7 +119,7 @@ Scope.prototype.$evalAsync = function(expr) {
 };
 ```
 
-有了 `$root` 属性以后，我们还可以检查一下 digest 的代码，确保我们引用到的是正确的 `$$lastDirtyWatch`，以便检查短路优化的相关状态。无论我们现在是在哪个作用域上调用 `$digest`，`$$lastDirtyWatch` 指向的应该都是根作用域上的 `$$lastDirtyWatch`。
+有了 `$root` 属性以后，我们还可以回头检查一下与脏值检测相关的代码，确保我们引用到的是正确的 `$$lastDirtyWatch`，以检查短路优化的相关状态。无论我们现在是在哪个作用域上调用 `$digest`，`$$lastDirtyWatch` 指向的应该都是根作用域上的 `$$lastDirtyWatch`。
 
 我们应该在 `$watch` 函数中把对 `$$lastDirtyWatch` 的引用改成使用 `$root.$$lastDirtyWatch`：
 
