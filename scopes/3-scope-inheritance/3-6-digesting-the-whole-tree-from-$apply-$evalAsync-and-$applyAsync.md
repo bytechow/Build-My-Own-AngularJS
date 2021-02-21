@@ -101,7 +101,7 @@ it('schedules a digest from root on $evalAsync', function(done) {
 
 这个单元测试跟前一个很像：都是在子作用域上调用 `$evalAsync`，然后看祖父作用域上的 watcher 是否会被执行。
 
-由于我们已经可以（通过 `$root`）很方便地访问到根作用域，修改 `$evalAsync` 的工作就变得很简单了。同样地，我们只需要用根作用域来代替 `this` 调用 `$digest` 就可以了：
+由于我们已经可以（通过 `$root`）很方便地访问到根作用域，修改 `$evalAsync` 的工作就变得很简单了。同样地，我们只需要在调用 `$digest` 时用根作用域来代替 `this` 就可以了：
 
 _src/scope.js_
 
