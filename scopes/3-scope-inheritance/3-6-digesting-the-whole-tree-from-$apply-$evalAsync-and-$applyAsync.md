@@ -71,7 +71,7 @@ Scope.prototype.$apply = function(expr) {
 
 值得注意的是，由于 Angular 应用只有一个根作用域，调用 `$apply` 后确实会执行应用里所有作用域上的 watcher。再了解了 `$digest` 和 `$apply` 的区别以后，当你遇到提升性能的情况时，就可以用 `$digest` 来代替 `$apply` 了。
 
-在介绍了 `$digest` 和 `$apply`（以及与 `$apply` 紧密关联的 `$applyAsync`）以后，我们还需要讨论另一个会触发 digest 的函数——`$evalAsync`。它的工作原理与 `$apply` 类似，是在根作用域上设定延时执行的 digest 任务的，而不是在被调用的作用域上。用单元测试来表示就是：
+在介绍了 `$digest` 和 `$apply`（以及与 `$apply` 紧密关联的 `$applyAsync`）以后，我们还需要讨论另一个会触发 digest 的函数——`$evalAsync`。它的工作原理与 `$apply` 类似，是在根作用域上设定延迟执行的 digest 任务的，而不是在被调用的作用域上。用单元测试来说明下：
 
 _test/scope\_spec.js_
 
