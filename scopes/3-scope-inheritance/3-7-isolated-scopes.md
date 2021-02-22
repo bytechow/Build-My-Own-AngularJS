@@ -70,7 +70,7 @@ Scope.prototype.$new = function(isolated) {
 
 既然破坏了原型继承链的规则，我们需要重新回顾一下本章讨论过的 `$digest`、`$apply`、`$evalAsync` 和 `$applyAsync`。
 
-首先是 `$digest` ，我们希望可以遍历整个继承关系树。由于前面我们已经把隔离作用域放到父作用域下的 `$$children` 属性中，所以这个问题已经解决了，同时下面的这个单元测试也应该通过了：
+首先是 `$digest` ，我们希望 `$digest` 可以遍历当前作用域及以下整个继承关系树。由于前面我们已经把隔离作用域放到父作用域下的 `$$children` 属性中，所以这个问题已经解决了，同时下面的这个单元测试也应该通过了：
 
 _test/scope\_spec.js_
 
