@@ -68,9 +68,9 @@ Scope.prototype.$new = function(isolated) {
 >
 > 但目前我们的作用域还没有实现这个机制。这个机制是指令功能的一部分。后面我们讲到指令作用域的链接（directive scope linking）时再来详细介绍。
 
-既然打破了原型继承链，我们需要重新回顾一下本章讨论过的 `$digest`、`$apply`、`$evalAsync` 和 `$applyAsync`。
+既然破坏了原型继承链的规则，我们需要重新回顾一下本章讨论过的 `$digest`、`$apply`、`$evalAsync` 和 `$applyAsync`。
 
-首先，我们需要 `$digest` 可以遍历整个继承关系树。由于前面我们已经把隔离作用域放到父作用域下的 `$$children` 属性中，所以这个问题已经解决了，同时下面的这个单元测试也应该通过了：
+首先是 `$digest` ，我们希望可以遍历整个继承关系树。由于前面我们已经把隔离作用域放到父作用域下的 `$$children` 属性中，所以这个问题已经解决了，同时下面的这个单元测试也应该通过了：
 
 _test/scope\_spec.js_
 
