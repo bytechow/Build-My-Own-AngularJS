@@ -223,7 +223,7 @@ Scope.prototype.$new = function(isolated) {
 };
 ```
 
-`$$applyAsyncQueue` 出现的问题就不太一样了：`$$applyAsyncQueue`  是否执行任务队列是由 `$$applyAsyncId` 控制的，而现在树结构中的作用域可能会有自己的 `$$applyAsyncId` 实例，所以实际上会出现几个 `$applyAsync` 进程，每个隔离作用域一个。这就违背了 `$applyAsync` 合并 `$apply` 调用的初衷了。
+`$$applyAsyncQueue` 出现的问题就不太一样了：`$$applyAsyncQueue` 是否执行任务队列是由 `$$applyAsyncId` 控制的，而现在由于出现了隔离作用域，树结构的作用域可能会有自己的 `$$applyAsyncId`，所以实际上会出现多个 `$applyAsync` 进程，每个隔离作用域一个。这就违背了 `$applyAsync` 合并 `$apply` 调用的初衷了。
 
 我们可以利用 `$applyAsyncQueue` 会在 `$digest` 函数中全部执行完毕的这个特性进行测试。如果我们在子作用域调用 `$digest`，父作用域设定的 `$applyAsync` 任务应该会被执行，但目前并不是这样的：
 
@@ -244,7 +244,7 @@ it("executes $applyAsync functions on isolated scopes", function() {
 });
 ```
 
-首先，像 `$evalAsync` 和 `$$postDigest` 任务队列一样，我们需要每个作用域都能访问到这个队列：
+要解决这个问题，我们要像处理 `$evalAsync` 和 `$$postDigest` 任务队列一样，让每个作用域都能访问到（根作用域上的）这个队列：
 
 _src/scope.js_
 
@@ -269,7 +269,9 @@ Scope.prototype.$new = function(isolated) {
 };
 ```
 
-其次，我们需要共享 `$$applyAsyncId` 属性。但我们不能直接在 `$new` 拷贝这个属性，因为隔离作用域还要能对 `$$applyAsyncId` 属性进行赋值。但我们可以直接从 `$root` 获取到它的值：
+其次，我们需要共享 `$$applyAsyncId` 属性。但我们不能直接在 `$new` 函数中拷贝这个属性，因为隔离作用域还要对这个属性进行赋值。我们可以直接通过 `$root` 获取到这个属性值：
+
+> 译者注: 因为 $$applyAsyncId 是一个值类型，而不是引用类型，所以如果在隔离作用域拷贝了这个属性，之后对这个属性进行赋值时，只会影响隔离作用域上的这个属性，不会影响根作用域上的同名属性。
 
 _src/scope.js_
 
