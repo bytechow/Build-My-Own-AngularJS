@@ -41,7 +41,7 @@ it('is no longer digested when $destroy has been called', function() {
 });
 ```
 
-要实现 `$destroy` 方法中，我们需要有一个变量指向当前作用域的父作用域。我们会在 `$new` 函数中增加一个名为 属性。创建子作用域时，它的直接（或替代）父作用域会被赋值给 `$parent` 属性：
+要实现 `$destroy` 方法中，我们需要有一个变量指向当前作用域的父作用域。我们会在 `$new` 函数中增加一个名为 `$parent` 属性。创建子作用域时，它的直接（或替代）父作用域会被赋值给 `$parent` 属性：
 
 _src/scope.js_
 
