@@ -1,4 +1,5 @@
 ### 销毁作用域
+
 #### Destroying Scopes
 
 在一个典型的 Angular 应用的生命周期中，展示给用户看的视图和数据不同，页面上的元素也会跟着增减变化。这也意味着在应用的生命周期中，随着控制器和指令作用域的添加和删除，作用域的树结构会扩展和收缩。
@@ -9,7 +10,7 @@
 
 我们会在一个名为 `$destroy` 的 Scope 方法中实现这个销毁功能。只要调用这个函数，就会销毁对应的作用域：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('is no longer digested when $destroy has been called', function() {
@@ -32,7 +33,7 @@ it('is no longer digested when $destroy has been called', function() {
   child.aValue.push(4);
   parent.$digest();
   expect(child.counter).toBe(2);
-  
+
   child.$destroy();
   child.aValue.push(5);
   parent.$digest();
@@ -85,3 +86,6 @@ Scope.prototype.$destroy = function() {
   this.$$watchers = null;
 };
 ```
+
+
+
