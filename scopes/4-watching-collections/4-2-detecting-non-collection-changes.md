@@ -64,7 +64,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-我们把 `newValue` 和 `oldValue` 两个变量提取到 `internalListenerFn` 函数体外，这样  `internalWatchFn` 和 `internalListenerFn` 两个函数就都能访问这两个变量了。同时，借助 `$watchCollection` 函数形成的闭包，这两个变量就能在 digest 不同轮次之间存续了。对旧值来说，这个特性尤其重要，因为我们需要在不同轮次中比较这个值。
+我们把 `newValue` 和 `oldValue` 两个变量提取到 `internalListenerFn` 函数体外，这样  `internalWatchFn` 和 `internalListenerFn` 两个函数就都能访问这两个变量了。同时，借助 `$watchCollection` 函数形成的闭包，这两个变量就能在 digest 不同轮次之间持续存在了。这个特性对旧值来说尤其重要，因为我们需要在不同轮次中比较这个值。
 
 内部 listener 函数目前要做的就是直接调用原始传入的 listener 函数，调用时依次传入新值、旧值和作用域即可：
 
@@ -92,13 +92,13 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-回想一下，`$digest` 判断是否要调用 listener 函数，是通过对 watch 函数在连续两轮 digest 中返回的值进行比较得出的。但是现在内部的 watch 函数还什么都没有返回，listener 函数自然也不会被调用了。
+让我们回想一下，`$digest` 是通过比较 watch 函数在连续两轮 digest 中的返回值来决定是否调用 listener 函数。但现在内部的 watch 函数什么都没有返回，自然就不会调用 listener 函数了。
 
-那内部的 watch 函数应该返回什么呢？既然在 `$watchCollection` 外部已经无法访问这个函数，我们也无需做太大的改变。我们只需要知道一旦发生了改变，那连续两轮返回的值就会不同，而这就是 listener 函数的触发条件。
+那内部的 watch 函数应该返回什么呢？由于在 `$watchCollection` 外部无法访问到这个返回值，那它是什么并没有啥区别。唯一需要关注的是一旦对象发生了改变，连续两轮 digest 的返回值就不同，而这就是 listener 函数的触发条件。
 
-Angular 解决这个问题的方法是引入一个整数计数器，然后只要检测到有一个值发生了变化就对它进行递增。每一个通过 `$watchCollection` 注册的 watcher 都有自己的计数器，它会在 watcher 的整个生命周期中不断地递增。只要在 `internalWatchFn` 中返回这个计数器，就能满足对 watch 函数的约束了。
+解决这个问题，Angular 采用的方法是引入一个整数计数器，只要检测到对象中有一个元素发生了变化，就让计数器递增。每一个通过 `$watchCollection` 注册的 watcher 都有自己的计数器，它会在 watcher 的整个生命周期中不断递增。只要在 `internalWatchFn` 中返回这个计数器，就能满足 watch 的函数约束了。
 
-对于非集合数据的情况，我们直接基于引用对比新旧值就好了：
+对非集合数据来说，我们直接看新旧值是否发生了引用层面的变化就好了：
 
 _src/scope.js_
 
@@ -128,7 +128,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-这样我们就能够处理非集合数据的情况了。但如果这个非集合数据刚好是 `NaN` 又该怎么办？
+这样我们就能够处理非集合数据的情况了。但如果这个非集合数据刚好是 `NaN` 又该怎么办呢？
 
 _test/scope\_spec.js_
 
