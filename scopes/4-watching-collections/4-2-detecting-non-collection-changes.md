@@ -36,7 +36,7 @@ it('works like a normal watch for non-collections', function() {
 });
 ```
 
-我们使用 `$watchCollection` 侦作用域上的一个数字属性。在 listener 函数中，我们会让计数器加一，同时把捕获到的新值保存到一个局部变量中。我们断言这个 watcher 会跟普通的 watcher 一样调用 listener 函数。
+我们使用 `$watchCollection` 侦听作用域上的一个数字属性。我们断言这个 watcher 跟普通的 watcher 一样会（在这种情况下）调用 listener 函数。在 listener 函数中，我们会让计数器加一，同时把捕获到的新值保存到一个局部变量中。
 
 > 这里我们暂时会忽略 `oldValue` 参数。`$watchCollection` 函数需要对这个参数进行一些特殊的处理，本章后续内容会提到。
 
