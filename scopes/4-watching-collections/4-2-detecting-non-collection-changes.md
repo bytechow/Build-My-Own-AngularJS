@@ -2,9 +2,9 @@
 
 #### Detecting Non-Collection Changes
 
-`$watchCollection` 的主要用途就是侦听数组和对象。但是，它也能支持 watch 函数返回值是一个非集合的情况。在这种情况下，它会回退到直接调用 `$watch` 的工作状态。虽然这可能是 `$watchCollection` 中最乏味的内容，但在处理这个情况的同时能充实我们的函数结构。
+`$watchCollection` 的主要用途就是侦听数组和对象。但是，它也能兼容 watch 函数返回一个非集合类型数据的情况。在这种情况下，它会自动降级为直接调用 `$watch` 。虽然处理这种特殊情况的过程比较乏味，但能让我们看到函数的结构。
 
-下面这个测试用于确认函数的基本行为：
+下面这个测试用于明确函数的基本行为：
 
 _test/scope\_spec.js_
 
@@ -36,7 +36,7 @@ it('works like a normal watch for non-collections', function() {
 });
 ```
 
-我们使用 `$watchCollection` 对作用域上一个数字类型的属性进行侦听。在 listener 函数中，我们会让计数器加一，同时捕获新值，把它保存到一个局部变量中。然后我们断言，这个 watcher 会调用 listener 函数，就像普通的、不针对集合数据的 watcher 那样。
+我们使用 `$watchCollection` 侦作用域上的一个数字属性。在 listener 函数中，我们会让计数器加一，同时捕获新值，把它保存到一个局部变量中。然后我们断言，这个 watcher 会调用 listener 函数，就像普通的、不针对集合数据的 watcher 那样。
 
 > 我们暂时先忽略 `oldValue` 参数。在 `$watchCollection` 语境下，它需要进行一些特殊的处理，我们会在本章后面的部分再对它进行讨论。
 
