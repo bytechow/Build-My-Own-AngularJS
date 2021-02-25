@@ -36,11 +36,11 @@ it('works like a normal watch for non-collections', function() {
 });
 ```
 
-我们使用 `$watchCollection` 侦听作用域上的一个数字属性。我们断言这个 watcher 跟普通的 watcher 一样会（在这种情况下）调用 listener 函数。在 listener 函数中，我们会让计数器加一，同时把捕获到的新值保存到一个局部变量中。
+我们使用 `$watchCollection` 侦听作用域上的一个数字类型的属性。我们断言这个 watcher 跟普通的 watcher 一样，会在这种情况下调用 listener 函数。在 listener 函数中，我们会让计数器加一，同时把捕获到的新值保存到一个局部变量中。
 
-> 这里我们暂时会忽略 `oldValue` 参数。`$watchCollection` 函数需要对这个参数进行一些特殊的处理，本章后续内容会提到。
+> 这里我们暂时忽略 `oldValue` 参数。`$watchCollection` 函数需要对这个参数进行一些特殊的处理，本章后续内容会提到。
 
-`$watchCollection` 内部的 watch 函数执行时，首先会调用原来传入的 watch 函数来获取我们要侦听的值，然后检查这个值是否发生了变化，并把该值作为下一次 digest 时的旧值：
+`$watchCollection` 内部的 watch 函数执行时，首先会调用原始传入的 watch 函数来获取我们要侦听的值，然后检查这个值是否发生了变化，并把该值作为下一次 digest 时的旧值：
 
 _src/scope.js_
 
