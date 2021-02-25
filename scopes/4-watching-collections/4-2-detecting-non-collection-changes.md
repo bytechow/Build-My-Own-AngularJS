@@ -64,9 +64,9 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-我们把 `newValue` 和 `oldValue` 两个变量提取到 `internalListenerFn` 函数体外，这样  `internalWatchFn` 和 `internalListenerFn` 两个函数就都能访问这两个变量了。同时，借助 `$watchCollection` 函数形成的闭包，这两个变量就能在 digest 不同轮次之间持续存在了。对旧值来说，这个特性尤其重要，因为我们需要在不同轮次中比较这个值。
+我们把 `newValue` 和 `oldValue` 两个变量提取到 `internalListenerFn` 函数体外，这样  `internalWatchFn` 和 `internalListenerFn` 两个函数就都能访问这两个变量了。同时，借助 `$watchCollection` 函数形成的闭包，这两个变量就能在 digest 不同轮次之间存续了。对旧值来说，这个特性尤其重要，因为我们需要在不同轮次中比较这个值。
 
-目前内部 listener 函数要做的就是直接调用原始传入的 listener 函数，调用时依次传入新值、旧值和作用域即可：
+内部 listener 函数目前要做的就是直接调用原始传入的 listener 函数，调用时依次传入新值、旧值和作用域即可：
 
 _src/scope.js_
 
@@ -92,7 +92,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-回想一下，`$digest` 对是否需要调用 listener 函数的判断，是通过对 watch 函数在连续两轮 digest 中返回的值进行比较得出的。但是现在内部的 watch 函数还什么都没有返回，listener 函数自然也不会被调用了。
+回想一下，`$digest` 判断是否要调用 listener 函数，是通过对 watch 函数在连续两轮 digest 中返回的值进行比较得出的。但是现在内部的 watch 函数还什么都没有返回，listener 函数自然也不会被调用了。
 
 那内部的 watch 函数应该返回什么呢？既然在 `$watchCollection` 外部已经无法访问这个函数，我们也无需做太大的改变。我们只需要知道一旦发生了改变，那连续两轮返回的值就会不同，而这就是 listener 函数的触发条件。
 
