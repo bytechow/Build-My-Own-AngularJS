@@ -36,11 +36,11 @@ it('works like a normal watch for non-collections', function() {
 });
 ```
 
-我们使用 `$watchCollection` 侦作用域上的一个数字属性。在 listener 函数中，我们会让计数器加一，同时捕获新值，把它保存到一个局部变量中。然后我们断言，这个 watcher 会调用 listener 函数，就像普通的、不针对集合数据的 watcher 那样。
+我们使用 `$watchCollection` 侦作用域上的一个数字属性。在 listener 函数中，我们会让计数器加一，同时把捕获到的新值保存到一个局部变量中。我们断言这个 watcher 会跟普通的 watcher 一样，会调用 listener 函数。
 
-> 我们暂时先忽略 `oldValue` 参数。在 `$watchCollection` 语境下，它需要进行一些特殊的处理，我们会在本章后面的部分再对它进行讨论。
+> 这里我们暂时会忽略 `oldValue` 参数。`$watchCollection` 函数需要对这个参数进行一些特殊的处理，本章后续内容会提到。
 
-在调用 watch 函数时，`$watchCollection` 首先会调用 _原始的_ watch 函数来获取我们想要侦听的值。然后，它会检查该值与之前的值相比是否有变化，并把该值作为下一次 digest 周期的旧值：
+`$watchCollection` 内部的 watch 函数执行时，首先会调用原来传入的 watch 函数来获取我们要侦听的值，然后检查这个值是否发生了变化，并把该值作为下一次 digest 时的旧值：
 
 _src/scope.js_
 
@@ -64,9 +64,9 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-通过把 `newValue` 和 `oldValue` 的变量定义放到 `internalListenerFn` 函数体的外面，我们就能同时在 `internalWatchFn` 函数和 `internalListenerFn` 函数共用这两个变量。它们也会通过 `$watchCollection` 函数形成的闭包在 digest 的不同轮次之间一直保持着。这对于旧值来说就特别重要，因为我们需要在不同轮次中比较这个值。
+我们把 `newValue` 和 `oldValue` 两个变量提取到 `internalListenerFn` 函数体外，这样  `internalWatchFn` 和 `internalListenerFn` 两个函数就都能访问这两个变量了。同时，借助 `$watchCollection` 函数形成的闭包，这两个变量就能在 digest 不同轮次之间持续存在了。对旧值来说，这个特性尤其重要，因为我们需要在不同轮次中比较这个值。
 
-这个 listener 函数要做的只是直接调用传入的 listener 函数，把新旧值和作用域都传进去就可以了：
+目前内部 listener 函数要做的就是直接调用原始传入的 listener 函数，调用时依次传入新值、旧值和作用域即可：
 
 _src/scope.js_
 
