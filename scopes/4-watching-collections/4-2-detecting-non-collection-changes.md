@@ -1,11 +1,12 @@
 ### 侦听非集合数据的变化
+
 #### Detecting Non-Collection Changes
 
-`$watchCollection` 的目标就是要侦听数组和对象。但是，它也能支持 watch 函数返回值是一个非集合的情况。在这种情况下，它会回退到直接调用 `$watch` 的工作状态。虽然这可能是 `$watchCollection` 中最乏味的内容，但在处理这个情况的同时能充实我们的函数结构。
+`$watchCollection` 的主要用途就是侦听数组和对象。但是，它也能支持 watch 函数返回值是一个非集合的情况。在这种情况下，它会回退到直接调用 `$watch` 的工作状态。虽然这可能是 `$watchCollection` 中最乏味的内容，但在处理这个情况的同时能充实我们的函数结构。
 
 下面这个测试用于确认函数的基本行为：
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('works like a normal watch for non-collections', function() {
@@ -13,7 +14,7 @@ it('works like a normal watch for non-collections', function() {
 
   scope.aValue = 42;
   scope.counter = 0;
-  
+
   scope.$watchCollection(
     function(scope) { return scope.aValue; },
     function(newValue, oldValue, scope) {
@@ -21,7 +22,7 @@ it('works like a normal watch for non-collections', function() {
       scope.counter++;
     }
   );
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
   expect(valueProvided).toBe(scope.aValue);
@@ -29,7 +30,7 @@ it('works like a normal watch for non-collections', function() {
   scope.aValue = 43;
   scope.$digest();
   expect(scope.counter).toBe(2);
-  
+
   scope.$digest();
   expect(scope.counter).toBe(2);
 });
@@ -50,15 +51,15 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 
   var internalWatchFn = function(scope) {
     newValue = watchFn(scope);
-  
+
     // Check for changes
-  
+
     oldValue = newValue;
   };
-  
+
   var internalListenerFn = function() {
   };
-  
+
   return this.$watch(internalWatchFn, internalListenerFn);
 };
 ```
@@ -77,16 +78,16 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 
   // var internalWatchFn = function(scope) {
   //   newValue = watchFn(scope);
-  
+
   //   // Check for changes
-  
+
   //   oldValue = newValue;
   // };
-  
+
   // var internalListenerFn = function() {
     listenerFn(newValue, oldValue, self);
   // };
-  
+
   // return this.$watch(internalWatchFn, internalListenerFn);
 };
 ```
@@ -122,14 +123,14 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
   // var internalListenerFn = function() {
   //   listenerFn(newValue, oldValue, self);
   // };
-  
+
   // return this.$watch(internalWatchFn, internalListenerFn);
 };
 ```
 
 这样我们就能够处理非集合数据的情况了。但如果这个非集合数据刚好是 `NaN` 又该怎么办？
 
-_test/scope_spec.js_
+_test/scope\_spec.js_
 
 ```js
 it('works like a normal watch for NaNs', function() {
@@ -142,10 +143,10 @@ it('works like a normal watch for NaNs', function() {
       scope.counter++;
     }
   );
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
-  
+
   scope.$digest();
   expect(scope.counter).toBe(1);
 });
@@ -176,7 +177,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
   // var internalListenerFn = function() {
   //   listenerFn(newValue, oldValue, self);
   // };
-  
+
   // return this.$watch(internalWatchFn, internalListenerFn);
 };
 ```
