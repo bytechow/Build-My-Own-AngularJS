@@ -182,7 +182,7 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ```
 
-调用 `$$areEqual` 时传入的最后一个参数为 `false` 表示我们不会在这里使用基于值的比较。在这个情况下，我们使用基于引用的比较就可以了。
+上面调用 `$$areEqual` 时传入的最后一个参数为 `false`，这表明我们不会在这里使用值比较。在这个情况下，我们使用引用比较就可以了。
 
-现在我们已经有了 `$watchCollection` 的基本结构了，接下来可以把注意力放到对集合数据的变化侦测上来了。
+现在我们已经有了 `$watchCollection` 的基本结构了，接下来可以把注意力放回到对集合数据的变化侦测上来了。
 
