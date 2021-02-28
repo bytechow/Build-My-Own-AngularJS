@@ -89,7 +89,7 @@ var internalWatchFn = function(scope) {
 
 这里我们使用 Lo-Dash 的 `_.forEach` 方法来对新数组进行遍历。这个方法在每次迭代都能为我们提供数组元素和它所在的位置索引。我们用这个位置索引来访问旧数组对应位置的值。
 
-第一章我们已经看到由于 `NaN` 不自等引发的问题。我们已经在普通的 watcher 中对这个值进行特殊处理，下面这个单元测试就展示了 Angular 也会在针对集合数据的 watcher 中进行相同的处理：
+第一章我们讲过了 `NaN` 不自等引发的问题，也在普通的 watcher 中对这个值进行特殊处理， Angular 也会在侦听集合数据的 watcher 中进行类似的处理，正如下面这个单元测试所示：
 
 _test/scope_spec.js_
 
