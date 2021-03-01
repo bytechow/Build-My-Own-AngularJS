@@ -65,9 +65,9 @@ it('notices an item replaced in a NodeList object', function() {
 });
 ```
 
-我们先往 DOM 结构上添加一个 `<div>`，然后通过调用 `document` 上的 `getElementsByTagName` 来获取关于 `<div>` 的 `NodeList` 对象。我们把这个对象放到作用域上，并对它进行侦听。要想触发 `NodeList` 的变化，我们只需要往 DOM 里面多添加一个 `<div>` 就好了，因为这个列表是所谓的 "实时集合"，新增后马上就会更新这个对象。我们要验证 `$watchCollection` 能否检测到这个变化。
+我们先往 DOM 结构上添加一个 `<div>`，然后通过调用 `document` 上的 `getElementsByTagName` 来获取关于 `<div>` 的 `NodeList` 对象。我们把这个对象放到作用域上，并对它进行侦听。要想触发这个 `NodeList` 的变化，我们只需要往 DOM 里再添加一个 `<div>` 就好了，因为这个列表被称为 "实时集合"，新增后马上就会更新。我们要验证 `$watchCollection` 能否检测到这个变化。
 
-结果是两个单元测试都未能通过。问题出在 Lo-Dash 的 `_.isArray` 函数上，它只能适用于真正的数组类型而不包括其他类数组对象。我们需要为这种用例创建一个新的判断函数：
+上面这两个单元测试都未能通过。问题出在 Lo-Dash 的 `_.isArray` 函数上，它只能用于判断是否是数组，没法兼容类数组对象。我们需要创建一个新的判断函数：
 
 _src/scope.js_
 
@@ -122,8 +122,8 @@ var internalWatchFn = function(scope) {
 };
 ```
 
-注意，当我们处理任何一种类数组对象时，内部的 `oldValue` 数组一直是一个真正的数组，而不是类数组对象。
+注意，当我们处理类数组对象时，内部的 `oldValue` 数组一直都是一个真正的数组，而不是类数组对象。
 
-> 其实 String（字符串）也满足类数组对象的要求，因为它也有一个 `length` 属性，并且为每一个字符都提供了索引属性。然而，JavaScript `String` 并不是一个 JavaScript `Object`，因此在外层的 `_.isObject` 判断条件已经防止了字符串被当作集合了。也就是说，`$watchCollection` 把字符串视作非集合。
+> 实际上，String（字符串）也满足类数组对象的要求，因为它也有一个 `length` 属性，并且为每一个字符都提供了索引属性。然而，`String` 并不是一个 JavaScript 对象，因此外层的 `_.isObject` 判断条件已经拦截把字符串当作集合的异常情况了。
 
-由于 JavaScript 字符串的不可变性，我们不能改变它的内容，因此把字符串当作集合来进行侦听也没有多大用处。
+另外，由于 JavaScript 字符串本身不可变，我们也就无法改变它的内容，因此把字符串当作集合来进行侦听也没有多大用处。
