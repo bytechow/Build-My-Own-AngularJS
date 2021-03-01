@@ -3,9 +3,9 @@
 
 上面我们已经针对数组进行了处理，但还需要考虑一种特殊情况。
 
-除了正常数组，也就是从 `Array` 原型继承下来的数组以外，JavaScript 还存在几个对象“长”得像数组，但又并不真的是数组的对象。Angular 的 `$watchCollection` 也可以像处理数组一样处理这些对象，所以我们也希望自己的框架能做到。
+除了普通数组，即从 `Array` 原型继承下来的数组以外，JavaScript 一些“长”得像数组但并不是真的是数组的对象。Angular 的 `$watchCollection` 也可以像处理数组一样地处理这些对象，我们希望自己的框架也能做到。
 
-每个函数都有的 [arguments](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions_and_function_scope/arguments) 局部变量就是这样一个类数组对象，它包含了调用该函数时传入的所有函数。下面，我们来写一个测试看看 `$watchCollection` 是否能支持这个类数组对象。
+每个函数都会有的 [arguments](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions_and_function_scope/arguments) 局部变量就是这样一个类数组对象，它包含了调用函数时传入的所有参数。下面，我们来写一个测试看看 `$watchCollection` 是否能处理这个类数组对象：
 
 ```js
 it('notices an item replaced in an arguments object', function() {
@@ -33,9 +33,9 @@ it('notices an item replaced in an arguments object', function() {
 });
 ```
 
-我们构建并马上调用了一个匿名函数，然后把调用时传入的几个参数在保存在作用域上。这样在作用域上就有一个类数组的 `arguments` 对象了。然后我们检查当前的 `$watchCollection` 代码是否能够收集到这个对象上发生的变化。
+在测试用例中，我们创建了一个自执行的匿名函数，然后将 `arguments` 变量赋值到作用域上的一个属性上，这样作用域上就有一个 `arguments` 类数组对象了。然后可以看看 `$watchCollection` 能否监测这个对象上发生的变化。
 
-另一种类数组对象就是 DOM [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList)，是通过某些 DOM 获取到的，例如 `querySelectorAll` 和 `getElementsByTagName`。我们也对这种对象进行测试。
+DOM [NodeList](https://developer.mozilla.org/en-US/docs/Web/API/NodeList) 也是一种类数组对象，是通过特定 DOM 接口获取到的，例如 `querySelectorAll` 和 `getElementsByTagName`。我们也为这类象建一个用例测试。
 
 _test/scope_spec.js_
 
@@ -65,7 +65,7 @@ it('notices an item replaced in a NodeList object', function() {
 });
 ```
 
-这里我们首先添加了一个 `<div>` 到 DOM 上，然后通过调用 `document` 上的 `getElementsByTagName` 来获得一个 `NodeList` 对象。我们把这个列表放到作用域上，并对它进行侦听。当我们需要在列表上触发一个变化，我们只需要往 DOM 里面添加多一个 `<div>` 就好了。由于这个列表是所谓的 "实时集合"。这个 list 会立刻扩充这个新元素。我们要验证 `$watchCollection` 是否也能检测到这个变化。
+我们先往 DOM 结构上添加一个 `<div>`，然后通过调用 `document` 上的 `getElementsByTagName` 来获取关于 `<div>` 的 `NodeList` 对象。我们把这个对象放到作用域上，并对它进行侦听。要想触发 `NodeList` 的变化，我们只需要往 DOM 里面多添加一个 `<div>` 就好了，因为这个列表是所谓的 "实时集合"，新增后马上就会更新这个对象。我们要验证 `$watchCollection` 能否检测到这个变化。
 
 结果是两个单元测试都未能通过。问题出在 Lo-Dash 的 `_.isArray` 函数上，它只能适用于真正的数组类型而不包括其他类数组对象。我们需要为这种用例创建一个新的判断函数：
 
