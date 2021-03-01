@@ -1,7 +1,7 @@
 ### 侦听对象属性的新增或替换
 #### Detecting New Or Replaced Attributes in 
 
-我们希望在对象新增属性时也触发一个变更事件：
+我们希望 `$watchCollection` 也能把对象新增属性的情况视作对象发生了变更：
 
 _test/scope_spec.js_
 
@@ -29,7 +29,7 @@ it('notices when an attribute is added to an object', function() {
 });
 ```
 
-另外，属性值发生变化时我们也希望能被当作一个变更：
+属性值发生变化也一样：
 
 _test/scope_spec.js_
 
@@ -57,7 +57,7 @@ it('notices when an attribute is changed in an object', function() {
 });
 ```
 
-这两个问题都能够用同样的方式进行解决。我们会对新对象的所有属性进行遍历，然后看旧对象同样的位置上是否有一样的值：
+我们可以跟处理数组一样，遍历新值里的属性，然后看旧值相同位置上的值是否相同：
 
 _src/scope.js_
 
