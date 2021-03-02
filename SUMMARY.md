@@ -71,7 +71,7 @@
   * [4-7 侦测转换为对象的情况](scopes/4-watching-collections/4-7-detecting-new-objects.md)
   * [4-8 侦测对象属性的新增或替换](scopes/4-watching-collections/4-8-detecting-new-or-replaced-attributes-in-objects.md)
   * [4-9 侦测对象属性的移除](scopes/4-watching-collections/4-9-detecting-removed-attributes-in-objects.md)
-  * [4-10 防止不必要的对象迭代](scopes/4-watching-collections/4-10-preventing-unnecessary-object-iteration.md)
+  * [4-10 避免不必要的对象迭代](scopes/4-watching-collections/4-10-preventing-unnecessary-object-iteration.md)
   * [4-11 处理带有 length 属性的对象](scopes/4-watching-collections/4-11-dealing-with-objects-that-have-a-length.md)
   * [4-12 把旧的集合值传递给 listener 函数](scopes/4-watching-collections/4-12-handing-the-old-collection-value-to-listeners.md)
   * [4-13 本章小结](scopes/4-watching-collections/4-13-summary.md)
