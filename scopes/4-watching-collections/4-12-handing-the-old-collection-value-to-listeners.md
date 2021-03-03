@@ -78,9 +78,9 @@ it('gives the old object value to listeners', function() {
 });
 ```
 
-之前比较与拷贝的代码运行正常，也能有效满足变化侦测的需求，因此我们并不打算动这部分代码。相反，我们会引入一个名为 `veryOldValue` 的局部变量，这个变量会在不同的 digest 轮次的过程一直存在，它保存了一份旧集合值的拷贝，这份拷贝不会在 `internalWatchFn` 中发生变化。
+之前的用于比较和拷贝的代码运行正常，也能满足侦测变化的需求，因此我们并不打算动这部分代码。相反，我们会引入一个名为 `veryOldValue` 的局部变量来解决这个问题，这个变量能被不同的 digest 轮次访问到，它保存了一份旧集合值的拷贝，这份拷贝不会在 `internalWatchFn` 中发生变化。
   
-要维护 `veryOldValue` 就得拷贝数组或者对象，这个操作的成本比较高。但我们之前已经做了很多就是为了避免每次在集合表中都复制完整的集合。因此我们只会在真的要使用 `veryOldValue` 的时候才生成。我们可以通过 listener 函数传入的参数是否至少有两个来对此进行判断：
+要维护 `veryOldValue` 就得拷贝数组或者对象，这个操作的成本比较高。但我们做了这么多，不就是为了在侦听时不用每次都拷贝完整的集合数据吗？因此我们只会在真的要用到 `veryOldValue` 的时候，才会维护它。我们可以通过 listener 函数是否传入了两个以上参数来判断要不要使用这个变量（进行跟踪）：
 
 _src/scope.js_
 
@@ -99,11 +99,11 @@ Scope.prototype.$watchCollection = function(watchFn, listenerFn) {
 };
 ````
 
-`Function` 的 `length` 属性包含了函数中声明的参数数量。如果多于一个，例如`(newValue, oldValue)` 或者 `(newValue, oldValue, scope)`，我们才会启用并跟踪这个 `veryOldValue`。
+`Function` 的 `length` 属性能告诉我们函数调用时实际传入的参数数量。如果多于一个，例如 `(newValue, oldValue)` 或者 `(newValue, oldValue, scope)`，我们才会使用这个 `veryOldValue` 进行跟踪。
 
-请注意，除非你在 listener 函数参数中声明了 `oldValue`，否则 `$watchCollection` 不用承担拷贝 `veryOldValue` 的成本。这也意味着你不能想当然地从 listener 函数的 `arguments` 对象中访问 `oldValue`。要访问的话就必须声明它。
+这意味着除非我们在调用 listener 函数时声明了 `oldValue` 参数，否则 `$watchCollection` 不需要承担拷贝 `veryOldValue` 的成本。这也意味着我们不能想当然地觉得可以从 listener 函数的 `arguments` 对象中访问到 `oldValue`，要访问的话就必须先声明它。
 
-剩下来的工作就需要在 `internalListenerFn` 中完成了。我们不再传递 `oldValue` 给 listener，而会传递 `veryOldValue`。然后需要基于当前值拷贝下一个 `veryOldValue` 值以便下一次使用。我们可以使用 `_.clone` 对集合数据进行浅拷贝，它同样适用于原始数据类型（primitives）：
+剩下来的工作就需要在 `internalListenerFn` 中完成了。我们传递给 listener 的旧值参数不再是 `oldValue`，而是 `veryOldValue`。接下来，我们会把当前的新值赋值给 `veryOldValue` 以便下一次使用。我们可以利用 `_.clone` 方法来获取集合数据的浅拷贝，这个方法同样适用于对原始数据类型（primitives）进行拷贝：
 
 _src/scope.js_
 
