@@ -117,7 +117,7 @@ var internalListenerFn = function() {
 };
 ```
 
-在第一章中，我们说在第一次调用 listener 函数时 `oldValue` 应该与新值是相同的。这个规则对于 `$watchCollection` 中的 listner 函数来说也是一样的：
+在第一章我们介绍过，listener 函数第一次调用时，`oldValue` 应该与新值是相同的。这个规则也适用于 `$watchCollection` 中的 listener 函数：
 
 _test/scope_spec.js_
 
@@ -139,9 +139,9 @@ it('uses the new value as the old value on first digest', function() {
 });
 ```
 
-传入的 oldValue 是 `undefined`，导致这个单元测试未能通过，这是由于在 listener 函数第一次调用之前，我们还未对 `veryOldValue` 进行过赋值。
+传入的 oldValue 是 `undefined`，这个单元测试自然也无法通过了。这是因为在第一次调用 listener 函数之前，我们还未对 `veryOldValue` 进行赋值。
 
-我们需要设置一个标识来区分当前是否在 listener 的第一次调用中，然后根据这个标识来选用不同的调用方式：
+我们需要设置一个标识来区分当前是否第一次调用 listener 函数，然后再根据这个标识来选用不同的调用方式即可：
 
 src/scope.js
 
