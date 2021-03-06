@@ -82,7 +82,7 @@ it('registers different listeners for every scope', function() {
 });
 ```
 
-单元测试失败的原因在于虽然 `scope` 和 `child` 都可以访问到 `$$listeners` 集合的，但 `isolatedChild` 由于已被隔离起来了，并不能访问到根作用域上的这个集合。我们需要对子作用域的构造函数进行改造，让它们维护自己的 `$$listeners` 集合。对于非隔离作用域来说，改了之后这个属性这个会屏蔽父作用域上的同名属性，这也是我们在第二章中处理 `$$watchers` 用过的解决方案：
+这个单元测试失败的原因是虽然 `scope` 和 `child` 都可以访问到 `$$listeners` 集合的，但被隔离的 `isolatedChild` 并不能访问到根作用域上的这个集合。我们需要对子作用域的构造函数进行改造，让它们维护自己的 `$$listeners` 集合。对于非隔离作用域来说，加了这个属性就会屏蔽父作用域上的同名属性，这跟第二章处理 `$$watchers` 时类似：
 
 _src/scope.js_
 
