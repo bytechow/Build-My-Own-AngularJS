@@ -33,11 +33,11 @@ it('calls the listeners of the matching event on $broadcast', function() {
 });
 ```
 
-> 我们使用 Jasmine 的 spy 函数来作为 listener 函数。他们是特殊的存根函数（stub functions），除了记录函数是否被调用过、调用时传入了什么参数之外它们什么都不会做。使用 spy 函数，我们就能方便地检查作用域对 listener 做了什么。
+> 这里我们使用 Jasmine 的 spy 函数作为 listener 函数。他们是一个被称为存根函数（stub functions）的特殊函数，除了记录函数是否被调用过、调用时传入了什么参数，它什么都不会做。利用 spy 函数，我们就能方便地监测到作用域对 listener 做了什么。
 > 
-> 如果你以前用过 mock 对象或其他类型的测试工具，应该不会对 spy 函数感到陌生。它们也可以被称为 mock 函数。
+> 如果你以前用过 mock 对象或其他类型的测试工具，应该不会对 spy 函数感到陌生。它们也被称为 mock 函数。
 
-我们可以通过引入 `$emit` 和 `$broadcast` 函数使这些测试通过，目前这两个函数的行为是相同的。它们会查找到事件名称对应的 listener 函数，并依次调用它们：
+目前 `$emit` 和 `$broadcast` 两个函数的行为是相同的，但足以让这些测试通过。这两个函数都能根据事件名称找到对应的 listener 集合，并依次调用这些 listener：
 
 _src/scope.js_
 
