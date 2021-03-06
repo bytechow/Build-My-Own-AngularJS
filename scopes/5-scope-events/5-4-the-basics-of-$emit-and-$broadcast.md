@@ -1,7 +1,7 @@
-### $emit 和 $broadcast 的基础功能
+### $emit 和 $broadcast 的基础
 #### The basics of $emit and $broadcast
 
-现在，我们已经注册了 listener，就可以触发事件并使用它们。就像我们上面提到的，`$emit` 和 `$broadcast` 就是用于完成这个功能的两个方法。
+现在既然注册了监听器，就可以通过触发事件来调用它们了。就像我们上面提到的，`$emit` 和 `$broadcast` 两个方法就是用于完成这个功能的。
 
 这两个函数的基本功能就是，当你在调用它们时把事件名称当作参数传递进去，它们就会触发注册了这个事件的所有 listener。当然，相对地，他们不会调用其他事件的 listener：
 
