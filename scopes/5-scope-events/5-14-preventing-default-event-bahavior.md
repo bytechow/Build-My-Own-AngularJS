@@ -1,11 +1,11 @@
 ### 阻止事件的默认行为
 #### Preventing Default Event Behavior
 
-除了 `stopPropagation`，DOM 事件还有另一种取消方式，那就是阻止它们的“默认行为”，也就是 DOM 事件中的 `preventDefault` 函数。它的目的主要在于防止浏览器中某些事件带有的副作用，但依然允许这个事件的 所有 listener 能得到通知。举例来说，当我们在超链接元素的点击事件处理函数上调用 `preventDefault`时，那当这个超链接被点击时，浏览器不会发生跳转，但相关的所有点击事件处理函数依然会被调用。
+除了 `stopPropagation` 之外，我们还可以通过 `preventDefault` 方法“取消” DOM 事件，也就是阻止事件在浏览器的“默认行为”。虽然如此，在调用这个方法后，这个事件的所有监听器依旧会被调用。举例来说，当我们在超链接元素的点击事件监听函数上调用 `preventDefault`后，浏览器不会跟踪该超链接（也就是不会跳转到超链接对应的地址），但相关的点击事件处理函数依然会被调用。
 
-作用域事件也有 `preventDefault` 函数，而且无论事件是以 emit 还是 broadcast 的形式发出的，都会提供这个函数。但因为作用域事件并没有什么内建的“默认行为”，调用这个函数并没有什么意义。它只会做一件事，就是在事件对象中设置一个布尔值标识 `defaultPrevented`。这个标识并不会改变作用域事件的行为，但也有可能用在自定义事件结束传播时决定是否要触发某些默认行为。Angular 的 `$locationService` 在广播 location 事件时就用到了这个函数。
+作用域事件也有自己的 `preventDefault` 方法，而且无论事件是以 emit 还是 broadcast 的形式进行传播的都有这个方法。但因为作用域事件并没有什么内建的“默认行为”，调用这个函数并没有什么意义。它只会在事件对象中设置一个布尔值标识 `defaultPrevented`。这个标识并不会改变作用域事件系统的行为，但也有可能用在某些情境下，比如自定义指令，用于决定在事件结束传播时是否要触发某些默认行为。Angular 的 `$locationService` 在广播 location 事件时就用到了这个函数。
 
-因此，我们要做的就是添加一个测试，在这个测试中验证当在事件对象上调用了 `preventDefault()` 之后，时间对象中的 `defaultPrevented` 标识是否被设置成功了。由于 `$emit` 和 `$broadcast` 上都有这个特性，我们会把下面的这个测试放到之前处理两种事件传播方式的公共行为的循环中：
+因此我们要增加一个测试，验证在事件对象上调用了 `preventDefault()` 之后，事件对象中的 `defaultPrevented` 标识发生了变化，这种行为对于 `$emit` 和 `$broadcast` 来说都是一样。我们把下面这个用例放到之前处理公共行为的循环就可以了：
 
 _test/scope_spec.js_
 
@@ -22,7 +22,7 @@ it('is sets defaultPrevented when preventDefault called on '+method, function() 
 });
 ```
 
-实现起来也跟 `stopPropagation` 大同小异：新增一个函数，这个函数会在事件对象上添加一个布尔值标识。但区别在于这次我们是直接把布尔值标识作为事件对象的属性进行赋值，也不再需要根据这个布尔值标识来做什么判断了。下面是 `$emit` 的实现方法：
+实现 `preventDefault` 的方法也跟 `stopPropagation` 大同小异：调用这个函数后会对一个布尔值变量进行赋值。但区别在于这次的布尔值变量是事件对象上的一个属性，我们也不用再加入与这个布尔值变量相关的判断了。下面是 `$emit` 实现 `preventDefault` 方法：
 
 _src/scope.js_
 
