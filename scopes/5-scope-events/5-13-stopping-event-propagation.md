@@ -1,11 +1,11 @@
 ### 停止事件传播
 #### Stopping Event Propagation
 
-DOM 事件还有另一个非常常用的特性，就是可以停止事件继续传播。DOM 事件对象中包含了一个叫 `stopPropagation` 的方法来完成这个功能。它能够完成类似这样的功能：多级的 DOM 中都注册了点击事件监听器，当其中一级的 DOM 上触发了点击事件时，我们不希望在所有层级上的 DOM 都接收、处理这个事件。
+DOM 事件还有另一个非常常用的特性，就是可以停止事件继续传播。DOM 事件对象中有一个叫 `stopPropagation` 的方法来完成这个功能。它的使用场景类似这样：DOM 树上有多个层次的元素注册了点击事件监听器，当其中一个 DOM 元素触发点击事件时，我们不希望调用其他层级上的事件监听器。
 
-作用域事件也会有一个 `stopPropagation` 的方法，但只会出现在通过发出（`emit`）的方式进行传播的事件上。而通过广播（`broadcast`）传播的事件是无法被停止的。（再次说明了广播事件成本的昂贵）。
+作用域事件也有 `stopPropagation` 方法，但只有发出（`emit`）这种事件传播方式才有。通过广播（`broadcast`）传播的事件是无法停止的。（再次说明了广播事件成本之高昂）。
 
-这就意味着，当你 emit 一个事件的时候，且其中一个 listener 停止事件冒泡，在后面的父作用域事件就不会再接收到这个事件了：
+这意味着，当你发出一个事件，而该事件其中一个监听器停止了事件的传播，那这在之后的父作用域就不会再接收到这个事件了：
 
 _test/scope_spec.js_
 
@@ -25,7 +25,7 @@ it('does not propagate to parents when stopped', function() {
 });
 ```
 
-这个事件虽然不会传递到父作用域去，但特别要注意的是，这个事件依然会传递给当前作用域的其他 listener，只是停止向父作用域传递而已：
+但要特别注意的是，这个事件虽然不会传递到父作用域去，但依然会传递给当前作用域的其他 listener：
 
 _test/scope_spec.js_
 
@@ -45,7 +45,7 @@ it('is received by listeners on current scope after being stopped', function() {
 });
 ```
 
-首先我们需要做的是设置一个布尔值标识，用于识别当前是否已经在某处调用了 `stopPropagation`。我们可以在 `$emit` 利用闭包来引入这个标识。然后，我们肯定需要在事件对象中加入 `stopPropagation` 函数。最后，在 `$emit` 函数的 `do...while` 循环进入上一层作用域之前，我们要对这个状态进行检查：
+我们需要做的是设置一个布尔值变量，用于识别当前是否已经在某处调用了 `stopPropagation`。我们可以在 `$emit` 的闭包中引入这个标识。然后我们在事件对象中加入 `stopPropagation` 函数。最后，我们要在 `$emit` 函数的 `do...while` 循环处理上一层作用域之前，对这个布尔值变量的状态进行检查：
 
 ```js
 Scope.prototype.$emit = function(eventName) {
