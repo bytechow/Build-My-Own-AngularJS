@@ -45,7 +45,7 @@ it('is received by listeners on current scope after being stopped', function() {
 });
 ```
 
-我们需要做的是设置一个布尔值变量，用于识别当前是否已经在某处调用了 `stopPropagation`。我们可以在 `$emit` 的闭包中引入这个标识。然后我们在事件对象中加入 `stopPropagation` 函数。最后，我们要在 `$emit` 函数的 `do...while` 循环处理上一层作用域之前，对这个布尔值变量的状态进行检查：
+我们要设置一个布尔值变量，用于识别当前是否已经在某处调用了 `stopPropagation`。我们可以在 `$emit` 的闭包中引入这个标识。接着，我们要在事件对象中加入 `stopPropagation` 函数。最后，在 `$emit` 函数的 `do...while` 遍历上一层作用域之前，我们要先对这个布尔值变量的状态进行检查：
 
 ```js
 Scope.prototype.$emit = function(eventName) {
