@@ -20,7 +20,7 @@ it('can be deregistered ' + method, function() {
 });
 ```
 
-移除监听器最简单的方式，跟我们对 watcher 的处理也是完全相同的——只是通过 splice 的方式将 listener 从集合中提取出来而已：
+简易版的移除功能跟处理 watcher 的方式完全相同——就是利用 splice 方法将 listener 从集合中提取出来而已：
 
 _src/scope.js_
 
@@ -40,12 +40,12 @@ Scope.prototype.$on = function(eventName, listener) {
 };
 ```
 
-但是，我们还需要处理一种特殊的情况。在 listener 调用的同时移除 listener 自身的情况是很常见的，例如，我们只希望这个 listener 被调用一次而已。当在我们遍历 listener 数组时出现了这种移除，结果就是这次遍历会跳过一个 listener——也就是紧接着被删除的 listener 的下一个：
+但我们还需要处理一种特殊情况——在调用 listener 的同时移除掉这个 listener。这种情况还是很常见的，比如我们在某些场景下只希望 listener 被调用一次。若在我们遍历 listener 数组时发生了这种移除，会导致这次遍历会跳过一个 listener——紧接着被删除 listener 的那个：
 
 _test/scope_spec.js_
 
 ```js
-it('does not skip the next listener when removed on '+method, function() {
+it('does not skip the next listener when removed on '+ method, function() {
   var deregister;
 
   var listener = function() {
@@ -62,7 +62,7 @@ it('does not skip the next listener when removed on '+method, function() {
 });
 ```
 
-这就意味着，我们不能直接移除这个 listener。我们要做的是用一个能表示 listener 已经被删除的特定值来替换这个 listener。`null` 就可以很好地满足这个目的了：
+这意味着我们不能直接移除这个 listener。我们要做的是用一个能表示 listener 已经被删除的特定值来替换这个 listener。`null` 作为这个特定值就很合适了：
 
 _src/scope.js_
 
@@ -82,7 +82,7 @@ Scope.prototype.$on = function(eventName, listener) {
 };
 ```
 
-然后，在遍历 listener 的时候，我们可以检查一下这个 listener 是否已经变成 `null` 值了，然后再进行删除。另外，我们确实还需要将 `_.forEach` 换成一个手动编写的 `while` 循环来实现这个功能：
+然后在遍历 listener 时，我们可以检查一下这个 listener 是否已经变成 `null` 值，再决定要执行什么操作。另外，我们确实还需要将 `_.forEach` 换成一个手动编写的 `while` 循环来实现这个功能：
 
 _src/scope.js_
 
@@ -103,3 +103,5 @@ Scope.prototype.$$fireEventOnScope = function(eventName, additionalArgs) {
   // return event;
 };
 ````
+
+> 译者注：注意，这里换成 `while` 循环，是因为 `while` 循环可以控制循环变量是否自增。这里一旦遇到有事件需要被移除，就不会递增循环变量。这样即使在删除元素后，循环依然能对被删除元素的后一个元素进行处理。
