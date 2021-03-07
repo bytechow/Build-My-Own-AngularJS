@@ -1,9 +1,9 @@
 ### 在事件对象中加入当前和目标作用域
 #### Including The Current And Target Scopes in The Event Object
 
-现在，我们的事件对象只包含了一个属性：事件名称。下一步，我们需要往里面加入更多的信息。
+目前事件对象只有一个属性：事件名称。下面，我们要往里面添加更多的信息。
 
-如果你熟悉浏览器的 DOM 事件，你就会知道它的事件对象包含了两个非常有用的属性：`target`，指向发生当前事件的那个 DOM 元素，`currentTarget`，指向绑定了当前事件处理器的 DOM 元素。
+如果你熟悉浏览器的 DOM 事件，你就会知道它的事件对象包含了两个非常有用的属性：`target` 和 `currentTarget`，`target` 代表触发事件的 DOM 元素，`currentTarget` 代表绑定了当前事件处理器的 DOM 元素。
 
 Angular 作用域事件也有类似的一对属性：`targetScope` 指向事件发生在哪个作用域上，而 `currentScope` 指向绑定了当前 listener 的那个作用域。另外，由于可以选择让作用域事件向上或向下传播，这两种传播方式中的两个事件属性也可能是不同的。
 
