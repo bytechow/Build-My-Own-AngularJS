@@ -12,7 +12,7 @@ Angular 作用域事件也有类似的一对属性：`targetScope` 代表触发�
 |DOM 事件|target|currentTarget|
 |Scope 事件|targetScope|currentScope|
 
-我们从 `targetScope` 开始，它的核心概念就是无论现在是哪个 listener 在处理这个事件，它始终指向同一个作用域：
+首先是 `targetScope`，无论当前是哪个监听器在处理事件，它都指向同一个作用域。下面是针对 `$emit` 的测试：
 
 test/scope_spec.js
 
@@ -31,7 +31,7 @@ it('attaches targetScope on $emit', function() {
 });
 ```
 
-还有针对 `$broadcast` 的测试：
+`$broadcast` 的：
 
 _test/scope_spec.js_
 
@@ -50,7 +50,7 @@ it('attaches targetScope on $broadcast', function() {
 });
 ```
 
-要让这两个单元测试通过，我们只需要在 `$emit` 和 `$broadcast` 中，把 `this` 赋值给事件对象作为 target scope 就可以了：
+要让这两个单元测试通过，我们只需要在 `$emit` 和 `$broadcast` 中，把 `this` 作为 ` targetScope` 赋值给事件对象就可以了：
 
 _src/scope.js_
 
@@ -77,9 +77,9 @@ Scope.prototype.$broadcast = function(eventName) {
 };
 ```
 
-与 `scope` 不同，`currentScope` 会根据当前绑定了 listener 的作用域不同而发生变化，它会指向现在正在使用 listener 处理事件的那个作用域。一个证据是，当事件在作用域树中向上或向下传递时，`currentScope` 指向当前事件传播到的作用域。
+与 `targetScope` 不同，`currentScope` 会随着当前监听器绑定的作用域变化而发生变化，它会指向当前监听器绑定的那个作用域。如果从作用域树的角度来看，当事件向上或向下传播时，`currentScope` 指向的就是当前事件传播到的位置。
 
-这种情况下，我们不能使用 Jasmine spy 来进行测试，因为 spy 只能在调用完成之后才能进行验证。`currentScope` 会在遍历作用域时发生变化，所以我们需要在调用 listener 时记录它在那一瞬间的值。我们可以通过 listener 函数加上本地变量来完成这个检测：
+在这种情况下，我们就不能再用 Jasmine spy 来测试了，因为 spy 只能验证执行完成后的结果。`currentScope` 会在遍历作用域时不断发生改变，我们需要在调用 listener 时记录它的_瞬时值_。我们可以用 listener 函数结合本地变量来进行测试：
 
 对于 `$emit`：
 
@@ -129,7 +129,7 @@ it('attaches currentScope on $broadcast', function() {
 });
 ```
 
-幸运的是，实现这个功能比这些测试代码要简单直接得多。我们需要做的就只是把我们正遍历到的作用域赋值到事件对象上就可以了：
+幸运的是，实现代码比测试代码要简单得多。我们只需要在遍历时，把作用域赋值到事件对象上就可以了：
 
 _src/scope.js_
 
@@ -157,7 +157,7 @@ Scope.prototype.$broadcast = function(eventName) {
 };
 ```
 
-由于 `currentScope` 代表着当前事件传播的状态，它应该要在事件传播结束后被清空掉。否则，在事件完成传播后，保留该事件对象的程序将会拿到过时的传播状态信息。我们可以通过在一个 listener 中捕获事件对象的方式进行测试，看看当事件传播结束后，`currentScope` 的值是否为 `null`：
+`currentScope` 用于传达事件传播的当前状态，因此它也应该要在事件传播结束后被清空掉。否则，若有代码缓存了事件对象，在事件传播结束后，它拿到的事件传播状态信息就是过时的。我们可以通过在一个 listener 中捕获事件对象的方式进行测试，看看当事件传播结束后，`currentScope` 的值是否为 `null`：
 
 _test/scope_spec.js_
 
@@ -187,7 +187,9 @@ it('sets currentScope to null after propagation on $broadcast', function() {
 });
 ```
 
-我们可以通过在 `$emit` 方法结束遍历时将 `currentScope` 赋值为 `null` 来解决这个问题：
+> 译者注：这两个测试用例其实也可以交由 `_.forEach` 生成，减少重复代码。
+
+对于 `$emit`，我们可以在结束遍历后将 `currentScope` 赋值为 `null`：
 
 _src/scope.js_
 
@@ -206,7 +208,7 @@ Scope.prototype.$emit = function(eventName) {
 };
 ```
 
-在 `$broadcast` 方法中，我们也做类似的处理：
+`$broadcast` 也一样：
 
 ```js
 Scope.prototype.$broadcast = function(eventName) {
@@ -222,4 +224,4 @@ Scope.prototype.$broadcast = function(eventName) {
 };
 ```
 
-现在事件监听器就可以知道事件是从作用域树中的哪个节点发出来的，还可以知道当前这个事件被哪个作用域监听。
+现在事件监听器就可以知道事件是从作用域树的哪个节点发出来的，也可以知道事件正在被哪个作用域监听着。
