@@ -90,7 +90,7 @@
   * [5-12 在事件对象中加入当前和目标作用域](scopes/5-scope-events/5-12-including-the-current-and-target-scopes-in-the-event-object.md)
   * [5-13 停止事件传播](scopes/5-scope-events/5-13-stopping-event-propagation.md)
   * [5-14 阻止事件的默认行为](scopes/5-scope-events/5-14-preventing-default-event-bahavior.md)
-  * [5-15 广播作用域被移除的事件](scopes/5-scope-events/5-15-broadcasting-scope-removal.md)
+  * [5-15 作用域被移除时发出广播](scopes/5-scope-events/5-15-broadcasting-scope-removal.md)
   * [5-16 禁用已销毁作用域上的 listener](scopes/5-scope-events/5-16-disabling-listeners-on-destroyed-scopes.md)
   * [5-17 异常处理](scopes/5-scope-events/5-17-handling-exceptions.md)
   * [5-18 本章小结](scopes/5-scope-events/5-18-summary.md)
