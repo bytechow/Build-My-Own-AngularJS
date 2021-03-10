@@ -33,7 +33,7 @@ it('fires $destroy on children destroyed', function() {
 });
 ````
 
-我们怎么实现这个功能呢？实际上，要在作用域及其子作用域上触发事件，我们直接用 `$broadcast` 就好了。我们可以在调用 `$destroy` 函数时广播这个事件：
+该怎么实现这个功能呢？实际上，我们只需要在调用 `$destroy` 方法时调用 `$broadcast` 就好了：
 
 _src/scope.js_
 
