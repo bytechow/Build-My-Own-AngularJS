@@ -2,7 +2,7 @@
 
 #### Disabling Listeners On Destroyed Scopes
 
-除了 `$destroy` 事件之外，销毁一个作用域的副作用还包括让事件监听器不会再被触发：
+除了广播 `$destroy` 事件之外，销毁作用域的副作用还包括让事件监听器不会再被触发：
 
 _test/scope_spec.js_
 
@@ -31,7 +31,7 @@ Scope.prototype.$destroy = function() {
     }
   }
   this.$$watchers = null;
-this.$$listeners = {};
+  this.$$listeners = {};
 };
 ```
 
