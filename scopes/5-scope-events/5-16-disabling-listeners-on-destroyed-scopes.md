@@ -22,15 +22,15 @@ it('no longers calls listeners after destroyed', function() {
 
 ```js
 Scope.prototype.$destroy = function() {
-  this.$broadcast('$destroy');
-  if (this.$parent) {
-    var siblings = this.$parent.$$children;
-    var indexOfThis = siblings.indexOf(this);
-    if (indexOfThis >= 0) {
-      siblings.splice(indexOfThis, 1);
-    }
-  }
-  this.$$watchers = null;
+  // this.$broadcast('$destroy');
+  // if (this.$parent) {
+  //   var siblings = this.$parent.$$children;
+  //   var indexOfThis = siblings.indexOf(this);
+  //   if (indexOfThis >= 0) {
+  //     siblings.splice(indexOfThis, 1);
+  //   }
+  // }
+  // this.$$watchers = null;
   this.$$listeners = {};
 };
 ```
