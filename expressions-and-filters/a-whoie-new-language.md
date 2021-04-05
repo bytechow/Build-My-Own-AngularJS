@@ -32,6 +32,6 @@ function parse(expr){
 为了更专注于表达式的本质，在实现过程中我们会略过一些 Angular 表达式本身包含的特性：
 
 - 为了在解析出错时能够显示清晰的错误提示，Angular 表达式解析器做了很多工作。这涉及到记忆输入字符串中字符和标记出现的位置。我们会跳过这部分代码，让实现过程更简单，但代价是错误消息对用户不大友好。
-- Angular 表达式解析器支持 HTML 的[内容安全策略](https://en.wikipedia.org/wiki/Content_Security_Policy)（CSP，Content Security Policy），若配置了 CSP，解析器就会从默认的编译模式（compiled mode）切换为解释模式。本书只关注编译模式，也就是说我们的实现不支持内容安全策略。
+- Angular 表达式解析器支持 HTML 的[内容安全策略](https://en.wikipedia.org/wiki/Content_Security_Policy)（CSP，Content Security Policy），若配置了 CSP，解析器就会从默认的编译模式（compiled mode）切换为解释模式。本书只关注编译模式，也就是说我们的代码实现不支持内容安全策略。
 
 ![](/assets/angularjs-expressions.png)
