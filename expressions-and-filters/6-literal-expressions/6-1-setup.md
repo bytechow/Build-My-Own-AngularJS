@@ -17,13 +17,13 @@ function parse(expr) {
 module.exports = parse;
 ```
 
-> 后面依赖注入实现并且能正常运行之后，我们会把这个函数变成 `$parse` 服务。
+> 后面一旦依赖注入器能启动并正常运行时，我们会把这个函数转换成 `$parse` 服务。
 
-这个文件会包含四个对象，用于将表达式转换为函数：一个是 Lexer，一个是 AST Builder，一个是 AST Compiler，还有一个是 Parse。它们分别负责不同阶段的工作：
+这个文件包含了四个用于将表达式转换为函数的对象：一个是 Lexer（词法分析器），一个是 AST Builder（AST 构建器），一个是 AST Compiler（AST 编译器），还有一个是 Parser（语法解析器）。它们分别负责不同阶段的工作：
 
-Lexer 会接收一个原始的表达式字符串，然后返回一个从这个表达式中解析出来的 token （符号）数组。举个例子，字符串 `“a + b”` 就会被解释为三个 token：`a`、`+` 和 `b`。
+_Lexer_ 会接收一个原始的表达式字符串，然后返回一个数组，数组元素是从这个表达式中解析出来的 token（符号）。举个例子，字符串 `“a + b”` 会被解析为三个 token：`a`、`+` 和 `b`。
 
-`AST Builder` 会接收由 Lexer 生成的 token 数组，并依此构建一棵 `Abstract Syntax Tree`（AST，抽象语法树）。这棵树使用嵌套的 JavaScript 对象来表示表达式的语法结构。比如，`a`、`+` 和 `b` 三个 token 就会被转换为类似下面的东西：
+`AST Builder` 会接收由 Lexer 生成的 token 数组，并依此构建一棵 `Abstract Syntax Tree`（AST，抽象语法树）。这棵树使用嵌套的 JavaScript 对象来表示表达式的语法结构。比如，`a`、`+` 和 `b` 三个 token 就会被转换为类似下面这样的东西：
 
 ```js
 {
@@ -40,7 +40,8 @@ Lexer 会接收一个原始的表达式字符串，然后返回一个从这个�
 }
 ```
 
-AST Compiler 会接收一棵抽象语法树，然后把它编译为一个 JavaScript 函数，这个函数可以语法树形式的表达式进行运算。例如，上面的 AST 可能会被转化成下面的东西：
+_AST Compiler_ 会接收一棵抽象语法树，然后把它编译为一个 JavaScript 函数，这个函数会对这个
+语法树对应的表达式进行运算。上面的 AST 可能会被转化成：
 
 ```js
 function(scope) {
@@ -48,7 +49,7 @@ function(scope) {
 }
 ```
 
-`Parser` 的职责就是把上面几个基础步骤给串起来。它本身没有干什么事情，“重活”都交给 Lexer、AST Builder 和 AST Compiler 做了。
+`Parser` 的职责就是把上面几个基础步骤给串起来而已。它本身没什么工作量，“重活”都委托给 Lexer、AST Builder 和 AST Compiler 去做了。
 
 ![expression-parsing](/assets/6-literal-expressions/expression-parsing.png)
 
