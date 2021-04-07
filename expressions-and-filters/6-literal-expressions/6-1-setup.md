@@ -1,9 +1,9 @@
 ### 初始配置
 #### Setup
 
-我们会把解析 Angular 表达式的代码放到 `src/parse.js` 文件中，文件的名字来源于它对外提供的 `$parse` 服务。
+我们会新建一个文件 `src/parse.js` 来存放解析 Angular 表达式的代码，文件的名字来源于它对外提供的 `$parse` 服务。
 
-在这个文件中，会有一个对外暴露（external-facing）的函数，被称为 `parse`。它接收一个 Angular 表达式字符串，然后返回一个能在指定上下文中执行表达式的函数：
+在文件中，我们只会对外暴露（external-facing）一个 `parse` 函数。它接收一个 Angular 表达式，然后返回一个能在指定上下文中执行表达式的函数：
 
 _src/parse.js_
 
