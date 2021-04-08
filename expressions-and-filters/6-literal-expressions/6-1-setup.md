@@ -53,9 +53,9 @@ function(scope) {
 
 ![expression-parsing](/assets/6-literal-expressions/expression-parsing.png)
 
-这意味着无论你在 Angular 应用中的何处使用了表达式，背后都代表着一个 JavaScript 函数被生成了。在之后的 digest 中，一旦需要对表达式进行求值，这些函数就会被再次执行。
+这意味着，每当我们在 Angular 中使用了表达式，背后都会有一个 JavaScript 函数生成。在之后的 digest 期间一旦需要对表达式进行求值，这些函数就会被重复执行。
 
-下面我们会为上述这些功能准备一些“脚手架”。首先，`Lexer` 会被定义为一个构造函数。它包含了一个叫 `lex` 的方法，这个方法会执行 tokenization （表达式符号拆分）的过程：
+下面我们先来准备一个“脚手架”。首先，`Lexer` 会被定义为一个构造函数。它包含了一个名为 `lex` 的方法，这个方法会执行 tokenization（表达式符号拆分）的过程：
 
 _src/parse.js_
 
@@ -68,7 +68,7 @@ Lexer.prototype.lex = function(text) {
 };
 ```
 
-而 AST Builder（在代码中使用的名称就是 `AST`）则是另一个构造函数。他会接收一个 Lexer 作为参数。它也有一个名为 `ast` 的方法，这个方法会根据表达式转化而出的 token 执行 AST 的构建：
+AST Builder（在代码中就叫 `AST`）是另一个构造函数。他会接收一个 Lexer 作为参数。它也有一个同名方法（名为 `ast`），这个方法会根据表达式拆分出来的 token 执行 AST 的构建：
 
 _src/parse.js_
 
