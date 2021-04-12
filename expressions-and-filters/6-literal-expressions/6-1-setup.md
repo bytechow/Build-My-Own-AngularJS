@@ -82,3 +82,47 @@ AST.prototype.ast = function(text) {
   // AST building will be done here
 };
 ```
+
+AST Compiler 也是一个构造函数，它会接收一个 AST Builder 实例作为参数。AST Compiler 有一个名为 `compile` 的方法，用于把表达式编译为表达式函数：
+
+_src/parse.js_
+
+```js
+function ASTCompiler(astBuilder) {
+  this.astBuilder = astBuilder;
+}
+
+ASTCompiler.prototype.compile = function(text) {
+  var ast = this.astBuilder.ast(text);
+  // AST compilation will be done here
+};
+```
+
+`Parser` 其实也是一个构造函数，它会串起上述流程，形成一条完整的解析管道。它会接收一个 Lexer 实例作为参数，同时也有一个同名方法——`parse`：
+
+_src/parse.js_
+
+```js
+function Parser(lexer) {
+  this.lexer = lexer;
+  this.ast = new AST(this.lexer); this.astCompiler = new ASTCompiler(this.ast);
+}
+
+Parser.prototype.parse = function(text) {
+  return this.astCompiler.compile(text);
+};
+```
+
+现在我们终于可以写公共的 `parse` 函数了，它会创建一个 Lexer 和 Parser，然后调用 `Parser.parse` 方法：
+
+_src/parse.js_
+
+```js
+function parse(expr) {
+  var lexer = new Lexer();
+  var parser = new Parser(lexer);
+  return parser.parse(expr);
+}
+```
+
+这就是整个 `parse.js` 文件的顶层结构。在本章剩余部分和接下来几章中，我们会往这个函数里填充一些有趣的特性，最终实现魔术般的效果。
