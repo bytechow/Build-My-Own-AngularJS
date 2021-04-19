@@ -113,7 +113,7 @@ Parser.prototype.parse = function(text) {
 };
 ```
 
-现在我们终于可以写公共的 `parse` 函数了，它会创建一个 Lexer 和 Parser，然后调用 `Parser.parse` 方法：
+现在终于可以回归到 `parse` 函数了，它会创建一个 Lexer 和 Parser，然后调用 `Parser.parse` 方法：
 
 _src/parse.js_
 
