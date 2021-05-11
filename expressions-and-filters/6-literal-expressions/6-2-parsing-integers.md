@@ -125,7 +125,6 @@ Lexer.prototype.readNumber = function() {
     this.index++;
   }
 };
-`
 ```
 
 这个 `while` 循环会读取当前字符。如果这个字符是一个数字，它会把这个数字加入到本地变量 `number` 中去，然后将字符索引自增 1。如果字符不是数字，就终止这个循环。
