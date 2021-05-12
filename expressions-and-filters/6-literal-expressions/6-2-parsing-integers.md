@@ -152,11 +152,11 @@ Lexer.prototype.readNumber = function() {
 };
 ```
 
-我们仅仅在 `this.tokens` 这个集合加入一个新的 token 而已。这个 token 的 `text` 属性就是当前已完成读取的字符串，而 `value` 属性就是把这个字符串通过 [Number 构造函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) 转化而成的数字值。
+我们仅仅在 `this.tokens` 这个集合加入一个新的 token 而已。这个 token 的 `text` 属性是当前已完成读取的字符串，而 `value` 属性则是使用 [Number 构造函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) 从该字符串转换过来的数值。
 
-现在，Lexer 已经完成了在解析数字过程中属于自己的任务。下面我们来看看 AST 构建器。
+Lexer 已经为解析数字出一份力了，下面我们来看看 AST 构建器。
 
-正如之前介绍的，AST 是一个嵌套的 JavaScript 对象，它使用类似树的形式来表示表达式。这棵树上的每一个节点都会有一个 `type` 属性来描述这个节点代表的语法结构。除了类型信息以外，节点上还会有该类型特定的一些属性，这些属性能提供更多关于这个节点的信息。
+正如之前介绍的，AST 是一个嵌套的 JavaScript 对象结构，它使用类似树的形式来表示表达式。树中的每个节点都会有一个 `type` 属性，用于描述节点代表的句法结构。除了类型以外，节点上还会有跟当前类型相关的其他特定属性，这些属性提供了更多关于这个节点的信息。
 
 举个例子，数字字面量的类型是 `AST.Literal`，而它的 `value` 属性就保存了这个字面量的值：
 
