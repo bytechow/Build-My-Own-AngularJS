@@ -152,7 +152,7 @@ Lexer.prototype.readNumber = function() {
 };
 ```
 
-这里我们把一个新的 token 添加到 `this.tokens` 这个集合中去。这个 token 的 `text` 属性就是我们之前读取过的字符串，而 `value` 属性就是把这个字符串通过 `Number 构造函数` 转化而成的数字值。
+我们仅仅在 `this.tokens` 这个集合加入一个新的 token 而已。这个 token 的 `text` 属性就是当前已完成读取的字符串，而 `value` 属性就是把这个字符串通过 [Number 构造函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number) 转化而成的数字值。
 
 现在，Lexer 已经完成了在解析数字过程中属于自己的任务。下面我们来看看 AST 构建器。
 
