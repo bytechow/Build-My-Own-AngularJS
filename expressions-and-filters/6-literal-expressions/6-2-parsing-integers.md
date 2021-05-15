@@ -207,7 +207,7 @@ AST.Program = 'Program';
 
 后面我们会为所有 AST 节点类型都定义一个这样的标记常量，然后在 AST 编译器中根据这个类型常量来判断应该生成哪种类型的 JavaScript 代码。
 
-每个程序都会有自己的程序体，现在的程序体就是一个数字字面量而已。它的 `type` 就是 `AST.Literal`，而它的代码会由 AST 构建器的 `constant` 方法来生成：
+每个程序都会有自己的程序体，当前表达式的程序体就是一个数字字面量节点，这个节点的 `type` 是 `AST.Literal`，而它的代码会由 AST 构建器的 `constant` 方法来生成：
 
 _src/parse.js_
 
@@ -220,9 +220,9 @@ AST.prototype.constant = function() {
 };
 ```
 
-目前我们只需要访问第一个 token，并获取它的 `value` 属性。
+目前，我们只需要获取第一个 token 的 `value` 属性值就可以了。
 
-我们还需要添加这种节点类型的标记常量：
+我们还需要添加与这种节点类型对应的标记常量：
 
 _src/parse.js_
 
@@ -231,9 +231,9 @@ AST.Program = 'Program';
 AST.Literal = 'Literal';
 ```
 
-这样我们就得到了一个代表数字字面量的 AST 了，下面我们把注意力集中在 AST 编译器以及把这个 AST 转换为 JavaScript 函数上。
+这样我们就得到了一个表示单个数字字面量的 AST 了。下面我们来看看 AST 编译器是如何把这个 AST 转换为 JavaScript 函数的。
 
-AST 编译器的任务是遍历 AST 构建器生成的树，并根据树节点生成对应的 JavaScript 源代码。然后它会根据源代码来生成一个 JavaScript 函数。对于数字字面量来说，它生成的函数将会非常简单：
+AST 编译器要做的是遍历这棵 AST 构建器生成的树，然后根据树节点生成对应的 JavaScript 源代码，最后会根据源代码来生成一个 JavaScript 函数。一个数字字面量表达式生成的函数是非常简单的：
 
 ```js
 function() {
@@ -241,7 +241,7 @@ function() {
 }
 ```
 
-在 AST 编译器中主要用到的 `compile` 函数，我们会引入一个 `state` 属性来保存我们在遍历中收集到的信息。目前，我们只收集一样东西，也就是最终生成函数的函数体内容：
+在编译器主体函数——`compile` 函数中，我们会引入一个 `state` 属性来保存我们在遍历中收集到的信息。目前，我们只需要收集最终会构成函数体的 JavaScript 代码就可以了：
 
 _src/parse.js_
 
@@ -252,7 +252,7 @@ ASTCompiler.prototype.compile = function(text) {
 };
 ```
 
-一旦我们初始化好了 state，我们就可以开始对树进行遍历了，通过一个叫 `recurse` 的函数：
+初始化 state 属性之后，我们就可以开始对树进行遍历了，遍历要用到一个叫 `recurse` 方法：
 
 ```js
 ASTCompiler.prototype.compile = function(text) {
@@ -265,7 +265,7 @@ ASTCompiler.prototype.recurse = function(ast) {
 };
 ```
 
-我们的目标是一旦 `recurse` 的调用结束了，`state.body` 会包含 JavaScript 语句，我们可以根据这些语句创建函数。而这个函数会成为我们的返回值：
+一旦 `recurse` 调用结束，我们希望 `state.body` 已经包含了用于生成表达式函数的 JavaScript 语句，生成的函数将成为 `compile` 方法的返回值：
 
 _src/parse.js_
 
@@ -280,11 +280,11 @@ ASTCompiler.prototype.compile = function(text) {
 };
 ```
 
-我们使用 [Function 构造函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function)来创建这个函数。这个构造函数接收 JavaScript 源代码，然后把它们动态编译为一个函数。这基本上就是 `eval` 的一种方式。JSHint 并不接受 `eval`，所以我们需要显式地告诉它，我们已经知道这种做法有危险，不需要再报警告了。（`W054` 是 JSHint 中的一个数字类型的错误代码，它代表“Function 构造函数也是 eval 的一种方式”）。
+我们使用 [Function 构造函数](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function) 来创建这个函数。`Function` 构造函数接收 JavaScript 源代码，然后把它们动态编译为一个函数。这也算是 `eval` 的一种方式。JSHint 不允许使用 `eval`，所以我们需要明确地告诉它我们已经知道这种做法有危险，不需要再报警告了。（`W054` 是 JSHint 中的一种错误的数字代码，它表示“Function 构造函数也是 eval 的一种方式”）。
 
-最后我们需要再 `recurse` 函数中进行处理。我们希望在这里可以生成指定的 JavaScript 代码，并把这些代码放到 `this.state.body` 中去。
+最后我们还要搞清楚 `recurse` 函数应该做些什么。`recurse` 方法要生成指定的 JavaScript 代码，并把这些代码存放在 `this.state.body` 中。
 
-顾名思义，`recurse` 方法会对树节点进行递归遍历。由于每个节点都有一个 `type`，不同类型的节点需要不同的处理，我们会使用一个 `switch` 语法来切换对不同节点类型的逻辑处理分支：
+顾名思义，`recurse` 方法会对树节点进行递归遍历。由于每个节点都有一个 `type` 属性，不同类型的节点需要不同的处理方式，我们会借用 `switch` 语法来实现这个需求：
 
 _src/parse.js_
 
@@ -297,7 +297,7 @@ ASTCompiler.prototype.recurse = function(ast) {
 };
 ```
 
-字面量是一个“叶子节点”，也就是只包含了值而没有子节点的节点。所以我们可以直接返回这个节点的值：
+由于字面量是一个“叶子节点”（只有值而没有子节点的节点），我们可以直接返回这个节点的值：
 
 _src/parse.js_
 
@@ -306,7 +306,7 @@ case AST.Literal:
   return ast.value
 ```
 
-而对于 Program 节点来说，我们要进行一些额外处理。我们需要为表达式生成一个 return 语句。我们需要返回的是 Program 的 `body` 属性值，我们可以通过 `recurse` 来得到这这个属性值：
+我们还需要 Program 节点进行一些额外处理，我们需要为整个表达式生成一个 `return` 语句。返回值就是 Program 的 `body` 属性值，我们可以通过调用 `recurse` 得到这个属性值：
 
 _src/parse.js_
 
@@ -325,6 +325,3 @@ case AST.Program:
 这里面有相当多的工作，可能有人会觉得没必要这么麻烦，但随着我们往表达式添加更多的特性，不同部分所承担的角色会越来越清晰。
 
 > 你可能已经注意到了，我们这里只考虑了正整数。我们对负数会有不一样的处理，要考虑把负号视为一个运算符而不是数字的一部分。
-
-
-
