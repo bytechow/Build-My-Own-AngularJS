@@ -1,7 +1,7 @@
 ### 解析浮点数
 #### Parsing Floating Point Numbers
 
-我们的语法解析器现在只能处理整数，但像 `4.2` 这种浮点数就无法处理了。
+我们的 Lexer（词法分析器）现在只能处理整数，但像 `4.2` 这种浮点数就无法处理了。
 
 _test/parse_spec.js_
 
@@ -12,7 +12,7 @@ it('can parse a floating point number', function() {
 });
 ```
 
-要解决这个问题也很简单。我们只需要调整 `readNumber`，让它不仅能接受数字，也要接受一个点符号（dot）：
+要解决这个问题也很简单，我们只需要调整一下 `readNumber` 就可以，让它不仅可以接受数字，也可以接受点符号（dot）：
 
 ```js
 Lexer.prototype.readNumber = function() {
