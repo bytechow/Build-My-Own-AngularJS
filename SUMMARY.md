@@ -98,7 +98,7 @@
 ## 二、表达式和过滤器
 
 * [二、表达式和过滤器](expressions-and-filters/expressions-and-filters.md)
-* [一种全新的语言](expressions-and-filters/a-whoie-new-language.md)
+* [一种全新的语言](expressions-and-filters/a-whole-new-language.md)
 * [第6章 字面量表达式](expressions-and-filters/6-literal-expressions/6-literal-expressions.md)
   * [6-1 初始配置](expressions-and-filters/6-literal-expressions/6-1-setup.md)
   * [6-2 解析整数](expressions-and-filters/6-literal-expressions/6-2-parsing-integers.md)
