@@ -1,7 +1,7 @@
 ### 解析浮点数
 #### Parsing Floating Point Numbers
 
-我们的 Lexer（词法分析器）现在只能处理整数，但像 `4.2` 这种浮点数就无法处理了。
+我们的 Lexer（词法分析器）现在能处理整数了，但还无法处理像 `4.2` 这样的浮点数。
 
 _test/parse_spec.js_
 
@@ -33,9 +33,9 @@ Lexer.prototype.readNumber = function() {
 };
 ```
 
-我们不需要对点符号进行特殊处理，因为原生的 JavaScript 本来就支持这种数字类型。
+我们不需要为了解析点符号而做什么特殊处理，因为原生 JavaScript 内置的强制数字转换可以处理它。
 
-当一个浮点数的整数部分是 0 的时候，Angular 表达式允许你忽略不写整数值，这跟 JavaScript 的规则是一致的。但目前我们的代码还不支持这种形式，所以下面这个单元测试会报错：
+当浮点数的整数部分为 0 时，Angular 表达式允许我们忽略不写整数值，这跟 JavaScript 是一样的。但目前我们的代码还不支持这种形式，所以下面这个单元测试会报错：
 
 _test/parse_spec.js_
 
@@ -46,9 +46,9 @@ it('can parse a floating point number without an integer part', function() {
 });
 ```
 
-原因在于 lex 函数中，我们使用 `readNumber` 读取数字时判断条件仅仅是看当前字符是不是一个数字。当当前字符是一个点（dot），而且下一个字符是一个数字的话，我们也要判断这种情况符合读取数字的规则。
+原因是现在在 lex 函数中，我们仅仅是通过检查当前字符是否是数字来决定是否执行 `readNumber` 读取数字。当当前字符是一个点时（dot）且下一个字符是数字的话，我们也应该执行 `readNumber` 读取数字。
 
-首先，为了判断下一个字符的类型，我们会在 lexer 中新增一个叫 `peek` 的函数。它会返回在文本中的下一个字符，但不会增加字符索引。如果没有下一个字符了，`peek` 返回的是 `false`：
+首先为了获取下一个字符的类型，我们在 lexer 中新增一个叫 `peek` 的函数。它会返回字符串中的下一个字符，但不会递增字符索引。如果没有下一个字符了，`peek` 会返回 `false`：
 
 _src/parse.js_
 
@@ -60,7 +60,7 @@ Lexer.prototype.peek = function() {
 };
 ```
 
-`lex` 函数会使用这个函数的返回值作为是否继续读取数字的判断条件：
+`lex` 函数会根据这个函数的返回值来判断是否要继续读取数字：
 
 _src/parse.js_
 
@@ -84,4 +84,4 @@ Lexer.prototype.lex = function(text) {
 };
 ```
 
-这样我们就能处理浮点数了！
+这就是解析浮点数的实现过程了！
