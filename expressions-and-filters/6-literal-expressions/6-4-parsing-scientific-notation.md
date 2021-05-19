@@ -12,7 +12,7 @@ it('can parse a number in scientific notation', function() {
 });
 ```
 
-另外，科学记数法中的系数也不一定就是一个整数：
+另外，科学记数法中的系数不一定是整数：
 
 _test/parse_spec.js_
 
@@ -23,7 +23,7 @@ it('can parse scientific notation with a float coefficient', function() {
 });
 ```
 
-而科学记数法中的指数也可能是负数，让系数乘以负的 10 次方：
+科学记数法的指数也可以是负数，结果就是系数乘以负的 10 次方：
 
 _test/parse_spec.js_
 
@@ -34,7 +34,7 @@ it('can parse scientific notation with negative exponents', function() {
 });
 ```
 
-指数也能被显式地标识为一个正数，只要在前面加一个 `+` 号就好了：
+指数也可以显式地表示为正数，只要在它前面加一个 `+` 号就好了：
 
 _test/parse_spec.js_
 
@@ -45,7 +45,7 @@ it('can parse scientific notation with the + sign', function() {
 });
 ```
 
-最后，系数与指数之间的分隔符也可能是大写的 `E`：
+最后，系数与指数之间的分隔符也可以是大写的 `E`：
 
 _test/parse_spec.js_
 
@@ -56,7 +56,7 @@ it('can parse upper case scientific notation', function() {
 });
 ```
 
-我们已经把所有科学记数法的规则都定义好了，又该如何实现它呢？最直接的方法就是先把字符变成小写，然后检查字符是否 `e`、`-` 或 `+`，是的话就把这个字符传递下去，最后依靠 JavaScript 的数字类型机制完成剩余的工作。这确实能让我们的单元测试通过：
+有了科学记数法的规范以后，我们又该怎么实现它呢？最直接的方法就是先把每个字符变成小写，如果字符是 `e`、`-` 或 `+`，我们就直接把它当作数字的一部分拼接起来，最后利用 JavaScript 的数字强制转换机制完成剩下的工作。这样确实就能让我们的单元测试通过：
 
 ```js
 Lexer.prototype.readNumber = function() {
@@ -78,7 +78,7 @@ Lexer.prototype.readNumber = function() {
 };
 ```
 
-你可能也猜到，事情并没有那么简单。虽然目前的代码能够正确处理科学记数法，但它对非法符号太“仁慈”了，会让类似下边的残缺数字字面量也能通过校验：
+你可能也猜到了，事情并没有那么简单。虽然目前的代码能够正确解析科学记数法，但它对无效的计数法太宽松了，以至于连下边这种残缺数字字面量都能通过校验：
 
 _test/parse_spec.js_
 
@@ -89,7 +89,7 @@ it('will not parse invalid scientific notation', function() {
 });
 ```
 
-下面我们来严格规范一下。首先，我们需要引入_指数运算符_（exponent operator）这个概念。也就是说，允许出现在科学记数法 `e` 字符后的字符。可能是个数字、加号或减号：
+下面我们来严格规范一下。首先，我们需要介绍一下_指数运算符_（exponent operator）这个概念。也就是说，允许出现在科学记数法 `e` 字符后的字符。可能是个数字、加号或减号：
 
 _src/parse.js_
 
