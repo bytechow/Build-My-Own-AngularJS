@@ -89,7 +89,7 @@ it('will not parse invalid scientific notation', function() {
 });
 ```
 
-下面我们来重新梳理一下。首先，我们需要介绍一下_指数运算符_（exponent operator）这个概念。也就是说，允许出现在科学记数法 `e` 字符后的字符。可能是个数字、加号或减号：
+要把事情弄清楚，就需要先明确_指数运算符_（exponent operator）的概念。指数运算符是指在科学记数法中允许出现在 `e` 字符后的字符。它可能是一个数字、加号或减号：
 
 _src/parse.js_
 
