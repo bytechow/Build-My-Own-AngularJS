@@ -99,7 +99,7 @@ Lexer.prototype.isExpOperator = function(ch) {
 };
 ```
 
-接下来，我们需要在 `readNumber` 中使用这个校验。我们需要先撤销之前的修改，然后加入一个 `else` 分支来处理科学记数法：
+接下来，我们需要在 `readNumber` 方法中使用这个校验。首先，我们需要撤销之前的修改，然后加入一个空的 `else` 分支，我们将在这里处理科学记数法：
 
 _src/parse.js_
 
