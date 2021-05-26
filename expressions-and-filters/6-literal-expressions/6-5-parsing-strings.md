@@ -132,7 +132,7 @@ _src/parse.js_
 var _ = require('lodash');
 ```
 
-我们对输入字符串的开始和结束引号也有点太宽松了，因为我们允许字符串以不同类型的引号结束，而不是以它开始的引号结束：
+我们对输入字符串的开始和结束引号也有点太宽松了，因为我们允许字符串使用类型不同的引号结束：
 
 _test/parse\_spec.js_
 
@@ -142,7 +142,7 @@ it('will not parse a string with mismatching quotes', function() {
 });
 ```
 
-我们需要保证标记字符串开始和结束的引号要一致才行。首先在 `lex` 函数中在调用 `readString` 方法时，我们需要把标记字符串开始的引号传递过去：
+我们需要保证标记字符串开始和结束的引号类型要一致才行。为此，在 `lex` 函数调用 `readString` 方法时，我们需要把字符串开头的引号传递进去：
 
 _src/parse.js_
 
@@ -167,7 +167,7 @@ Lexer.prototype.lex = function(text) {
 };
 ```
 
-现在在 `readString` 中，我们就可以直接用这个传入的引号字符来判断字符串是否结束了，而不再使用字面量 `'` 或 `"`：
+在 `readString` 中，我们现在可以用传入的引号字符代替字面量 `'` 或 `"`来检查字符串终止：
 
 _src/parse.js_
 
